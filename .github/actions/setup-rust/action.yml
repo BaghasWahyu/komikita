@@ -1,5 +1,5 @@
 name: Set up KomiKita Rust
-description: Install the Rust Android targets and cargo-ndk used by KomiKita.
+description: Set up the Android SDK, NDK, Rust Android targets, and cargo-ndk used by KomiKita.
 runs:
   using: composite
   steps:
@@ -9,6 +9,8 @@ runs:
         rustup toolchain install stable --profile minimal --component rustfmt --component clippy
         echo "RUSTUP_TOOLCHAIN=stable" >> "$GITHUB_ENV"
         rustup target add --toolchain stable aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@138b5fb1cf087fdb4c5f3c621466fe304d0cf2e3 # v4.0.3
     - name: Install Android NDK
       shell: bash
       run: sdkmanager "ndk;29.0.14206865"
