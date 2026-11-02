@@ -45,14 +45,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import logcat.LogPriority
 import mihon.app.di.appGraph
-import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.rounded.Public
-import mihon.icons.simpleicons.Discord
-import mihon.icons.simpleicons.Facebook
 import mihon.icons.simpleicons.Github
-import mihon.icons.simpleicons.Reddit
 import mihon.icons.simpleicons.SimpleIcons
-import mihon.icons.simpleicons.X
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.release.interactor.GetApplicationRelease
@@ -149,6 +143,14 @@ object AboutScreen : Screen() {
                     }
                 }
 
+                item {
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.komikita_credits),
+                        subtitle = "Mihon Open Source Project · Tachiyomi",
+                        onPreferenceClick = { uriHandler.openUri("${Constants.URL_PROJECT}/blob/main/CREDITS.md") },
+                    )
+                }
+
                 if (!BuildConfig.DEBUG) {
                     item {
                         TextPreferenceWidget(
@@ -168,7 +170,7 @@ object AboutScreen : Screen() {
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.privacy_policy),
-                        onPreferenceClick = { uriHandler.openUri("https://mihon.app/privacy/") },
+                        onPreferenceClick = { uriHandler.openUri(Constants.URL_PRIVACY) },
                     )
                 }
 
@@ -180,34 +182,14 @@ object AboutScreen : Screen() {
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         LinkIcon(
-                            label = stringResource(MR.strings.website),
-                            icon = MaterialSymbols.Rounded.Public,
-                            url = "https://mihon.app",
-                        )
-                        LinkIcon(
-                            label = "Discord",
-                            icon = SimpleIcons.Discord,
-                            url = Constants.URL_DISCORD,
-                        )
-                        LinkIcon(
-                            label = "X",
-                            icon = SimpleIcons.X,
-                            url = "https://x.com/mihonapp",
-                        )
-                        LinkIcon(
-                            label = "Facebook",
-                            icon = SimpleIcons.Facebook,
-                            url = "https://facebook.com/mihonapp",
-                        )
-                        LinkIcon(
-                            label = "Reddit",
-                            icon = SimpleIcons.Reddit,
-                            url = "https://www.reddit.com/r/mihonapp",
-                        )
-                        LinkIcon(
-                            label = "GitHub",
+                            label = "KomiKita",
                             icon = SimpleIcons.Github,
-                            url = "https://github.com/mihonapp",
+                            url = Constants.URL_PROJECT,
+                        )
+                        LinkIcon(
+                            label = stringResource(MR.strings.komikita_report_issue),
+                            icon = SimpleIcons.Github,
+                            url = Constants.URL_ISSUES,
                         )
                     }
                 }

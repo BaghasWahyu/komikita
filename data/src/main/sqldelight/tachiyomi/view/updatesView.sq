@@ -34,6 +34,11 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE dateUpload > :after
+AND NOT EXISTS (
+    SELECT 1 FROM manga_category
+    WHERE manga_category.manga_id = updatesView.mangaId
+    AND manga_category.category_id IN :hiddenCategories
+)
 AND (:read IS NULL OR read = :read)
 -- Started means some progress but not finished, Read means finished chapter, thus:
 AND (
@@ -80,6 +85,11 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE read = 1
+AND NOT EXISTS (
+    SELECT 1 FROM manga_category
+    WHERE manga_category.manga_id = updatesView.mangaId
+    AND manga_category.category_id IN :hiddenCategories
+)
 AND dateUpload > :after
 ORDER BY dateFetch DESC
 LIMIT :limit;
@@ -91,6 +101,11 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE read = 0
+AND NOT EXISTS (
+    SELECT 1 FROM manga_category
+    WHERE manga_category.manga_id = updatesView.mangaId
+    AND manga_category.category_id IN :hiddenCategories
+)
 AND dateUpload > :after
 ORDER BY dateFetch DESC
 LIMIT :limit;

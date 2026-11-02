@@ -48,6 +48,7 @@ internal fun LibraryComfortableGrid(
                     UnreadBadge(count = libraryItem.badges.unreadCount)
                 },
                 coverBadgeEnd = {
+                    ExtensionBadge(sourceId = libraryItem.badges.sourceId)
                     LanguageBadge(
                         isLocal = libraryItem.badges.isLocal,
                         sourceLanguage = libraryItem.badges.sourceLanguage,

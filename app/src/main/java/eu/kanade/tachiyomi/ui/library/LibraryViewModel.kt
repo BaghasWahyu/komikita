@@ -152,8 +152,10 @@ class LibraryViewModel(
         combine(tracks, getTrackingFiltersFlow(), ::Pair),
         getLibraryItemPreferencesFlow(),
     ) { searchQuery, categories, favorites, (tracksMap, trackingFilters), itemPreferences ->
-        val showSystemCategory = favorites.any { it.libraryManga.categories.contains(0) }
-        val filteredFavorites = favorites
+        // Apply visibility from this preference snapshot before grouping or searching.
+        val visibleFavorites = favorites.filter { it.libraryManga.isVisibleInLibrary(itemPreferences.hiddenCategories) }
+        val showSystemCategory = visibleFavorites.any { it.libraryManga.categories.contains(0) }
+        val filteredFavorites = visibleFavorites
             .applyFilters(tracksMap, trackingFilters, itemPreferences)
             .let { libraryItems ->
                 if (searchQuery.isNullOrEmpty()) {
@@ -167,7 +169,7 @@ class LibraryViewModel(
         LibraryData(
             isInitialized = true,
             showSystemCategory = showSystemCategory,
-            categories = categories,
+            categories = categories.filterNot { it.id in itemPreferences.hiddenCategories },
             favorites = filteredFavorites,
             tracksMap = tracksMap,
             loggedInTrackerIds = trackingFilters.keys,
@@ -396,6 +398,8 @@ class LibraryViewModel(
             libraryPreferences.filterBookmarked.changes(),
             libraryPreferences.filterCompleted.changes(),
             libraryPreferences.filterIntervalCustom.changes(),
+            libraryPreferences.extensionBadge.changes(),
+            libraryPreferences.hiddenCategories.changes(),
         ) {
             ItemPreferences(
                 downloadBadge = it[0] as Boolean,
@@ -410,6 +414,10 @@ class LibraryViewModel(
                 filterBookmarked = it[9] as TriState,
                 filterCompleted = it[10] as TriState,
                 filterIntervalCustom = it[11] as TriState,
+                extensionBadge = it[12] as Boolean,
+                hiddenCategories = (it[13] as Set<*>).mapNotNull { value ->
+                    (value as? String)?.toLongOrNull()
+                }.toSet(),
             )
         }
     }
@@ -419,7 +427,8 @@ class LibraryViewModel(
             getLibraryManga.subscribe(),
             getLibraryItemPreferencesFlow(),
             downloadCache.changes.pausedWhileUnsubscribed(),
-        ) { libraryManga, preferences, _ ->
+        ) { allLibraryManga, preferences, _ ->
+            val libraryManga = allLibraryManga.filter { it.isVisibleInLibrary(preferences.hiddenCategories) }
             val sources = libraryManga
                 .mapTo(mutableSetOf()) { it.manga.source }
                 .associateWith { sourceManager.getOrStub(it) }
@@ -435,6 +444,7 @@ class LibraryViewModel(
                     sourceName = source.name.lowercase(),
                     sourceLanguage = source.lang,
                     badges = LibraryItem.Badges(
+                        sourceId = manga.manga.source.takeIf { preferences.extensionBadge && !manga.manga.isLocal() },
                         downloadCount = if (preferences.downloadBadge) {
                             downloadCount
                         } else {
@@ -764,6 +774,8 @@ class LibraryViewModel(
         val unreadBadge: Boolean,
         val localBadge: Boolean,
         val languageBadge: Boolean,
+        val extensionBadge: Boolean,
+        val hiddenCategories: Set<Long>,
         val skipOutsideReleasePeriod: Boolean,
 
         val globalFilterDownloaded: Boolean,

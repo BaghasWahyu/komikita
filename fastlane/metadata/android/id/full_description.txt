@@ -1,0 +1,17 @@
+KomiKita adalah pembaca manga, komik, dan webtoon open-source untuk Android 8.0 ke atas.
+
+Komik favorit, selalu dekat. Atur koleksi, baca sesuai kenyamanan, dan simpan progres membaca Anda.
+
+Fitur:
+- Sesuaikan mode pembaca halaman dan webtoon, arah baca, tema, serta kontrol.
+- Atur perpustakaan dengan kategori, pencarian, dan filter.
+- Unduh chapter untuk membaca offline.
+- Sembunyikan kategori beserta komiknya, atau ekstensi beserta sumbernya dari Jelajah tanpa menghapus instalasi.
+- Tampilkan badge ikon ekstensi di perpustakaan jika diinginkan.
+- Lacak progres membaca dan jadwalkan pembaruan perpustakaan.
+- Cadangkan dan pulihkan perpustakaan beserta pengaturan.
+- Gunakan opsi hemat baterai pembaca untuk mengutamakan refresh rate layar hingga 60 Hz.
+
+Telemetry dan pembaruan aplikasi otomatis dinonaktifkan secara bawaan. Dokumentasi proyek tersedia dalam bahasa Inggris dan Bahasa Indonesia.
+
+KomiKita dikembangkan dari Mihon dan Tachiyomi, dengan kredit kepada tim serta para kontributornya. KomiKita tidak menghosting konten, menyediakan ekstensi, atau berafiliasi dengan penyedia konten.

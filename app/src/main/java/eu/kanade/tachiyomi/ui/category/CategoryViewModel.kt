@@ -28,6 +28,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.RenameCategory
 import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import kotlin.time.Duration.Companion.seconds
 
@@ -41,6 +42,7 @@ class CategoryViewModel(
     private val deleteCategory: DeleteCategory,
     private val reorderCategory: ReorderCategory,
     private val renameCategory: RenameCategory,
+    private val libraryPreferences: LibraryPreferences,
 ) : ViewModel() {
 
     private val _events: Channel<CategoryEvent> = Channel()
@@ -51,10 +53,12 @@ class CategoryViewModel(
     val state: StateFlow<CategoryScreenState> = combine(
         getCategories.subscribe(),
         dialog,
-    ) { categories, dialog ->
+        libraryPreferences.hiddenCategories.changes(),
+    ) { categories, dialog, hiddenCategories ->
         CategoryScreenState.Success(
             categories = categories.filterNot(Category::isSystemCategory),
             dialog = dialog,
+            hiddenCategories = hiddenCategories,
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), CategoryScreenState.Loading)
@@ -96,6 +100,12 @@ class CategoryViewModel(
         }
     }
 
+    fun toggleHidden(category: Category) {
+        val id = category.id.toString()
+        val hidden = libraryPreferences.hiddenCategories.get()
+        libraryPreferences.hiddenCategories.set(if (id in hidden) hidden - id else hidden + id)
+    }
+
     fun showDialog(dialog: CategoryDialog) {
         this.dialog.update { dialog }
     }
@@ -125,6 +135,7 @@ sealed interface CategoryScreenState {
     data class Success(
         val categories: List<Category>,
         val dialog: CategoryDialog? = null,
+        val hiddenCategories: Set<String> = emptySet(),
     ) : CategoryScreenState {
 
         val isEmpty: Boolean

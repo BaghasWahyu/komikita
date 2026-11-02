@@ -1,49 +1,43 @@
-Looking to report an issue/bug or make a feature request? Please refer to the [README file](https://github.com/mihonapp/mihon#issues-feature-requests-and-contributing).
+**English** | [Bahasa Indonesia](CONTRIBUTING.id.md)
 
----
+# Contributing to KomiKita
 
-Thanks for your interest in contributing to Mihon!
+Report bugs and suggest features through [KomiKita Issues](https://github.com/BaghasWahyu/komikita/issues). Include the app version, Android version, reproduction steps, and logs with personal information removed. Reports and contributions are welcome in English or Bahasa Indonesia.
 
+## Setup
 
-# Code contributions
+- Android Studio and JDK 21 (Java 17 bytecode target).
+- SDK versions from `gradle/mihon.versions.toml`: compile SDK 37.2, target SDK 36, minimum SDK 26; NDK 29.0.14206865.
+- Stable Rust, Android targets, and cargo-ndk for native builds; see the [native module guide](docs/NATIVE.md).
+- Add `sdk.dir=...` to `local.properties` or set `ANDROID_HOME`.
 
-Pull requests are welcome!
+Use the project's Gradle Wrapper. On Windows, replace `./gradlew` with `gradlew.bat`.
 
-If you're interested in taking on [an open issue](https://github.com/mihonapp/mihon/issues), please comment on it so others are aware.
-You do not need to ask for permission nor an assignment.
+```sh
+./gradlew assembleDebug
+./gradlew spotlessCheck testDebugUnitTest verifySqlDelightMigration
+```
 
-## Prerequisites
+To build without the Rust toolchain, use `-Penable-rust=false`; the Kotlin implementation remains available.
 
-Before you start, please note that the ability to use following technologies is **required** and that existing contributors will not actively teach them to you.
+## Distribution
 
-- Basic [Android development](https://developer.android.com/)
-- [Kotlin](https://kotlinlang.org/)
+The application ID is `app.komikita`; debug, FOSS, nightly, and benchmark variants have separate suffixes. Configure a KomiKita keystore through `keystore.properties`. Do not commit keystores or credentials.
 
-### Tools
+The app updater is disabled by default. Enable it for stable builds ready for distribution with `-Penable-updater=true`. The update repository is `BaghasWahyu/komikita`.
 
-- [Android Studio](https://developer.android.com/studio)
-- Emulator or phone with developer options enabled to test changes.
+Firebase is not included by default. If needed, provide your own `app/google-services.json` covering every application ID you build, then use `-Pinclude-telemetry=true`. Data collection follows the user's consent settings.
 
-## Getting help
+The release workflow creates draft releases in the KomiKita repository. Configure the `SIGNING_KEY`, `KEY_STORE_PASSWORD`, `ALIAS`, and `KEY_PASSWORD` secrets before running it.
 
-- Join [the Discord server](https://discord.gg/mihon) for online help and to ask questions while developing.
+## Translations and compatibility
 
-# Translations
+English app strings are in `i18n/src/commonMain/moko-resources/base/`; Indonesian strings are in `i18n/src/commonMain/moko-resources/in/`. Existing upstream translations are retained. See the [translation guide](i18n/README.md).
 
-Translations are done externally via Weblate. See [our website](https://mihon.app/docs/contribute#translation) for more details.
+English is the primary language for project documentation. Keep the linked Indonesian version in sync when changing a guide. See the [documentation index](docs/README.md) for both versions.
 
+Source namespaces, Tachiyomi extension contracts, ComicInfo metadata, the backup format, and OAuth callbacks registered with providers are retained. See [project identity and compatibility](docs/BRANDING.md).
 
-# Forks
+## Credits
 
-Forks are allowed so long as they abide by [the project's LICENSE](https://github.com/mihonapp/mihon/blob/main/LICENSE).
-
-When creating a fork, remember to:
-
-- To avoid confusion with the main app:
-    - Change the app name
-    - Change the app icon
-    - Change or disable the [app update checker](https://github.com/mihonapp/mihon/blob/main/app/src/main/java/eu/kanade/tachiyomi/data/updater/AppUpdateChecker.kt)
-- To avoid installation conflicts:
-    - Change the `applicationId` in [`build.gradle.kts`](https://github.com/mihonapp/mihon/blob/main/app/build.gradle.kts)
-- To avoid having your data polluting the main app's analytics and crash report services:
-    - If you want to use Firebase analytics, replace [`google-services.json`](https://github.com/mihonapp/mihon/blob/main/app/src/standard/google-services.json) with your own
+Retain the [license](LICENSE), Mihon/Tachiyomi credits, and contributor copyright notices when modifying or distributing the fork.

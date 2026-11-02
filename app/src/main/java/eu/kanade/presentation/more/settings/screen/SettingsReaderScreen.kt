@@ -106,6 +106,11 @@ object SettingsReaderScreen : SearchableSettings {
                     visible = LocalView.current.hasDisplayCutout() && fullscreen,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
+                    preference = readerPreferences.batterySaver,
+                    title = stringResource(MR.strings.komikita_reader_battery_saver),
+                    subtitle = stringResource(MR.strings.komikita_reader_battery_saver_summary),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.keepScreenOn,
                     title = stringResource(MR.strings.pref_keep_screen_on),
                 ),

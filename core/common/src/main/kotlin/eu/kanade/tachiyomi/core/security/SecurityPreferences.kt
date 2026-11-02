@@ -26,6 +26,11 @@ class SecurityPreferences(
 
     val hideNotificationContent: Preference<Boolean> = preferenceStore.getBoolean("hide_notification_content", false)
 
+    val authenticateHiddenCategories: Preference<Boolean> = preferenceStore.getBoolean(
+        "komikita_authenticate_hidden_categories",
+        false,
+    )
+
     /**
      * For app lock. Will be set when there is a pending timed lock.
      * Otherwise, this pref should be deleted.

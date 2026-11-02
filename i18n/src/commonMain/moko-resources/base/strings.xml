@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Mihon</string>
+    <string name="app_name" translatable="false">KomiKita</string>
 
     <!-- Generic strings -->
     <string name="on">On</string>
@@ -1086,4 +1086,19 @@
     <string name="donationCampaign.paragraph3">Regardless, Mihon will continue to be maintained by me and the volunteers, and it will stay open source.</string>
     <string name="donationCampaign.contactPlatform">Discord</string>
     <string name="donationCampaign.dismiss">Dismiss</string>
+    <string name="komikita_report_issue">Report an issue</string>
+    <string name="komikita_contribute">Contribute to KomiKita</string>
+    <string name="komikita_support_description">Help improve KomiKita by reporting bugs, suggesting features, translating, or contributing code. Built on the work of the Mihon and Tachiyomi communities.</string>
+    <string name="komikita_hide_category">Hide category and its comics</string>
+    <string name="komikita_show_category">Show category and its comics</string>
+    <string name="komikita_hide_extension">Hide extension and its sources</string>
+    <string name="komikita_show_extension">Show extension and its sources</string>
+    <string name="komikita_show_hidden_extensions">Show hidden extensions</string>
+    <string name="komikita_hide_hidden_extensions">Hide hidden extensions</string>
+    <string name="komikita_display_extension_icon">Show extension icons</string>
+    <string name="komikita_extension_icon">Comic extension</string>
+    <string name="komikita_credits">Credits and acknowledgements</string>
+    <string name="komikita_reader_battery_saver">Save battery while reading</string>
+    <string name="komikita_reader_battery_saver_summary">Prefer a screen refresh rate up to 60 Hz while reading. Turn off for smoother high refresh rate scrolling.</string>
+    <string name="komikita_update_removed">Skipped because comic was removed from the library</string>
 </resources>

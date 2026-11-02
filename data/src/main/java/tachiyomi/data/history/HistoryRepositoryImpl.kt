@@ -7,7 +7,9 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Database
@@ -16,23 +18,28 @@ import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.history.repository.HistoryRepository
+import tachiyomi.domain.library.service.LibraryVisibility
 
 @Inject
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class HistoryRepositoryImpl(
     private val database: Database,
+    private val visibility: LibraryVisibility,
 ) : HistoryRepository {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getHistory(query: String): Flow<List<HistoryWithRelations>> {
-        return database.historyViewQueries
-            .history(query, HistoryMapper::mapHistoryWithRelations)
-            .subscribeToList()
+        return visibility.changes().flatMapLatest { hiddenCategories ->
+            database.historyViewQueries
+                .history(query, hiddenCategories, HistoryMapper::mapHistoryWithRelations)
+                .subscribeToList()
+        }
     }
 
     override suspend fun getLastHistory(): HistoryWithRelations? {
         return database.historyViewQueries
-            .getLatestHistory(HistoryMapper::mapHistoryWithRelations)
+            .getLatestHistory(visibility.hiddenCategoryIds(), HistoryMapper::mapHistoryWithRelations)
             .awaitAsOneOrNull()
     }
 

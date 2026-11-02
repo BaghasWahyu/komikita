@@ -34,6 +34,11 @@ class SourcePreferences(
 
     val disabledSources: Preference<Set<String>> = preferenceStore.getStringSet("hidden_catalogues", emptySet())
 
+    val hiddenExtensions: Preference<Set<String>> = preferenceStore.getStringSet(
+        "komikita_hidden_extensions",
+        emptySet(),
+    )
+
     val incognitoExtensions: Preference<Set<String>> = preferenceStore.getStringSet("incognito_extensions", emptySet())
 
     val pinnedSources: Preference<Set<String>> = preferenceStore.getStringSet("pinned_catalogues", emptySet())

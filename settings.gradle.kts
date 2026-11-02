@@ -7,6 +7,9 @@ pluginManagement {
         maven(url = "https://www.jitpack.io")
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
 dependencyResolutionManagement {
     versionCatalogs {
@@ -28,13 +31,14 @@ dependencyResolutionManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "Mihon"
+rootProject.name = "KomiKita"
 include(":app")
 include(":baseline-profile")
 include(":core-metadata")
 include(":core:archive")
 include(":core:common")
 include(":core:metro")
+include(":core:native")
 include(":data")
 include(":domain")
 include(":i18n")

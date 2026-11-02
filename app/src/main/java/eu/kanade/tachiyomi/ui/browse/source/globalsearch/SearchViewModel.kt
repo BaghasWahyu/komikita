@@ -87,7 +87,12 @@ abstract class SearchViewModel(
     }
 
     open suspend fun getEnabledSources(): List<Source> {
+        val hiddenPackages = preferences.hiddenExtensions.get()
+        val hiddenSourceIds = extensionManager.getLoadedExtensions()
+            .filter { it.pkgName in hiddenPackages }
+            .flatMap { it.sources }.mapTo(mutableSetOf()) { it.id }
         return sourceManager.getAll()
+            .filterNot { it.id in hiddenSourceIds }
             .filter { (it.lang in enabledLanguages || it.isLocal()) && "${it.id}" !in disabledSources }
             .sortedWith(
                 compareBy(

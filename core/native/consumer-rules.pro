@@ -1,0 +1,1 @@
+-keep class app.komikita.core.nativecore.NativeChapterEngine { *; }

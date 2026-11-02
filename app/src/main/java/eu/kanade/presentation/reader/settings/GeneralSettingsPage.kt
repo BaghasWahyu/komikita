@@ -113,6 +113,11 @@ internal fun ColumnScope.GeneralPage(viewModel: ReaderSettingsViewModel) {
     }
 
     CheckboxItem(
+        label = stringResource(MR.strings.komikita_reader_battery_saver),
+        pref = viewModel.preferences.batterySaver,
+    )
+
+    CheckboxItem(
         label = stringResource(MR.strings.pref_keep_screen_on),
         pref = viewModel.preferences.keepScreenOn,
     )

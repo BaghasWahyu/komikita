@@ -15,6 +15,9 @@ data class LibraryManga(
 ) {
     val id: Long = manga.id
 
+    /** A hidden category hides the comic even when it also belongs to a visible category. */
+    fun isVisibleInLibrary(hiddenCategories: Set<Long>): Boolean = categories.none { it in hiddenCategories }
+
     val unreadCount
         get() = totalChapters - readCount
 

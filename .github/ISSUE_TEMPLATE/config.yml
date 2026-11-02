@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: ❌ Help with Extensions
-    url: https://mihon.app/docs/faq/browse/extensions
-    about: For extension-related questions/issues
-  - name: 🖥️ Mihon website
-    url: https://mihon.app/
-    about: Guides, troubleshooting, and answers to common questions
+  - name: Documentation (English)
+    url: https://github.com/BaghasWahyu/komikita/blob/main/docs/README.md
+    about: KomiKita features, setup, privacy, and development guides.
+  - name: Dokumentasi (Bahasa Indonesia)
+    url: https://github.com/BaghasWahyu/komikita/blob/main/docs/id/README.md
+    about: Panduan fitur, persiapan, privasi, dan pengembangan KomiKita.
+  - name: Upstream technical documentation
+    url: https://mihon.app/docs/
+    about: Guides for features KomiKita inherits from Mihon.

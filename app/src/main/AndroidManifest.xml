@@ -82,6 +82,14 @@
                 <data android:host="extension-store" />
             </intent-filter>
 
+            <!-- KomiKita extension store deeplink -->
+            <intent-filter android:label="@string/action_addExtensionStore">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="komikita" android:host="extension-store" />
+            </intent-filter>
+
             <!-- Open backup files -->
             <intent-filter android:label="@string/pref_restore_backup">
                 <action android:name="android.intent.action.VIEW" />

@@ -61,10 +61,16 @@ class ExtensionsViewModel(
     val updatesCount = preferences.extensionUpdatesCount.changes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), 0)
 
+    val showHidden: StateFlow<Boolean>
+        field = MutableStateFlow(false)
+
     private val isRefreshing = MutableStateFlow(false)
 
-    private fun extensionMapper(map: Map<String, InstallStep>): (Extension) -> ExtensionUiModel.Item = {
-        ExtensionUiModel.Item(it, map[it.pkgName] ?: InstallStep.Idle)
+    private fun extensionMapper(
+        map: Map<String, InstallStep>,
+        hidden: Set<String>,
+    ): (Extension) -> ExtensionUiModel.Item = {
+        ExtensionUiModel.Item(it, map[it.pkgName] ?: InstallStep.Idle, it.pkgName.substringBefore('-') in hidden)
     }
 
     @Suppress("LocalVariableName")
@@ -75,19 +81,23 @@ class ExtensionsViewModel(
             .map { searchQueryPredicate(it ?: "") },
         currentDownloads,
         getExtensions.subscribe(),
-    ) { predicate, downloads, (_updates, _loaded, _available, _notLoaded) ->
+        combine(preferences.hiddenExtensions.changes(), showHidden, ::Pair),
+    ) { searchPredicate, downloads, (_updates, _loaded, _available, _notLoaded), (hidden, showHidden) ->
+        val predicate: (Extension) -> Boolean = {
+            searchPredicate(it) && (showHidden || it.pkgName.substringBefore('-') !in hidden)
+        }
         buildMap {
-            val updates = _updates.filter(predicate).map(extensionMapper(downloads))
+            val updates = _updates.filter(predicate).map(extensionMapper(downloads, hidden))
             if (updates.isNotEmpty()) {
                 put(ExtensionUiModel.Header.Resource(MR.strings.ext_updates_pending), updates)
             }
 
-            val notLoaded = _notLoaded.filter(predicate).map(extensionMapper(downloads))
+            val notLoaded = _notLoaded.filter(predicate).map(extensionMapper(downloads, hidden))
             if (notLoaded.isNotEmpty()) {
                 put(ExtensionUiModel.Header.Resource(MR.strings.ext_not_loaded), notLoaded)
             }
 
-            val loaded = _loaded.filter(predicate).map(extensionMapper(downloads))
+            val loaded = _loaded.filter(predicate).map(extensionMapper(downloads, hidden))
             if (loaded.isNotEmpty()) {
                 put(ExtensionUiModel.Header.Resource(MR.strings.ext_installed), loaded)
             }
@@ -98,7 +108,7 @@ class ExtensionsViewModel(
                 .toSortedMap(LocaleHelper.comparator)
                 .map { (lang, exts) ->
                     ExtensionUiModel.Header.Text(LocaleHelper.getSourceDisplayName(lang, context)) to
-                        exts.map(extensionMapper(downloads))
+                        exts.map(extensionMapper(downloads, hidden))
                 }
             if (languagesWithExtensions.isNotEmpty()) {
                 putAll(languagesWithExtensions)
@@ -159,6 +169,16 @@ class ExtensionsViewModel(
                 }
             }
         }
+    }
+
+    fun toggleShowHidden() {
+        showHidden.update { !it }
+    }
+
+    fun toggleHidden(extension: Extension) {
+        val pkgName = extension.pkgName.substringBefore('-')
+        val hidden = preferences.hiddenExtensions.get()
+        preferences.hiddenExtensions.set(if (pkgName in hidden) hidden - pkgName else hidden + pkgName)
     }
 
     fun search(query: String?) {
@@ -252,5 +272,6 @@ object ExtensionUiModel {
     data class Item(
         val extension: Extension,
         val installStep: InstallStep,
+        val isHidden: Boolean = false,
     )
 }

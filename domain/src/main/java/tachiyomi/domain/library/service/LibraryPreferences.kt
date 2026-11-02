@@ -117,6 +117,18 @@ class LibraryPreferences(
 
     val languageBadge: Preference<Boolean> = preferenceStore.getBoolean("display_language_badge", false)
 
+    val extensionBadge: Preference<Boolean> = preferenceStore.getBoolean("komikita_extension_badge", false)
+
+    val hiddenCategories: Preference<Set<String>> = preferenceStore.getStringSet(
+        HIDDEN_CATEGORIES_PREF_KEY,
+        emptySet(),
+    )
+
+    val hideHiddenCategoriesEverywhere: Preference<Boolean> = preferenceStore.getBoolean(
+        "komikita_hide_categories_everywhere",
+        true,
+    )
+
     val newShowUpdatesCount: Preference<Boolean> = preferenceStore.getBoolean("library_show_updates_count", true)
     val newUpdatesCount: Preference<Int> = preferenceStore.getInt(
         Preference.appStateKey("library_unseen_updates_count"),
@@ -246,6 +258,7 @@ class LibraryPreferences(
         const val MARK_DUPLICATE_CHAPTER_READ_NEW = "new"
         const val MARK_DUPLICATE_CHAPTER_READ_EXISTING = "existing"
 
+        private const val HIDDEN_CATEGORIES_PREF_KEY = "komikita_hidden_categories"
         const val DEFAULT_CATEGORY_PREF_KEY = "default_category"
         private const val LIBRARY_UPDATE_CATEGORIES_PREF_KEY = "library_update_categories"
         private const val LIBRARY_UPDATE_CATEGORIES_EXCLUDE_PREF_KEY = "library_update_categories_exclude"

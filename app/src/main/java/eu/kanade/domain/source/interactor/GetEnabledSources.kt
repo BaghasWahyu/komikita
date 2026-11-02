@@ -2,6 +2,7 @@ package eu.kanade.domain.source.interactor
 
 import dev.zacsweers.metro.Inject
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.tachiyomi.extension.ExtensionManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -15,6 +16,7 @@ import tachiyomi.source.local.isLocal
 class GetEnabledSources(
     private val repository: SourceRepository,
     private val preferences: SourcePreferences,
+    private val extensionManager: ExtensionManager,
 ) {
 
     fun subscribe(): Flow<List<Source>> {
@@ -23,7 +25,15 @@ class GetEnabledSources(
             preferences.enabledLanguages.changes(),
             preferences.disabledSources.changes(),
             preferences.lastUsedSource.changes(),
-            repository.getSources(),
+            combine(
+                repository.getSources(),
+                preferences.hiddenExtensions.changes(),
+                extensionManager.loadedExtensionsFlow,
+            ) { sources, hidden, extensions ->
+                val hiddenSourceIds = extensions.filter { it.pkgName in hidden }
+                    .flatMap { it.sources }.mapTo(mutableSetOf()) { it.id }
+                sources.filterNot { it.id in hiddenSourceIds }
+            },
         ) { pinnedSourceIds, enabledLanguages, disabledSources, lastUsedSource, sources ->
             sources
                 .filter { it.lang in enabledLanguages || it.isLocal() }

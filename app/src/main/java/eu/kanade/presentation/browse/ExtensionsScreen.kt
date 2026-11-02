@@ -61,6 +61,8 @@ import mihon.icons.materialsymbols.rounded.Public
 import mihon.icons.materialsymbols.rounded.Refresh
 import mihon.icons.materialsymbols.rounded.Settings
 import mihon.icons.materialsymbols.rounded.VerifiedUser
+import mihon.icons.materialsymbols.rounded.Visibility
+import mihon.icons.materialsymbols.rounded.VisibilityOff
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -80,6 +82,7 @@ fun ExtensionScreen(
     contentPadding: PaddingValues,
     searchQuery: String?,
     onLongClickItem: (Extension) -> Unit,
+    onToggleHidden: (Extension) -> Unit,
     onClickItemCancel: (Extension) -> Unit,
     onOpenWebView: (Extension.Available) -> Unit,
     onInstallExtension: (Extension.Available) -> Unit,
@@ -122,6 +125,7 @@ fun ExtensionScreen(
                     state = state,
                     contentPadding = contentPadding,
                     onLongClickItem = onLongClickItem,
+                    onToggleHidden = onToggleHidden,
                     onClickItemCancel = onClickItemCancel,
                     onOpenWebView = onOpenWebView,
                     onInstallExtension = onInstallExtension,
@@ -141,6 +145,7 @@ private fun ExtensionContent(
     state: ExtensionsViewModel.State,
     contentPadding: PaddingValues,
     onLongClickItem: (Extension) -> Unit,
+    onToggleHidden: (Extension) -> Unit,
     onClickItemCancel: (Extension) -> Unit,
     onOpenWebView: (Extension.Available) -> Unit,
     onInstallExtension: (Extension.Available) -> Unit,
@@ -229,6 +234,7 @@ private fun ExtensionContent(
                         }
                     },
                     onLongClickItem = onLongClickItem,
+                    onToggleHidden = onToggleHidden,
                     onClickItemSecondaryAction = {
                         when (it) {
                             is Extension.Available -> onOpenWebView(it)
@@ -294,6 +300,7 @@ private fun ExtensionItem(
     item: ExtensionUiModel.Item,
     onClickItem: (Extension) -> Unit,
     onLongClickItem: (Extension) -> Unit,
+    onToggleHidden: (Extension) -> Unit,
     onClickItemCancel: (Extension) -> Unit,
     onClickItemAction: (Extension) -> Unit,
     onClickItemSecondaryAction: (Extension) -> Unit,
@@ -313,6 +320,18 @@ private fun ExtensionItem(
             ExtensionItemIcon(extension = extension, installStep = installStep)
         },
         action = {
+            IconButton(onClick = { onToggleHidden(extension) }) {
+                Icon(
+                    imageVector = if (item.isHidden) {
+                        MaterialSymbols.Rounded.VisibilityOff
+                    } else {
+                        MaterialSymbols.Rounded.Visibility
+                    },
+                    contentDescription = stringResource(
+                        if (item.isHidden) MR.strings.komikita_show_extension else MR.strings.komikita_hide_extension,
+                    ),
+                )
+            }
             ExtensionItemActions(
                 extension = extension,
                 installStep = installStep,

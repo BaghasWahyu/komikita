@@ -64,6 +64,8 @@ class ReaderPreferences(
 
     val keepScreenOn: Preference<Boolean> = preferenceStore.getBoolean("pref_keep_screen_on_key", false)
 
+    val batterySaver: Preference<Boolean> = preferenceStore.getBoolean("komikita_reader_battery_saver", true)
+
     val defaultReadingMode: Preference<Int> = preferenceStore.getInt(
         "pref_default_reading_mode_key",
         ReadingMode.RIGHT_TO_LEFT.flagValue,

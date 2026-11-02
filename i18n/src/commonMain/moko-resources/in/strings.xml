@@ -963,4 +963,19 @@
     <string name="update_check_skip_title">Lewati %s?</string>
     <string name="update_check_skip_message">Pembaruan sering kali berisi perbaikan bug dan peningkatan keamanan. Anda tidak akan lagi menerima pengingat mengenai versi ini, tetapi Anda tetap akan mendapat pemberitahuan saat versi yang lebih baru dirilis.</string>
     <string name="information_webview_crashed">WebView berhenti berfungsi dan halaman tersebut ditutup</string>
+    <string name="komikita_report_issue">Laporkan masalah</string>
+    <string name="komikita_contribute">Berkontribusi untuk KomiKita</string>
+    <string name="komikita_support_description">Bantu pengembangan KomiKita dengan laporan bug, saran fitur, terjemahan, atau kontribusi kode. Dibangun dari karya komunitas Mihon dan Tachiyomi.</string>
+    <string name="komikita_hide_category">Sembunyikan kategori beserta komiknya</string>
+    <string name="komikita_show_category">Tampilkan kategori beserta komiknya</string>
+    <string name="komikita_hide_extension">Sembunyikan ekstensi beserta sumbernya</string>
+    <string name="komikita_show_extension">Tampilkan ekstensi beserta sumbernya</string>
+    <string name="komikita_show_hidden_extensions">Tampilkan ekstensi tersembunyi</string>
+    <string name="komikita_hide_hidden_extensions">Sembunyikan ekstensi tersembunyi</string>
+    <string name="komikita_display_extension_icon">Tampilkan ikon ekstensi</string>
+    <string name="komikita_extension_icon">Ekstensi komik</string>
+    <string name="komikita_credits">Kredit dan penghargaan</string>
+    <string name="komikita_reader_battery_saver">Hemat baterai saat membaca</string>
+    <string name="komikita_reader_battery_saver_summary">Utamakan refresh rate layar hingga 60 Hz saat membaca. Matikan untuk scrolling dengan refresh rate tinggi.</string>
+    <string name="komikita_update_removed">Dilewati karena komik telah dihapus dari pustaka</string>
 </resources>

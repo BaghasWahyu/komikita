@@ -35,10 +35,10 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon"
+        applicationId = "app.komikita"
 
         versionCode = 39
-        versionName = "0.21.3"
+        versionName = "1.0.0"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
@@ -46,7 +46,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    if (System.getenv("MIHON_GITHUB_RELEASE").toBoolean()) {
+    if (System.getenv("KOMIKITA_GITHUB_RELEASE").toBoolean()) {
         signingConfigs {
             named("debug") {
                 storeFile = file(System.getenv("storeFile"))
@@ -360,7 +360,7 @@ apollo {
             // Kitsu doesn't like requests without a UA
             headers.put(
                 "User-Agent",
-                "Mihon v${android.defaultConfig.versionName} (${android.defaultConfig.applicationId})",
+                "KomiKita v${android.defaultConfig.versionName} (${android.defaultConfig.applicationId})",
             )
             endpointUrl.set("https://kitsu.app/api/graphql")
             schemaFile.set(file("$srcDir/kitsu.graphqls"))

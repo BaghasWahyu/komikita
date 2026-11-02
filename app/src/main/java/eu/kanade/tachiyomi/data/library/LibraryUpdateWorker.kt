@@ -32,6 +32,7 @@ import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import eu.kanade.tachiyomi.util.system.workManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -56,6 +57,7 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.model.NoChaptersException
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
@@ -104,6 +106,12 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
     @Inject private lateinit var notifier: LibraryUpdateNotifier
 
+    @Inject private lateinit var reportStore: LibraryUpdateReportStore
+
+    @Inject private lateinit var visibility: LibraryVisibility
+
+    private val reportEntries = CopyOnWriteArrayList<LibraryUpdateReport.Entry>()
+
     private var mangaToUpdate: List<LibraryManga> = mutableListOf()
 
     override suspend fun doWork(): Result {
@@ -127,23 +135,41 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         libraryPreferences.lastUpdatedTimestamp.set(Clock.System.now().toEpochMilliseconds())
 
-        val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
-        addMangaToQueue(categoryId)
-
         return withContext(Dispatchers.IO) {
+            val retryReport = inputData.getLong(KEY_RETRY_REPORT, -1L).takeIf { it != -1L }
+            val retryIds = if (retryReport != null) {
+                reportStore.get()?.takeIf { it.startedAt == retryReport }?.failedMangaIds
+                    ?: return@withContext Result.failure()
+            } else {
+                null
+            }
+            val startedAt = Clock.System.now().toEpochMilliseconds()
+            var outcome = LibraryUpdateReport.Outcome.COMPLETED
+            reportStore.save(LibraryUpdateReport(startedAt = startedAt))
             try {
+                val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
+                addMangaToQueue(categoryId, retryIds)
                 updateChapterList()
                 Result.success()
+            } catch (e: CancellationException) {
+                outcome = LibraryUpdateReport.Outcome.CANCELLED
+                throw e
             } catch (e: Exception) {
-                if (e is CancellationException) {
-                    // Assume success although cancelled
-                    Result.success()
-                } else {
-                    logcat(LogPriority.ERROR, e)
-                    Result.failure()
-                }
+                outcome = LibraryUpdateReport.Outcome.FAILED
+                logcat(LogPriority.ERROR, e)
+                Result.failure()
             } finally {
-                notifier.cancelProgressNotification()
+                withContext(NonCancellable) {
+                    reportStore.save(
+                        LibraryUpdateReport(
+                            startedAt = startedAt,
+                            finishedAt = Clock.System.now().toEpochMilliseconds(),
+                            outcome = outcome,
+                            entries = reportEntries.toList().sortedBy { it.title.lowercase() },
+                        ),
+                    )
+                    notifier.cancelProgressNotification()
+                }
             }
         }
     }
@@ -165,10 +191,12 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
      *
      * @param categoryId the ID of the category to update, or -1 if no category specified.
      */
-    private suspend fun addMangaToQueue(categoryId: Long) {
+    private suspend fun addMangaToQueue(categoryId: Long, retryIds: List<Long>? = null) {
         val libraryManga = getLibraryManga.await()
 
-        val listToUpdate = if (categoryId != -1L) {
+        val listToUpdate = if (retryIds != null) {
+            libraryManga.filter { it.id in retryIds }
+        } else if (categoryId != -1L) {
             libraryManga.filter { categoryId in it.categories }
         } else {
             val includedCategories = libraryPreferences.updateCategories.get().map { it.toLong() }
@@ -229,15 +257,9 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
 
-        if (skippedUpdates.isNotEmpty()) {
-            // TODO: surface skipped reasons to user?
-            logcat {
-                skippedUpdates
-                    .groupBy { it.second }
-                    .map { (reason, entries) -> "$reason: [${entries.map { it.first.title }.sorted().joinToString()}]" }
-                    .joinToString()
-            }
-        }
+        reportEntries.addAll(skippedUpdates.map { (manga, reason) ->
+            manga.reportEntry(LibraryUpdateReport.Status.SKIPPED, reason)
+        })
     }
 
     /**
@@ -270,6 +292,12 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
                                 // Don't continue to update if manga is not in library
                                 if (getManga.await(manga.id)?.favorite != true) {
+                                    reportEntries.add(
+                                        manga.reportEntry(
+                                            LibraryUpdateReport.Status.SKIPPED,
+                                            context.stringResource(MR.strings.komikita_update_removed),
+                                        ),
+                                    )
                                     return@forEach
                                 }
 
@@ -298,7 +326,13 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                                             // Convert to the manga that contains new chapters
                                             newUpdates.add(manga to newChapters.toTypedArray())
                                         }
-                                    } catch (e: Throwable) {
+                                        reportEntries.add(
+                                            manga.reportEntry(LibraryUpdateReport.Status.SUCCESS)
+                                                .copy(newChapters = newChapters.size),
+                                        )
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (e: Exception) {
                                         val errorMessage = when (e) {
                                             is NoChaptersException -> context.stringResource(
                                                 MR.strings.no_chapters_error,
@@ -310,6 +344,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                                             else -> e.message
                                         }
                                         failedUpdates.add(manga to errorMessage)
+                                        reportEntries.add(manga.reportEntry(LibraryUpdateReport.Status.FAILED, errorMessage))
                                     }
                                 }
                             }
@@ -328,14 +363,19 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             }
         }
 
-        if (failedUpdates.isNotEmpty()) {
-            val errorFile = writeErrorFile(failedUpdates)
+        val hiddenIds = visibility.hiddenMangaIds()
+        val visibleFailures = failedUpdates.filterNot { it.first.id in hiddenIds }
+        if (visibleFailures.isNotEmpty()) {
+            val errorFile = writeErrorFile(visibleFailures)
             notifier.showUpdateErrorNotification(
-                failedUpdates.size,
+                visibleFailures.size,
                 errorFile.getUriCompat(context),
             )
         }
     }
+
+    private fun Manga.reportEntry(status: LibraryUpdateReport.Status, reason: String? = null) =
+        LibraryUpdateReport.Entry(id, source, title, status, reason)
 
     private suspend fun downloadChapters(manga: Manga, chapters: List<Chapter>) {
         // We don't want to start downloading while the library is updating, because websites
@@ -435,6 +475,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
          * Key for category to update.
          */
         private const val KEY_CATEGORY = "category"
+        private const val KEY_RETRY_REPORT = "retry_report"
 
         fun setupTask(
             context: Context,
@@ -491,6 +532,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         suspend fun startNow(
             workManager: WorkManager,
             category: Category? = null,
+            retryReport: Long? = null,
         ): Boolean {
             if (workManager.isRunning(TAG)) {
                 // Already running either as a scheduled or manual job
@@ -499,6 +541,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
             val inputData = workDataOf(
                 KEY_CATEGORY to category?.id,
+                KEY_RETRY_REPORT to retryReport,
             )
             val request = OneTimeWorkRequestBuilder<LibraryUpdateWorker>()
                 .addTag(TAG)

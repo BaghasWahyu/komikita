@@ -32,6 +32,7 @@ fun extensionsTab(
     val context = LocalContext.current
 
     val updatesCount by extensionsViewModel.updatesCount.collectAsStateWithLifecycle()
+    val showHidden by extensionsViewModel.showHidden.collectAsStateWithLifecycle()
     var privateExtensionToUninstall by remember { mutableStateOf<Extension.Installed?>(null) }
 
     return TabContent(
@@ -39,6 +40,16 @@ fun extensionsTab(
         badgeNumber = updatesCount.takeIf { it > 0 },
         searchEnabled = true,
         actions = listOf(
+            AppBar.OverflowAction(
+                title = stringResource(
+                    if (showHidden) {
+                        MR.strings.komikita_hide_hidden_extensions
+                    } else {
+                        MR.strings.komikita_show_hidden_extensions
+                    },
+                ),
+                onClick = extensionsViewModel::toggleShowHidden,
+            ),
             AppBar.OverflowAction(
                 title = stringResource(MR.strings.action_filter),
                 onClick = { navigator.push(ExtensionFilterScreen()) },
@@ -90,6 +101,7 @@ fun extensionsTab(
                 onUninstallExtension = { extensionsViewModel.uninstallExtension(it) },
                 onUpdateExtension = extensionsViewModel::updateExtension,
                 onRefresh = extensionsViewModel::findAvailableExtensions,
+                onToggleHidden = extensionsViewModel::toggleHidden,
             )
 
             privateExtensionToUninstall?.let { extension ->

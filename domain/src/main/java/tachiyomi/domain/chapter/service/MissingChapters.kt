@@ -1,40 +1,29 @@
 package tachiyomi.domain.chapter.service
 
+import app.komikita.core.nativecore.NativeChapterEngine
 import tachiyomi.domain.chapter.model.Chapter
 import kotlin.math.floor
 
 fun List<Double>.missingChaptersCount(): Int {
-    if (this.isEmpty()) {
-        return 0
+    if (size >= 512) {
+        NativeChapterEngine.missingChaptersCount(toDoubleArray())?.let { return it }
     }
-
-    val chapters = this
-        // Ignore unknown chapter numbers
-        .filterNot { it == -1.0 }
-        // Convert to integers, as we cannot check if 16.5 is missing
-        .map(Double::toInt)
-        // Only keep unique chapters so that -1 or 16 are not counted multiple times
-        .distinct()
-        .sorted()
-
-    if (chapters.isEmpty()) {
-        return 0
-    }
-
-    var missingChaptersCount = 0
-    var previousChapter = 0 // The actual chapter number, not the array index
-
-    // We go from 0 to lastChapter - Make sure to use the current index instead of the value
-    for (i in chapters.indices) {
-        val currentChapter = chapters[i]
-        if (currentChapter > previousChapter + 1) {
-            // Add the amount of missing chapters
-            missingChaptersCount += currentChapter - previousChapter - 1
+    val chapters = IntArray(size)
+    var count = 0
+    for (number in this) {
+        if (number.isFinite() && number >= 0.0 && number <= Int.MAX_VALUE.toDouble()) {
+            chapters[count++] = number.toInt()
         }
-        previousChapter = currentChapter
     }
-
-    return missingChaptersCount
+    java.util.Arrays.sort(chapters, 0, count)
+    var previous = 0L
+    var missing = 0L
+    for (index in 0 until count) {
+        val current = chapters[index].toLong()
+        if (current > previous + 1) missing += current - previous - 1
+        previous = current
+    }
+    return missing.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
 }
 
 fun calculateChapterGap(higherChapter: Chapter?, lowerChapter: Chapter?): Int {

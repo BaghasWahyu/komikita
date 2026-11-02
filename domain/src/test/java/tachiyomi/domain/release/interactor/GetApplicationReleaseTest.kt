@@ -96,4 +96,24 @@ class GetApplicationReleaseTest {
 
         result shouldBe GetApplicationRelease.Result.NoNewUpdate
     }
+
+    @Test
+    fun rejectsOlderMajorOrMinorEvenWithHigherPatch() = runTest {
+        for ((current, offered) in listOf("1.0.0" to "v0.99.9", "0.21.3" to "v0.20.4")) {
+            coEvery { releaseService.latest(any()) } returns Release(offered, "", "", "")
+            getApplicationRelease.await(
+                GetApplicationRelease.Arguments(false, false, 0, current, "test"),
+            ) shouldBe GetApplicationRelease.Result.NoNewUpdate
+        }
+    }
+
+    @Test
+    fun handlesShortOrMalformedVersionTags() = runTest {
+        for (offered in listOf("v1.0", "invalid", "v1..2")) {
+            coEvery { releaseService.latest(any()) } returns Release(offered, "", "", "")
+            getApplicationRelease.await(
+                GetApplicationRelease.Arguments(false, false, 0, "1.0.0", "test"),
+            ) shouldBe GetApplicationRelease.Result.NoNewUpdate
+        }
+    }
 }

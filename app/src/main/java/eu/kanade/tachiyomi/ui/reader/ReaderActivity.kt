@@ -72,6 +72,7 @@ import eu.kanade.presentation.reader.ReaderNavigationOverlay
 import eu.kanade.presentation.reader.ReaderNavigationOverlayState
 import eu.kanade.presentation.reader.ReaderPageActionsDialog
 import eu.kanade.presentation.reader.ReaderPageIndicator
+import eu.kanade.presentation.reader.ReaderRefreshRatePreference
 import eu.kanade.presentation.reader.ReadingModeSelectDialog
 import eu.kanade.presentation.reader.appbars.ReaderAppBars
 import eu.kanade.presentation.reader.components.ChapterNavigatorType
@@ -204,6 +205,7 @@ class ReaderActivity : BaseActivity() {
                 ReaderPreferences.ColorFilterMode.getOrNull(colorOverlayMode)?.second
             }
 
+            ReaderRefreshRatePreference(enabled = general.batterySaver)
             LaunchedEffect(brightness) { setWindowBrightness(brightness) }
 
             val forceNavigationOverlay = remember { settingsViewModel.takeNavigationOverlayForNewUser() }

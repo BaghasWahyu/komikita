@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadWorker
 import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
+import eu.kanade.tachiyomi.data.library.LibraryUpdateReportStore
 import eu.kanade.tachiyomi.data.library.MetadataUpdateWorker
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.track.TrackerManager
@@ -51,6 +52,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.manga.interactor.GetFavorites
 import tachiyomi.domain.manga.interactor.ResetViewerFlags
 import tachiyomi.domain.source.service.SourceManager
@@ -86,6 +88,8 @@ interface AppGraph : ViewModelGraph {
     val readerPreferences: ReaderPreferences
     val networkPreferences: NetworkPreferences
     val libraryPreferences: LibraryPreferences
+    val libraryVisibility: LibraryVisibility
+    val libraryUpdateReportStore: LibraryUpdateReportStore
     val sourcePreferences: SourcePreferences
     val trackPreferences: TrackPreferences
     val backupPreferences: BackupPreferences

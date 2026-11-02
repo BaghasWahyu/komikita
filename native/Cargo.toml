@@ -1,0 +1,30 @@
+[package]
+name = "komikita-native"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+name = "komikita_native"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni = "=0.21.1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[lints.rust]
+unsafe_code = "warn"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+
+[[bench]]
+name = "missing_chapters"
+harness = false

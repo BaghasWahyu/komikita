@@ -1,9 +1,17 @@
-Features:
-* Read your way with customizable viewing modes, including traditional right-to-left, left-to-right, and long strip for webtoons.
-* Organize your collection into custom categories, see unread badges, and get automatic updates when new chapters drop.
-* Sync your reading progress automatically with popular services like MangaBaka, MyAnimeList, AniList, Kitsu, and more.
-* Download chapters for offline reading and easily back up your entire library and settings for safe keeping or device migration.
-* Enjoy a beautiful Material You interface with full theme customization, including a strict True Dark mode.
-* And much more...
+KomiKita is an open-source manga, comic, and webtoon reader for Android 8.0 and later.
 
-The developer of this application does not have any affiliation with the content providers available, and this application hosts zero content.
+Your comics, always close. Organize your collection, read at your own pace, and keep your reading progress with you.
+
+Features:
+- Customize page and webtoon reading modes, reading direction, themes, and controls.
+- Organize your library with categories, search, and filters.
+- Download chapters for offline reading.
+- Hide categories and their comics, or hide extensions and their sources from Browse without uninstalling them.
+- Optionally display extension icon badges in your library.
+- Track reading progress and schedule library updates.
+- Back up and restore your library and settings.
+- Use the reader battery saver setting to prefer display refresh rates up to 60 Hz.
+
+Telemetry and the built-in app updater are disabled by default. Project documentation is available in English and Bahasa Indonesia.
+
+KomiKita is based on Mihon and Tachiyomi, with credit to their teams and contributors. It does not host content, provide extensions, or have any affiliation with content providers.

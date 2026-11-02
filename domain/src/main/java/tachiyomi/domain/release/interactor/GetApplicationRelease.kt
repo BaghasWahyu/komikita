@@ -30,28 +30,20 @@ class GetApplicationRelease(
         versionName: String,
         versionTag: String,
     ): Boolean {
-        // Removes prefixes like "r" or "v"
-        val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
-        return if (isNightly) {
-            // Nightly builds: based on releases in "mihonapp/mihon-preview" repo
-            // tagged as something like "r1234"
-            newVersion.toInt() > commitCount
-        } else {
-            // Release builds: based on releases in "mihonapp/mihon" repo
-            // tagged as something like "v0.1.2"
-            val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
-
-            val newSemVer = newVersion.split(".").map { it.toInt() }
-            val oldSemVer = oldVersion.split(".").map { it.toInt() }
-
-            oldSemVer.mapIndexed { index, i ->
-                if (newSemVer[index] > i) {
-                    return true
-                }
-            }
-
-            false
+        if (isNightly) {
+            return versionTag.removePrefix("r").toIntOrNull()?.let { it > commitCount } ?: false
         }
+        fun parse(version: String): List<Int>? {
+            val parts = version.removePrefix("v").split(".")
+            return parts.map { it.toIntOrNull()?.takeIf { value -> value >= 0 } ?: return null }
+        }
+        val newVersion = parse(versionTag) ?: return false
+        val oldVersion = parse(versionName) ?: return false
+        for (index in 0 until maxOf(newVersion.size, oldVersion.size)) {
+            val comparison = newVersion.getOrElse(index) { 0 }.compareTo(oldVersion.getOrElse(index) { 0 })
+            if (comparison != 0) return comparison > 0
+        }
+        return false
     }
 
     data class Arguments(

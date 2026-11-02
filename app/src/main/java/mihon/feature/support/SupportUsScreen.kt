@@ -28,9 +28,7 @@ import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.util.Screen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
-import mihon.icons.simpleicons.Discord
-import mihon.icons.simpleicons.OpenCollective
-import mihon.icons.simpleicons.Patreon
+import mihon.icons.simpleicons.Github
 import mihon.icons.simpleicons.SimpleIcons
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
@@ -81,38 +79,20 @@ class SupportUsScreen : Screen() {
                 Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 
                 Text(
-                    text = stringResource(MR.strings.supportUsScreen_perks),
+                    text = stringResource(MR.strings.komikita_support_description),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
                 )
 
                 SupportItem(
-                    icon = SimpleIcons.Patreon,
-                    title = stringResource(MR.strings.supportUsScreen_donationPlatform_patreon),
-                    onClick = { uriHandler.openUri(Constants.URL_DONATE_PATREON) },
+                    icon = SimpleIcons.Github,
+                    title = stringResource(MR.strings.komikita_report_issue),
+                    onClick = { uriHandler.openUri(Constants.URL_ISSUES) },
                 )
                 SupportItem(
-                    icon = SimpleIcons.OpenCollective,
-                    title = stringResource(MR.strings.supportUsScreen_donationPlatform_opencollective),
-                    onClick = { uriHandler.openUri(Constants.URL_DONATE_OPENCOLLECTIVE) },
-                )
-
-                Text(
-                    text = stringResource(MR.strings.supportUsScreen_currentlySupportedBy, 200),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
-                )
-
-                Text(
-                    text = stringResource(MR.strings.supportUsScreen_contactForDetailsMessage),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
-                )
-
-                SupportItem(
-                    icon = SimpleIcons.Discord,
-                    title = stringResource(MR.strings.supportUsScreen_contactPlatform),
-                    onClick = { uriHandler.openUri(Constants.URL_DISCORD) },
+                    icon = SimpleIcons.Github,
+                    title = stringResource(MR.strings.komikita_contribute),
+                    onClick = { uriHandler.openUri(Constants.URL_PROJECT) },
                 )
 
                 Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))

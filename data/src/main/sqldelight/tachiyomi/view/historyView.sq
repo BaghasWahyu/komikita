@@ -42,6 +42,11 @@ FROM historyView
 WHERE historyView.readAt IS NOT NULL
 AND maxReadAtChapterId = historyView.chapterId
 AND lower(historyView.title) LIKE ('%' || :query || '%')
+AND NOT EXISTS (
+    SELECT 1 FROM manga_category
+    WHERE manga_category.manga_id = historyView.mangaId
+    AND manga_category.category_id IN :hiddenCategories
+)
 ORDER BY readAt DESC;
 
 getLatestHistory:
@@ -63,5 +68,10 @@ ON manga.id = history.manga_id
 JOIN chapter
 ON chapter.id = history.chapter_id
 WHERE history.read_at IS NOT NULL
+AND NOT EXISTS (
+    SELECT 1 FROM manga_category
+    WHERE manga_category.manga_id = manga.id
+    AND manga_category.category_id IN :hiddenCategories
+)
 ORDER BY history.read_at DESC
 LIMIT 1;

@@ -54,4 +54,15 @@ class MissingChaptersTest {
     private fun chapter(number: Double) = Chapter.create().copy(
         chapterNumber = number,
     )
+
+    @Test
+    fun ignoresInvalidChapterNumbersWithoutOverflow() {
+        listOf(Double.NaN, Double.POSITIVE_INFINITY, -2.0, -0.5, 2.0).missingChaptersCount() shouldBe 1
+        listOf(Int.MAX_VALUE.toDouble()).missingChaptersCount() shouldBe Int.MAX_VALUE - 1
+    }
+
+    @Test
+    fun handlesLargeListsThroughNativeOrFallback() {
+        (1..10_000).map { it.toDouble() * 2 }.missingChaptersCount() shouldBe 10_000
+    }
 }

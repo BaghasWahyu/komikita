@@ -4,8 +4,11 @@ on:
     tags:
       - v*
 
+permissions:
+  contents: write
+
 env:
-  MIHON_GITHUB_RELEASE: true
+  KOMIKITA_GITHUB_RELEASE: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,7 +16,7 @@ concurrency:
 
 jobs:
   get_tag:
-    if: github.repository == 'mihonapp/mihon'
+    if: github.repository == 'BaghasWahyu/komikita'
     name: Extract tag name
     runs-on: 'ubuntu-26.04'
     outputs:
@@ -25,7 +28,7 @@ jobs:
         run: echo "tag=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
   build:
-    if: github.repository == 'mihonapp/mihon'
+    if: github.repository == 'BaghasWahyu/komikita'
     name: Build
     runs-on: 'ubuntu-26.04'
     needs: get_tag
@@ -40,20 +43,23 @@ jobs:
           java-version-file: .github/.java-version
           distribution: temurin
 
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Decode signing keystore
-        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/antsy.keystore"
+        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/komikita.keystore"
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
       - name: Build
         run: ./gradlew assembleRelease -Pdist=github
         env:
-          storeFile: ${{ runner.temp }}/antsy.keystore
+          storeFile: ${{ runner.temp }}/komikita.keystore
           storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyAlias: ${{ secrets.ALIAS }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
@@ -62,25 +68,25 @@ jobs:
         run: |
           set -e
 
-          mv app/build/outputs/apk/release/app-universal-release.apk mihon-${{ needs.get_tag.outputs.tag }}.apk
-          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk mihon-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
-          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk mihon-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
-          mv app/build/outputs/apk/release/app-x86-release.apk mihon-x86-${{ needs.get_tag.outputs.tag }}.apk
-          mv app/build/outputs/apk/release/app-x86_64-release.apk mihon-x86_64-${{ needs.get_tag.outputs.tag }}.apk
+          mv app/build/outputs/apk/release/app-universal-release.apk komikita-${{ needs.get_tag.outputs.tag }}.apk
+          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk komikita-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk komikita-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
+          mv app/build/outputs/apk/release/app-x86-release.apk komikita-x86-${{ needs.get_tag.outputs.tag }}.apk
+          mv app/build/outputs/apk/release/app-x86_64-release.apk komikita-x86_64-${{ needs.get_tag.outputs.tag }}.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: mihon
+          name: komikita
           path: |
-            mihon-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-x86-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-x86_64-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-x86-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-x86_64-${{ needs.get_tag.outputs.tag }}.apk
 
   build_foss:
-    if: github.repository == 'mihonapp/mihon'
+    if: github.repository == 'BaghasWahyu/komikita'
     name: Build (FOSS)
     runs-on: ubuntu-26.04
     needs: get_tag
@@ -95,20 +101,23 @@ jobs:
           java-version-file: .github/.java-version
           distribution: temurin
 
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-disabled: true
 
       - name: Decode signing keystore
-        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/antsy.keystore"
+        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/komikita.keystore"
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
       - name: Build
         run: ./gradlew assembleFoss -Pdist=foss
         env:
-          storeFile: ${{ runner.temp }}/antsy.keystore
+          storeFile: ${{ runner.temp }}/komikita.keystore
           storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyAlias: ${{ secrets.ALIAS }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
@@ -117,16 +126,16 @@ jobs:
         run: |
           set -e
 
-          mv app/build/outputs/apk/foss/app-universal-foss.apk mihon-${{ needs.get_tag.outputs.tag }}-foss.apk
+          mv app/build/outputs/apk/foss/app-universal-foss.apk komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: mihon-foss
-          path: mihon-${{ needs.get_tag.outputs.tag }}-foss.apk
+          name: komikita-foss
+          path: komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
 
   release:
-    if: github.repository == 'mihonapp/mihon'
+    if: github.repository == 'BaghasWahyu/komikita'
     name: Create GitHub Release
     runs-on: ubuntu-26.04
     needs: [get_tag, build, build_foss]
@@ -142,18 +151,20 @@ jobs:
         with:
           failOnError: false
           name: |
-            mihon
-            mihon-foss
+            komikita
+            komikita-foss
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ needs.get_tag.outputs.tag }}
-          name: Mihon ${{ needs.get_tag.outputs.tag }}
+          name: KomiKita ${{ needs.get_tag.outputs.tag }}
           body: |
-            Consider supporting the development on [Patreon](https://www.patreon.com/mihon/membership) or [OpenCollective](https://opencollective.com/mihon/contribute) to keep Mihon improving!
+            KomiKita — a customizable manga, comic, and webtoon reader for Android.
 
-            Check out the [past release notes](https://github.com/mihonapp/mihon/releases) if you're upgrading from an earlier version.
+            Documentation: [English](https://github.com/BaghasWahyu/komikita/blob/main/docs/README.md) · [Bahasa Indonesia](https://github.com/BaghasWahyu/komikita/blob/main/docs/id/README.md)
+
+            Check out the [past release notes](https://github.com/BaghasWahyu/komikita/releases) if you're upgrading from an earlier version.
 
             <!-->
 
@@ -163,14 +174,14 @@ jobs:
 
             > [!TIP]
             >
-            > ### If you are unsure which version to download then go with `mihon-${{ needs.get_tag.outputs.tag }}.apk`
+            > ### If you are unsure which version to download then go with `komikita-${{ needs.get_tag.outputs.tag }}.apk`
           files: |
-            mihon-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-${{ needs.get_tag.outputs.tag }}-foss.apk
-            mihon-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-x86-${{ needs.get_tag.outputs.tag }}.apk
-            mihon-x86_64-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
+            komikita-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-x86-${{ needs.get_tag.outputs.tag }}.apk
+            komikita-x86_64-${{ needs.get_tag.outputs.tag }}.apk
           draft: true
           prerelease: false
-          token: ${{ secrets.MIHON_BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
