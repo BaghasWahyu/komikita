@@ -3,6 +3,7 @@ package tachiyomi.presentation.widget
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -84,32 +85,41 @@ abstract class BaseUpdatesGridGlanceWidget : GlanceAppWidget() {
             .maxBy { it.height.value * it.width.value }
             .calculateRowAndColumnCount(topPadding, bottomPadding)
 
-        provideContent {
-            // If app lock enabled, don't do anything
-            if (locked) {
-                LockedWidget(
-                    foreground = foreground,
-                    modifier = containerModifier,
-                )
-                return@provideContent
-            }
+        provideContent(createWidgetContent(context, locked, containerModifier, rowCount, columnCount))
+    }
 
-            val flow = remember {
-                getUpdates
-                    .subscribe(false, DateLimit)
-                    .map { rawData ->
-                        rawData.prepareData(context, rowCount, columnCount)
-                    }
-            }
-            val data by flow.collectAsState(initial = null)
-            UpdatesWidget(
-                data = data,
-                contentColor = foreground,
-                topPadding = topPadding,
-                bottomPadding = bottomPadding,
+    // Keep composable lambda creation outside the suspend state machine for Compose source mapping.
+    private fun createWidgetContent(
+        context: Context,
+        locked: Boolean,
+        containerModifier: GlanceModifier,
+        rowCount: Int,
+        columnCount: Int,
+    ): @Composable () -> Unit = content@{
+        // If app lock enabled, don't do anything
+        if (locked) {
+            LockedWidget(
+                foreground = foreground,
                 modifier = containerModifier,
             )
+            return@content
         }
+
+        val flow = remember {
+            getUpdates
+                .subscribe(false, DateLimit)
+                .map { rawData ->
+                    rawData.prepareData(context, rowCount, columnCount)
+                }
+        }
+        val data by flow.collectAsState(initial = null)
+        UpdatesWidget(
+            data = data,
+            contentColor = foreground,
+            topPadding = topPadding,
+            bottomPadding = bottomPadding,
+            modifier = containerModifier,
+        )
     }
 
     @OptIn(ExperimentalCoilApi::class)
