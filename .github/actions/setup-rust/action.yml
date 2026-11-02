@@ -13,7 +13,12 @@ runs:
       uses: android-actions/setup-android@138b5fb1cf087fdb4c5f3c621466fe304d0cf2e3 # v4.0.3
     - name: Install Android NDK
       shell: bash
-      run: sdkmanager "ndk;29.0.14206865"
+      run: |
+        ndk_version=$(python3 -c "import tomllib; print(tomllib.load(open('gradle/mihon.versions.toml', 'rb'))['versions']['android-ndk'])")
+        sdkmanager "ndk;$ndk_version"
+        ndk_path="$ANDROID_HOME/ndk/$ndk_version"
+        echo "ANDROID_NDK_HOME=$ndk_path" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_ROOT=$ndk_path" >> "$GITHUB_ENV"
     - name: Install cargo-ndk
       shell: bash
       run: cargo +stable install cargo-ndk --version 4.1.2 --locked

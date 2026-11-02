@@ -42,9 +42,11 @@ abstract class BuildRustTask @Inject constructor(private val exec: ExecOperation
 
     @TaskAction
     fun build() {
+        val ndkPath = ndkDirectory.get().asFile.absolutePath
         exec.exec {
             workingDir(sourceDirectory.get().asFile)
-            environment("ANDROID_NDK_HOME", ndkDirectory.get().asFile.absolutePath)
+            environment("ANDROID_NDK_HOME", ndkPath)
+            environment("ANDROID_NDK_ROOT", ndkPath)
             environment("CARGO_TARGET_DIR", targetDirectory.get().asFile.absolutePath)
             commandLine(
                 "cargo", "ndk", "-t", "armeabi-v7a", "-t", "arm64-v8a", "-t", "x86", "-t", "x86_64",

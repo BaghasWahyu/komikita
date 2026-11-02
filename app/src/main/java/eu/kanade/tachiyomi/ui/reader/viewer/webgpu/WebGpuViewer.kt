@@ -123,6 +123,8 @@ open class WebGpuViewer(
     private val animationDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     // Guards pageCache, decodeQueue, deferredCleanup and chapterPreloadsInFlight.
+    // Object exposes wait()/notify(), which are unavailable on Any.
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private val lock = Object()
 
     /** Without it the worker parks in [lock].wait() after [destroy], keeping the activity alive. */

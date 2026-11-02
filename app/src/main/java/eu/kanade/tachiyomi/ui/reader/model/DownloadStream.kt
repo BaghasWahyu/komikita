@@ -8,6 +8,8 @@ import java.io.InputStream
  * closed, it stops keeping them; [append] never throws, so the download itself carries on.
  */
 class DownloadStream {
+    // Object exposes wait()/notifyAll(), which are unavailable on Any.
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private val lock = Object()
     private var data = ByteArray(1 shl 16)
     private var size = 0
