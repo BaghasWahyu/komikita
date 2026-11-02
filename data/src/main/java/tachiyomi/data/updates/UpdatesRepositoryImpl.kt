@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.data.Database
 import tachiyomi.data.subscribeToList
-import tachiyomi.domain.manga.model.MangaCover
 import tachiyomi.domain.library.service.LibraryVisibility
+import tachiyomi.domain.manga.model.MangaCover
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.domain.updates.repository.UpdatesRepository
 import kotlin.time.Instant
@@ -47,21 +47,21 @@ class UpdatesRepositoryImpl(
     ): Flow<List<UpdatesWithRelations>> {
         return visibility.changes().flatMapLatest { hiddenCategories ->
             database.updatesViewQueries
-            .getRecentUpdatesWithFilters(
-                after = after,
-                limit = limit,
-                read = unread?.let { !it },
-                started = started?.toLong(),
-                bookmarked = bookmarked,
-                hideExcludedScanlators = hideExcludedScanlators.toLong(),
-                includedEmpty = includedCategories.isEmpty(),
-                excludedEmpty = excludedCategories.isEmpty(),
-                includedCategories = includedCategories,
-                excludedCategories = excludedCategories,
-                hiddenCategories = hiddenCategories,
-                mapper = ::mapUpdatesWithRelations,
-            )
-            .subscribeToList()
+                .getRecentUpdatesWithFilters(
+                    after = after,
+                    limit = limit,
+                    read = unread?.let { !it },
+                    started = started?.toLong(),
+                    bookmarked = bookmarked,
+                    hideExcludedScanlators = hideExcludedScanlators.toLong(),
+                    includedEmpty = includedCategories.isEmpty(),
+                    excludedEmpty = excludedCategories.isEmpty(),
+                    includedCategories = includedCategories,
+                    excludedCategories = excludedCategories,
+                    hiddenCategories = hiddenCategories,
+                    mapper = ::mapUpdatesWithRelations,
+                )
+                .subscribeToList()
         }
     }
 

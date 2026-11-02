@@ -57,7 +57,6 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.chapter.model.NoChaptersException
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
@@ -65,6 +64,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetManga
@@ -257,9 +257,11 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
 
-        reportEntries.addAll(skippedUpdates.map { (manga, reason) ->
-            manga.reportEntry(LibraryUpdateReport.Status.SKIPPED, reason)
-        })
+        reportEntries.addAll(
+            skippedUpdates.map { (manga, reason) ->
+                manga.reportEntry(LibraryUpdateReport.Status.SKIPPED, reason)
+            },
+        )
     }
 
     /**
@@ -344,7 +346,9 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                                             else -> e.message
                                         }
                                         failedUpdates.add(manga to errorMessage)
-                                        reportEntries.add(manga.reportEntry(LibraryUpdateReport.Status.FAILED, errorMessage))
+                                        reportEntries.add(
+                                            manga.reportEntry(LibraryUpdateReport.Status.FAILED, errorMessage),
+                                        )
                                     }
                                 }
                             }
