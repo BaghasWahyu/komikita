@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.network.parseAs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import okhttp3.CacheControl
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.domain.release.model.Release
 import tachiyomi.domain.release.service.ReleaseService
@@ -27,8 +28,17 @@ class ReleaseServiceImpl(
     override suspend fun latest(arguments: GetApplicationRelease.Arguments): Release? {
         val release = withContext(Dispatchers.IO) {
             with(json) {
+                val request = GET("https://api.github.com/repos/${arguments.repository}/releases/latest")
+                    .newBuilder()
+                    .apply {
+                        if (arguments.forceCheck) {
+                            cacheControl(CacheControl.FORCE_NETWORK)
+                        }
+                    }
+                    .build()
+
                 networkService.client
-                    .newCall(GET("https://api.github.com/repos/${arguments.repository}/releases/latest"))
+                    .newCall(request)
                     .awaitSuccess()
                     .parseAs<GithubRelease>()
             }

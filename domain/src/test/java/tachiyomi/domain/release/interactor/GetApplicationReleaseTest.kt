@@ -116,4 +116,27 @@ class GetApplicationReleaseTest {
             ) shouldBe GetApplicationRelease.Result.NoNewUpdate
         }
     }
+
+    @Test
+    fun detectsLatestKomiKitaReleaseForOlderStableAndFossBuilds() = runTest {
+        val release = Release("v1.0.5", "", "", "")
+        coEvery { releaseService.latest(any()) } returns release
+
+        for (isFoss in listOf(false, true)) {
+            getApplicationRelease.await(
+                GetApplicationRelease.Arguments(isFoss, false, 0, "1.0.4", "BaghasWahyu/komikita", true),
+            ) shouldBe GetApplicationRelease.Result.NewUpdate(release)
+        }
+    }
+
+    @Test
+    fun doesNotOfferLatestReleaseToEqualOrNewerInstalledVersions() = runTest {
+        coEvery { releaseService.latest(any()) } returns Release("v1.0.5", "", "", "")
+
+        for (current in listOf("1.0.5", "1.0.6")) {
+            getApplicationRelease.await(
+                GetApplicationRelease.Arguments(false, false, 0, current, "BaghasWahyu/komikita", true),
+            ) shouldBe GetApplicationRelease.Result.NoNewUpdate
+        }
+    }
 }

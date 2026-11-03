@@ -36,6 +36,7 @@ import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.library.model.getContinueReadingManga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -50,19 +51,18 @@ internal fun LibraryCollectionHeader(
     categories: @Composable () -> Unit,
 ) {
     // Only inspect this page's visible, filtered items, including for hidden categories.
-    val lastRead = remember(items) {
+    val continueReading = remember(items) {
         items.asSequence()
             .map { it.libraryManga }
-            .filter { it.lastRead != null && it.unreadCount > 0 }
-            .maxByOrNull { it.lastRead!! }
+            .getContinueReadingManga()
     }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (!selectionMode && showContinueReading && lastRead != null) {
-            ContinueReadingCard(lastRead, onClick = { onContinueReading(lastRead) })
+        if (!selectionMode && showContinueReading && continueReading != null) {
+            ContinueReadingCard(continueReading, onClick = { onContinueReading(continueReading) })
         }
         if (!selectionMode) {
             Row(
