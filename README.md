@@ -82,7 +82,7 @@ Browse the [documentation index](docs/README.md) for all guides in English and B
 
 ## Privacy and distribution
 
-Default builds do not include Firebase Analytics or Crashlytics, and the built-in app updater is disabled by default. Releases are distributed through the [KomiKita repository](https://github.com/BaghasWahyu/komikita/releases). See the [privacy policy](docs/PRIVACY.md) for local storage, backups, and requests to external services.
+Default builds do not include Firebase Analytics or Crashlytics. APKs built by the GitHub release workflow, including FOSS, enable the built-in app updater for [KomiKita Releases](https://github.com/BaghasWahyu/komikita/releases); local and CI builds keep it disabled unless explicitly enabled. See [Checking for app updates](docs/USER_GUIDE.md#checking-for-app-updates) and the [privacy policy](docs/PRIVACY.md).
 
 ## Origins and license
 

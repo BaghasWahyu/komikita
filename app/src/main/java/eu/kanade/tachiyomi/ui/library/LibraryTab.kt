@@ -103,7 +103,6 @@ data object LibraryTab : Tab {
                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
                 }
             }
-            Unit
         }
 
         val onClickRefresh: suspend (Category?) -> Boolean = { category ->

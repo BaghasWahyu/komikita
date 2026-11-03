@@ -6,7 +6,7 @@
 
 - KomiKita branding for the app name, icons, splash screen, notifications, documentation, store metadata, and releases.
 - Separate application ID: `app.komikita`.
-- Telemetry and the app updater disabled by default; releases point to the KomiKita repository.
+- Telemetry disabled by default; GitHub release APKs, including FOSS, enable app updates from the KomiKita repository. Local and CI builds keep the updater disabled by default.
 - Hide categories and their comics, and extensions and their sources.
 - Optional extension icon badges in the library.
 - Rust module for chapter processing with a Kotlin fallback.

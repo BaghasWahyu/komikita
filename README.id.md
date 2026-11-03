@@ -84,7 +84,7 @@ Buka [indeks dokumentasi](docs/id/README.md) untuk seluruh panduan dalam bahasa 
 
 ## Privasi dan distribusi
 
-Build bawaan tidak menyertakan Firebase Analytics maupun Crashlytics, dan updater aplikasi dinonaktifkan secara bawaan. Rilis tersedia di [repositori KomiKita](https://github.com/BaghasWahyu/komikita/releases). Lihat [kebijakan privasi](docs/id/PRIVACY.md) untuk penyimpanan lokal, cadangan, dan permintaan ke layanan eksternal.
+Build bawaan tidak menyertakan Firebase Analytics maupun Crashlytics. APK dari workflow rilis GitHub, termasuk FOSS, mengaktifkan updater bawaan untuk [Rilis KomiKita](https://github.com/BaghasWahyu/komikita/releases); build lokal dan CI tetap menonaktifkannya kecuali diaktifkan secara eksplisit. Lihat [Memeriksa pembaruan aplikasi](docs/id/USER_GUIDE.md#memeriksa-pembaruan-aplikasi) dan [kebijakan privasi](docs/id/PRIVACY.md).
 
 ## Asal proyek dan lisensi
 

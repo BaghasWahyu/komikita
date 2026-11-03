@@ -22,6 +22,12 @@ In the library, open display settings → **Display → Show extension icons**. 
 
 Open reader settings, or the general settings page inside the reader, and enable **Save battery while reading**. This setting is enabled by default and prefers display modes up to 60 Hz. Turn it off if you prefer scrolling at a higher refresh rate.
 
+## Checking for app updates
+
+APKs built by the GitHub release workflow, including FOSS, check KomiKita Releases when the app opens and every six hours while it remains in use. To check manually, open **More → About → Check for updates**. When a newer version is available, the app shows its release notes and offers to download and install it. Confirm installation when Android prompts you.
+
+Only published stable releases with a newer version and a compatible APK are offered. If your installed APK has the updater disabled, install an updater-enabled APK from [KomiKita Releases](https://github.com/BaghasWahyu/komikita/releases) manually once.
+
 ## Moving from Mihon
 
 KomiKita has its own application ID and can be installed alongside Mihon. To move your library, create a backup in the old app and restore it through KomiKita's data and storage settings. Private extensions and service logins may need to be set up again.

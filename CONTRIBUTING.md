@@ -24,11 +24,11 @@ To build without the Rust toolchain, use `-Penable-rust=false`; the Kotlin imple
 
 The application ID is `app.komikita`; debug, FOSS, nightly, and benchmark variants have separate suffixes. Configure a KomiKita keystore through `keystore.properties`. Do not commit keystores or credentials.
 
-The app updater is disabled by default. Enable it for stable builds ready for distribution with `-Penable-updater=true`. The update repository is `BaghasWahyu/komikita`.
+The GitHub release workflow enables the app updater for both regular and FOSS APKs with `-Penable-updater=true`. Local and CI builds keep it disabled unless this flag is supplied. The update repository is `BaghasWahyu/komikita`.
 
 Firebase is not included by default. If needed, provide your own `app/google-services.json` covering every application ID you build, then use `-Pinclude-telemetry=true`. Data collection follows the user's consent settings.
 
-The release workflow creates draft releases in the KomiKita repository. Configure the `SIGNING_KEY`, `KEY_STORE_PASSWORD`, `ALIAS`, and `KEY_PASSWORD` secrets before running it.
+The release workflow creates draft releases in the KomiKita repository. Configure the `SIGNING_KEY`, `KEY_STORE_PASSWORD`, `ALIAS`, and `KEY_PASSWORD` secrets before running it. For each new release, increase `versionName` and `versionCode` in `app/build.gradle.kts`, use a matching tag such as `v1.0.2`, and keep the same signing key. Publish the draft after checking its APK assets; the updater checks the latest published stable release, so drafts and prereleases are not offered. Users of older APKs with the updater disabled must install an updater-enabled APK manually once.
 
 ## Translations and compatibility
 

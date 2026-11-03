@@ -6,7 +6,7 @@
 
 - Identitas KomiKita untuk nama aplikasi, ikon, splash, notifikasi, dokumentasi, metadata toko, dan rilis.
 - Application ID terpisah: app.komikita.
-- Telemetry dan updater mati secara bawaan; rilis diarahkan ke repositori KomiKita.
+- Telemetry mati secara bawaan; APK rilis GitHub, termasuk FOSS, mengaktifkan pembaruan aplikasi dari repositori KomiKita. Build lokal dan CI tetap menonaktifkan updater secara bawaan.
 - Sembunyikan kategori beserta komiknya dan ekstensi beserta sumbernya.
 - Opsi badge ikon ekstensi di perpustakaan.
 - Modul Rust untuk pemrosesan chapter dengan fallback Kotlin.

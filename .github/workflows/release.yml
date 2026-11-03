@@ -57,7 +57,7 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
       - name: Build
-        run: ./gradlew assembleRelease -Pdist=github
+        run: ./gradlew assembleRelease -Pdist=github -Penable-updater=true
         env:
           storeFile: ${{ runner.temp }}/komikita.keystore
           storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -115,7 +115,7 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
       - name: Build
-        run: ./gradlew assembleFoss -Pdist=foss
+        run: ./gradlew assembleFoss -Pdist=foss -Penable-updater=true
         env:
           storeFile: ${{ runner.temp }}/komikita.keystore
           storePassword: ${{ secrets.KEY_STORE_PASSWORD }}

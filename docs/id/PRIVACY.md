@@ -8,7 +8,7 @@ Build bawaan tidak menyertakan Firebase Analytics atau Crashlytics. Build distri
 
 Sumber konten, ekstensi yang dipasang, tracker, dan penyedia DNS menerima permintaan yang diperlukan untuk fitur terkait. Layanan tersebut memiliki kebijakan masing-masing.
 
-Updater bawaan dinonaktifkan. Build dengan updater aktif menghubungi GitHub Releases KomiKita.
+APK dari workflow rilis GitHub, termasuk FOSS, mengaktifkan updater bawaan. Build tersebut menghubungi GitHub untuk memeriksa Rilis KomiKita secara otomatis saat aplikasi digunakan dan saat Anda memeriksa secara manual. Mengunduh pembaruan juga meminta APK-nya dari GitHub. Build lokal dan CI tetap menonaktifkan updater kecuali diaktifkan secara eksplisit.
 
 Fitur sembunyikan mengatur visibilitas antarmuka dan tidak mengenkripsi data. Kunci aplikasi dapat diatur terpisah pada pengaturan keamanan.
 

@@ -219,8 +219,9 @@ class TtlDiskCacheTest {
     fun `deletes writes left unfinished`() = runTest {
         directory.mkdirs()
         File(directory, "abc.tmp-1").writeText("partial")
-        index.parentFile.mkdirs()
-        val unfinished = File(index.parentFile, "cache.index.tmp-1").apply { writeText("partial") }
+        val indexDirectory = requireNotNull(index.parentFile)
+        indexDirectory.mkdirs()
+        val unfinished = File(indexDirectory, "cache.index.tmp-1").apply { writeText("partial") }
 
         cache().totalSize() shouldBe 0
         entryFiles().size shouldBe 0

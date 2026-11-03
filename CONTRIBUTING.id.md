@@ -26,11 +26,11 @@ Tanpa toolchain Rust, gunakan `-Penable-rust=false`; implementasi Kotlin tetap t
 
 Application ID adalah `app.komikita`; varian debug, FOSS, nightly, dan benchmark memiliki suffix terpisah. Gunakan keystore KomiKita melalui `keystore.properties`. Jangan commit keystore atau kredensial.
 
-Updater mati secara bawaan. Aktifkan untuk rilis stabil yang siap didistribusikan dengan `-Penable-updater=true`. Repositori pembaruan adalah `BaghasWahyu/komikita`.
+Workflow rilis GitHub mengaktifkan updater untuk APK biasa dan FOSS dengan `-Penable-updater=true`. Build lokal dan CI tetap menonaktifkannya kecuali flag tersebut diberikan. Repositori pembaruan adalah `BaghasWahyu/komikita`.
 
 Firebase tidak disertakan secara bawaan. Jika diperlukan, sediakan `app/google-services.json` milik sendiri untuk seluruh application ID yang dibangun, lalu gunakan `-Pinclude-telemetry=true`. Pengumpulan mengikuti persetujuan pengguna.
 
-Workflow rilis membuat draft pada repositori KomiKita. Konfigurasikan secret SIGNING_KEY, KEY_STORE_PASSWORD, ALIAS, dan KEY_PASSWORD sebelum menjalankannya.
+Workflow rilis membuat draft pada repositori KomiKita. Konfigurasikan secret SIGNING_KEY, KEY_STORE_PASSWORD, ALIAS, dan KEY_PASSWORD sebelum menjalankannya. Untuk setiap rilis baru, naikkan `versionName` dan `versionCode` di `app/build.gradle.kts`, gunakan tag yang sesuai seperti `v1.0.2`, dan pertahankan signing key yang sama. Publikasikan draft setelah memeriksa aset APK-nya; updater memeriksa rilis stabil terbaru yang sudah dipublikasikan, sehingga draft dan prerelease tidak ditawarkan. Pengguna APK lama dengan updater nonaktif perlu memasang APK dengan updater aktif secara manual satu kali.
 
 ## Terjemahan dan kompatibilitas
 
