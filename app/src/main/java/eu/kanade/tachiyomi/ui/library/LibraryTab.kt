@@ -38,6 +38,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
+import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
@@ -93,6 +94,18 @@ data object LibraryTab : Tab {
 
         val snackbarHostState = remember { SnackbarHostState() }
 
+        val onContinueReading: (LibraryManga) -> Unit = { manga ->
+            scope.launch {
+                val chapter = viewModel.getNextUnreadChapter(manga.manga)
+                if (chapter != null) {
+                    context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id))
+                } else {
+                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
+                }
+            }
+            Unit
+        }
+
         val onClickRefresh: suspend (Category?) -> Boolean = { category ->
             val started = LibraryUpdateWorker.startNow(context.workManager, category)
             scope.launch {
@@ -121,6 +134,7 @@ data object LibraryTab : Tab {
                     onClickSelectAll = viewModel::selectAll,
                     onClickInvertSelection = viewModel::invertSelection,
                     onClickFilter = viewModel::showSettingsDialog,
+                    onClickDownloads = { navigator.push(DownloadQueueScreen) },
                     onClickRefresh = { scope.launch { onClickRefresh(state.activeCategory) } },
                     onClickGlobalUpdate = { scope.launch { onClickRefresh(null) } },
                     onClickOpenRandomManga = {
@@ -188,19 +202,8 @@ data object LibraryTab : Tab {
                         showPageTabs = state.showCategoryTabs || !state.searchQuery.isNullOrEmpty(),
                         onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
                         onClickManga = { navigator.push(MangaScreen(it)) },
-                        onContinueReadingClicked = { it: LibraryManga ->
-                            scope.launch {
-                                val chapter = viewModel.getNextUnreadChapter(it.manga)
-                                if (chapter != null) {
-                                    context.startActivity(
-                                        ReaderActivity.newIntent(context, chapter.mangaId, chapter.id),
-                                    )
-                                } else {
-                                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
-                                }
-                            }
-                            Unit
-                        }.takeIf { state.showMangaContinueButton },
+                        onResumeReading = onContinueReading,
+                        onContinueReadingClicked = onContinueReading.takeIf { state.showMangaContinueButton },
                         onToggleSelection = viewModel::toggleSelection,
                         onToggleRangeSelection = { category, manga ->
                             viewModel.toggleRangeSelection(category, manga)

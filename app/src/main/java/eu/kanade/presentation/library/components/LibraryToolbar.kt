@@ -1,28 +1,42 @@
 package eu.kanade.presentation.library.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
-import eu.kanade.presentation.components.SearchToolbar
 import mihon.icons.materialsymbols.MaterialSymbols
+import mihon.icons.materialsymbols.rounded.Close
+import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
+import mihon.icons.materialsymbols.rounded.Search
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.theme.active
 
 @Composable
 fun LibraryToolbar(
@@ -33,6 +47,7 @@ fun LibraryToolbar(
     onClickSelectAll: () -> Unit,
     onClickInvertSelection: () -> Unit,
     onClickFilter: () -> Unit,
+    onClickDownloads: () -> Unit,
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
@@ -52,6 +67,7 @@ fun LibraryToolbar(
         searchQuery = searchQuery,
         onSearchQueryChange = onSearchQueryChange,
         onClickFilter = onClickFilter,
+        onClickDownloads = onClickDownloads,
         onClickRefresh = onClickRefresh,
         onClickGlobalUpdate = onClickGlobalUpdate,
         onClickOpenRandomManga = onClickOpenRandomManga,
@@ -66,59 +82,105 @@ private fun LibraryRegularToolbar(
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
     onClickFilter: () -> Unit,
+    onClickDownloads: () -> Unit,
     onClickRefresh: () -> Unit,
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
 ) {
-    val pillAlpha = if (isSystemInDarkTheme()) 0.12f else 0.08f
-    SearchToolbar(
-        titleContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title.text,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f, false),
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (title.numberOfManga != null) {
-                    Pill(
-                        text = "${title.numberOfManga}",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = pillAlpha),
-                        fontSize = 14.sp,
+    val focusManager = LocalFocusManager.current
+    Column {
+        AppBar(
+            titleContent = {
+                Column {
+                    Text(
+                        text = title.text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(MR.strings.komikita_library_tagline),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-        },
-        searchQuery = searchQuery,
-        onChangeSearchQuery = onSearchQueryChange,
-        actions = {
-            val filterTint = if (hasFilters) MaterialTheme.colorScheme.active else LocalContentColor.current
-            AppBarActions(
-                listOf(
-                    AppBar.Action(
-                        title = stringResource(MR.strings.action_filter),
-                        icon = MaterialSymbols.Rounded.FilterList,
-                        iconTint = filterTint,
-                        onClick = onClickFilter,
+            },
+            actions = {
+                AppBarActions(
+                    listOf(
+                        AppBar.Action(
+                            title = stringResource(MR.strings.label_download_queue),
+                            icon = MaterialSymbols.Rounded.Download,
+                            onClick = onClickDownloads,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_update_library),
+                            onClick = onClickGlobalUpdate,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_update_category),
+                            onClick = onClickRefresh,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_open_random_manga),
+                            onClick = onClickOpenRandomManga,
+                        ),
                     ),
-                    AppBar.OverflowAction(
-                        title = stringResource(MR.strings.action_update_library),
-                        onClick = onClickGlobalUpdate,
-                    ),
-                    AppBar.OverflowAction(
-                        title = stringResource(MR.strings.action_update_category),
-                        onClick = onClickRefresh,
-                    ),
-                    AppBar.OverflowAction(
-                        title = stringResource(MR.strings.action_open_random_manga),
-                        onClick = onClickOpenRandomManga,
-                    ),
+                )
+            },
+            scrollBehavior = scrollBehavior,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = searchQuery.orEmpty(),
+                onValueChange = { onSearchQueryChange(it.takeIf(String::isNotEmpty)) },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(MR.strings.komikita_search_library)) },
+                leadingIcon = { Icon(MaterialSymbols.Rounded.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (!searchQuery.isNullOrEmpty()) {
+                        IconButton(onClick = { onSearchQueryChange(null) }) {
+                            Icon(MaterialSymbols.Rounded.Close, stringResource(MR.strings.komikita_clear_search))
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                 ),
             )
-        },
-        scrollBehavior = scrollBehavior,
-    )
+            FilledTonalIconButton(
+                onClick = onClickFilter,
+                modifier = Modifier.size(56.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = if (hasFilters) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    },
+                    contentColor = if (hasFilters) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                ),
+            ) {
+                Icon(MaterialSymbols.Rounded.FilterList, stringResource(MR.strings.action_filter))
+            }
+        }
+    }
 }
 
 @Composable

@@ -1101,4 +1101,14 @@
     <string name="komikita_reader_battery_saver">Save battery while reading</string>
     <string name="komikita_reader_battery_saver_summary">Prefer a screen refresh rate up to 60 Hz while reading. Turn off for smoother high refresh rate scrolling.</string>
     <string name="komikita_update_removed">Skipped because comic was removed from the library</string>
+    <string name="komikita_library_tagline">Your favorite comics, always close.</string>
+    <string name="komikita_search_library">Search your library</string>
+    <string name="komikita_your_collection">Your collection</string>
+    <string name="komikita_continue_reading">Continue reading</string>
+    <string name="komikita_reading_progress">Read %1$d of %2$d chapters</string>
+    <string name="komikita_chapter_progress">%1$d / %2$d chapters</string>
+    <string name="komikita_grid_view">Grid view</string>
+    <string name="komikita_list_view">List view</string>
+    <string name="komikita_clear_search">Clear search</string>
+    <string name="komikita_collection">Library</string>
 </resources>

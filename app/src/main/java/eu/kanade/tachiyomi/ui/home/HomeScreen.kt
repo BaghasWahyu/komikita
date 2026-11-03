@@ -13,7 +13,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -50,6 +48,7 @@ import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.pluralStringResource
+import tachiyomi.presentation.core.i18n.stringResource
 
 object HomeScreen : Screen() {
 
@@ -102,8 +101,8 @@ object HomeScreen : Screen() {
                     navigationSuiteType = navigationSuiteType,
                     state = navigationSuiteState,
                     navigationSuiteColors = NavigationSuiteDefaults.colors(
-                        navigationRailContainerColor = MaterialTheme.colorScheme
-                            .surfaceColorAtElevation(3.dp),
+                        navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     ),
                     navigationItemVerticalArrangement = Arrangement.Center,
                     navigationItems = {
@@ -192,8 +191,8 @@ object HomeScreen : Screen() {
             },
             label = {
                 Text(
-                    text = tab.options.title,
-                    style = MaterialTheme.typography.labelLarge,
+                    text = if (tab == LibraryTab) stringResource(MR.strings.komikita_collection) else tab.options.title,
+                    style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -228,7 +227,10 @@ object HomeScreen : Screen() {
         }
         if (count <= 0) return null
         return {
-            Badge {
+            Badge(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
                 val desc = when (tab) {
                     is UpdatesTab -> pluralStringResource(
                         MR.plurals.notification_chapters_generic,

@@ -36,6 +36,7 @@ fun LibraryContent(
     showPageTabs: Boolean,
     onChangeCurrentPage: (Int) -> Unit,
     onClickManga: (Long) -> Unit,
+    onResumeReading: (LibraryManga) -> Unit,
     onContinueReadingClicked: ((LibraryManga) -> Unit)?,
     onToggleSelection: (Category, LibraryManga) -> Unit,
     onToggleRangeSelection: (Category, LibraryManga) -> Unit,
@@ -58,22 +59,10 @@ fun LibraryContent(
         val scope = rememberCoroutineScope()
         var isRefreshing by remember(pagerState.currentPage) { mutableStateOf(false) }
 
-        if (showPageTabs && categories.isNotEmpty() && (categories.size > 1 || !categories.first().isSystemCategory)) {
-            LaunchedEffect(categories) {
-                if (categories.size <= pagerState.currentPage) {
-                    pagerState.scrollToPage(categories.size - 1)
-                }
+        LaunchedEffect(categories) {
+            if (categories.isNotEmpty() && categories.size <= pagerState.currentPage) {
+                pagerState.scrollToPage(categories.lastIndex)
             }
-            LibraryTabs(
-                categories = categories,
-                pagerState = pagerState,
-                getItemCountForCategory = getItemCountForCategory,
-                onTabItemClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(it)
-                    }
-                },
-            )
         }
 
         PullRefresh(
@@ -92,6 +81,31 @@ fun LibraryContent(
             LibraryPager(
                 state = pagerState,
                 contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
+                header = { items ->
+                    val displayMode = remember { getDisplayMode(pagerState.currentPage) }
+                    LibraryCollectionHeader(
+                        items = items,
+                        selectionMode = selection.isNotEmpty(),
+                        showContinueReading = searchQuery.isNullOrEmpty(),
+                        displayMode = displayMode.value,
+                        onDisplayModeChange = { displayMode.value = it },
+                        onContinueReading = onResumeReading,
+                        categories = {
+                            if (showPageTabs && categories.isNotEmpty() &&
+                                (categories.size > 1 || !categories.first().isSystemCategory)
+                            ) {
+                                LibraryTabs(
+                                    categories = categories,
+                                    pagerState = pagerState,
+                                    getItemCountForCategory = getItemCountForCategory,
+                                    onTabItemClick = { index ->
+                                        scope.launch { pagerState.animateScrollToPage(index) }
+                                    },
+                                )
+                            }
+                        },
+                    )
+                },
                 hasActiveFilters = hasActiveFilters,
                 selection = selection,
                 searchQuery = searchQuery,

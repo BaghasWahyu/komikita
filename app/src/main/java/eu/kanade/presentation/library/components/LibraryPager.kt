@@ -31,6 +31,7 @@ import tachiyomi.presentation.core.util.plus
 fun LibraryPager(
     state: PagerState,
     contentPadding: PaddingValues,
+    header: @Composable (List<LibraryItem>) -> Unit,
     hasActiveFilters: Boolean,
     selection: Set<Long>,
     searchQuery: String?,
@@ -60,12 +61,13 @@ fun LibraryPager(
                 searchQuery = searchQuery,
                 hasActiveFilters = hasActiveFilters,
                 contentPadding = contentPadding,
+                header = { header(items) },
                 onGlobalSearchClicked = onGlobalSearchClicked,
             )
             return@HorizontalPager
         }
 
-        val displayMode by getDisplayMode(page)
+        val displayMode by remember(page) { getDisplayMode(page) }
         val columns by if (displayMode != LibraryDisplayMode.List) {
             val configuration = LocalConfiguration.current
             val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -82,6 +84,7 @@ fun LibraryPager(
             LibraryDisplayMode.List -> {
                 LibraryList(
                     items = items,
+                    header = { header(items) },
                     contentPadding = contentPadding,
                     selection = selection,
                     onClick = onClickManga,
@@ -94,6 +97,7 @@ fun LibraryPager(
             LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
                 LibraryCompactGrid(
                     items = items,
+                    header = { header(items) },
                     showTitle = displayMode is LibraryDisplayMode.CompactGrid,
                     columns = columns,
                     contentPadding = contentPadding,
@@ -108,6 +112,7 @@ fun LibraryPager(
             LibraryDisplayMode.ComfortableGrid -> {
                 LibraryComfortableGrid(
                     items = items,
+                    header = { header(items) },
                     columns = columns,
                     contentPadding = contentPadding,
                     selection = selection,
@@ -127,6 +132,7 @@ private fun LibraryPagerEmptyScreen(
     searchQuery: String?,
     hasActiveFilters: Boolean,
     contentPadding: PaddingValues,
+    header: @Composable () -> Unit,
     onGlobalSearchClicked: () -> Unit,
 ) {
     val msg = when {
@@ -141,6 +147,7 @@ private fun LibraryPagerEmptyScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
+        header()
         if (!searchQuery.isNullOrEmpty()) {
             GlobalSearchItem(
                 modifier = Modifier

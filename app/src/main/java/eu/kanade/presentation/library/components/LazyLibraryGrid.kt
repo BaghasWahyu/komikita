@@ -19,9 +19,9 @@ internal fun LazyLibraryGrid(
     content: LazyGridScope.() -> Unit,
 ) {
     FastScrollLazyVerticalGrid(
-        columns = if (columns == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(columns),
+        columns = if (columns == 0) GridCells.Adaptive(104.dp) else GridCells.Fixed(columns),
         modifier = modifier,
-        contentPadding = contentPadding + PaddingValues(8.dp),
+        contentPadding = contentPadding + PaddingValues(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridVerticalSpacer),
         horizontalArrangement = Arrangement.spacedBy(CommonMangaItemDefaults.GridHorizontalSpacer),
         content = content,

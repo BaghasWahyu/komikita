@@ -1,10 +1,14 @@
 package eu.kanade.presentation.library.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.MangaCover
@@ -12,6 +16,7 @@ import tachiyomi.domain.manga.model.MangaCover
 @Composable
 internal fun LibraryCompactGrid(
     items: List<LibraryItem>,
+    header: @Composable () -> Unit,
     showTitle: Boolean,
     columns: Int,
     contentPadding: PaddingValues,
@@ -27,10 +32,14 @@ internal fun LibraryCompactGrid(
         columns = columns,
         contentPadding = contentPadding,
     ) {
+        item(key = "library_header", span = { GridItemSpan(maxLineSpan) }, contentType = "library_header") {
+            Box(Modifier.padding(horizontal = 4.dp)) { header() }
+        }
         globalSearchItem(searchQuery, onGlobalSearchClicked)
 
         items(
             items = items,
+            key = { it.libraryManga.id },
             contentType = { "library_compact_grid_item" },
         ) { libraryItem ->
             val manga = libraryItem.libraryManga.manga

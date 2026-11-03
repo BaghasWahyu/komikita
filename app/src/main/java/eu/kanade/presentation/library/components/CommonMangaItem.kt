@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,15 +48,15 @@ import tachiyomi.presentation.core.util.selectedBackground
 import tachiyomi.domain.manga.model.MangaCover as MangaCoverModel
 
 object CommonMangaItemDefaults {
-    val GridHorizontalSpacer = 4.dp
-    val GridVerticalSpacer = 4.dp
+    val GridHorizontalSpacer = 8.dp
+    val GridVerticalSpacer = 12.dp
 
     @Suppress("ConstPropertyName")
     const val BrowseFavoriteCoverAlpha = 0.34f
 }
 
-private val ContinueReadingButtonSizeSmall = 28.dp
-private val ContinueReadingButtonSizeLarge = 32.dp
+private val ContinueReadingButtonSizeSmall = 44.dp
+private val ContinueReadingButtonSizeLarge = 48.dp
 
 private val ContinueReadingButtonIconSizeSmall = 16.dp
 private val ContinueReadingButtonIconSizeLarge = 20.dp
@@ -185,6 +187,7 @@ fun MangaComfortableGridItem(
     coverBadgeStart: (@Composable RowScope.() -> Unit)? = null,
     coverBadgeEnd: (@Composable RowScope.() -> Unit)? = null,
     onClickContinueReading: (() -> Unit)? = null,
+    subtitle: String? = null,
 ) {
     GridItemSelectable(
         isSelected = isSelected,
@@ -217,12 +220,22 @@ fun MangaComfortableGridItem(
                 },
             )
             GridItemTitle(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier.padding(start = 2.dp, end = 2.dp, top = 8.dp, bottom = 2.dp),
                 title = title,
                 style = MaterialTheme.typography.titleSmall,
                 minLines = 2,
                 maxLines = titleMaxLines,
             )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    modifier = Modifier.padding(horizontal = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -241,7 +254,8 @@ private fun MangaGridCover(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(MangaCover.Book.ratio),
+            .aspectRatio(MangaCover.Book.ratio)
+            .clip(MaterialTheme.shapes.medium),
     ) {
         cover()
         content?.invoke(this)
@@ -298,16 +312,16 @@ private fun GridItemSelectable(
 ) {
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.medium)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
-            .selectedOutline(isSelected = isSelected, color = MaterialTheme.colorScheme.secondary)
+            .selectedOutline(isSelected = isSelected, color = MaterialTheme.colorScheme.primaryContainer)
             .padding(4.dp),
     ) {
         val contentColor = if (isSelected) {
-            MaterialTheme.colorScheme.onSecondary
+            MaterialTheme.colorScheme.onPrimaryContainer
         } else {
             LocalContentColor.current
         }
@@ -338,11 +352,13 @@ fun MangaListItem(
     isSelected: Boolean = false,
     coverAlpha: Float = 1f,
     onClickContinueReading: (() -> Unit)? = null,
+    subtitle: String? = null,
+    progress: Float? = null,
 ) {
     Row(
         modifier = Modifier
             .selectedBackground(isSelected)
-            .height(56.dp)
+            .heightIn(min = if (subtitle != null) 96.dp else 56.dp)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -350,21 +366,45 @@ fun MangaListItem(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MangaCover.Square(
+        if (subtitle != null) {
+            MangaCover.Book(
+                modifier = Modifier.height(72.dp).alpha(coverAlpha),
+                data = coverData,
+            )
+        } else {
+            MangaCover.Square(
+                modifier = Modifier.size(40.dp).alpha(coverAlpha),
+                data = coverData,
+            )
+        }
+        Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .alpha(coverAlpha),
-            data = coverData,
-        )
-        Text(
-            text = title,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(start = 16.dp, end = 8.dp)
                 .weight(1f),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        ) {
+            Text(
+                text = title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    modifier = Modifier.padding(top = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (progress != null) {
+                LinearProgressIndicator(
+                    progress = { progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(3.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                )
+            }
+        }
         BadgeGroup(content = badge)
         if (onClickContinueReading != null) {
             ContinueReadingButton(
