@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.Response
 import okio.FileSystem
@@ -71,11 +72,12 @@ class MangaCoverFetcher(
 
         // diskCacheKey is thumbnail_url
         if (url == null) error("No cover specified")
-        return when (getResourceType(url)) {
-            Type.File -> fileLoader(File(url.substringAfter("file://")))
-            Type.URI -> fileUriLoader(url)
+        val coverUrl = resolveCoverUrl(url) { getSource()?.baseUrl }
+        return when (getResourceType(coverUrl)) {
+            Type.File -> fileLoader(File(coverUrl.substringAfter("file://")))
+            Type.URI -> fileUriLoader(coverUrl)
             // Requests for the same cover at different sizes or through Manga and MangaCover would each download it
-            Type.URL -> concurrentRequests.apply(diskCacheKey) { httpLoader() }
+            Type.URL -> concurrentRequests.apply(diskCacheKey) { httpLoader(coverUrl) }
             null -> error("Invalid image")
         }
     }
@@ -104,7 +106,7 @@ class MangaCoverFetcher(
         )
     }
 
-    private suspend fun httpLoader(): FetchResult {
+    private suspend fun httpLoader(coverUrl: String): FetchResult {
         // Only cache separately if it's a library item
         val libraryCoverCacheFile = if (isLibraryManga) {
             coverFileLazy.value ?: error("No cover specified")
@@ -134,7 +136,7 @@ class MangaCoverFetcher(
             }
 
             // Fetch from network
-            val response = executeNetworkRequest()
+            val response = executeNetworkRequest(coverUrl)
             val responseBody = checkNotNull(response.body) { "Null response source" }
             try {
                 // Read from cover cache after library manga cover updated
@@ -169,10 +171,10 @@ class MangaCoverFetcher(
         }
     }
 
-    private suspend fun executeNetworkRequest(): Response {
+    private suspend fun executeNetworkRequest(coverUrl: String): Response {
         val source = getSource()
         val client = source?.client ?: callFactoryLazy.value
-        val response = client.newCall(newRequest(source)).await()
+        val response = client.newCall(newRequest(coverUrl, source)).await()
         if (!response.isSuccessful && response.code != HTTP_NOT_MODIFIED) {
             response.close()
             throw IOException(response.message)
@@ -180,9 +182,9 @@ class MangaCoverFetcher(
         return response
     }
 
-    private fun newRequest(source: HttpSource?): Request {
+    private fun newRequest(coverUrl: String, source: HttpSource?): Request {
         val request = Request.Builder().apply {
-            url(url!!)
+            url(coverUrl)
 
             val sourceHeaders = source?.headers
             if (sourceHeaders != null) {
@@ -350,4 +352,22 @@ class MangaCoverFetcher(
 
         private val concurrentRequests = DeDupeConcurrentRequests<FetchResult>()
     }
+}
+
+/** Resolves source-relative thumbnails without treating local covers as network URLs. */
+internal suspend fun resolveCoverUrl(cover: String, getBaseUrl: suspend () -> String?): String {
+    if (
+        cover.isEmpty() ||
+        cover.startsWith("http", true) ||
+        cover.startsWith("Custom-", true) ||
+        cover.startsWith("file:", true) ||
+        cover.startsWith("content:", true) ||
+        File(cover).isFile
+    ) {
+        return cover
+    }
+
+    // Sources such as Comix return /images/covers/... or protocol-relative CDN URLs.
+    // Keep the original URL as the cache key so existing library covers remain available.
+    return getBaseUrl()?.toHttpUrlOrNull()?.resolve(cover)?.toString() ?: cover
 }

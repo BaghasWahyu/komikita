@@ -121,7 +121,6 @@ def generate(root, tag, repository, previous):
         (f"komikita-armeabi-v7a-{tag}.apk", "32-bit ARM devices"),
         (f"komikita-x86-{tag}.apk", "32-bit x86 devices and emulators"),
         (f"komikita-x86_64-{tag}.apk", "64-bit x86 devices and emulators"),
-        (f"komikita-{tag}-foss.apk", "FOSS variant — separate application ID"),
     ]
     downloads = ["## Downloads", "", "| APK | Use this for |", "| --- | --- |"]
     downloads.extend(
@@ -132,9 +131,10 @@ def generate(root, tag, repository, previous):
     parts.append(
         "## Updating\n\n"
         "Install the APK over your existing app to keep your library and settings. "
-        "Use the same variant (standard or FOSS); do not uninstall the app first.\n\n"
-        "Pasang APK dengan varian yang sama (standar atau FOSS) untuk mempertahankan "
-        "perpustakaan dan pengaturan. Tidak perlu mencopot aplikasi lama."
+        "These APKs update the standard app (app.komikita); FOSS builds are no longer "
+        "included in GitHub releases. Do not uninstall the app first.\n\n"
+        "APK ini memperbarui aplikasi standar (app.komikita); build FOSS tidak lagi "
+        "disertakan dalam rilis GitHub. Tidak perlu mencopot aplikasi lama."
     )
     parts.append(
         f"**Documentation:** [English]({repository_url}/blob/{encoded_tag}/docs/README.md) · "

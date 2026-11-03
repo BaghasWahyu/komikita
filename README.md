@@ -68,9 +68,8 @@ In the filenames below, `X.Y.Z` is the release version.
 | `komikita-armeabi-v7a-vX.Y.Z.apk` | Devices using 32-bit ARM. |
 | `komikita-x86-vX.Y.Z.apk` | Devices or emulators using 32-bit x86. |
 | `komikita-x86_64-vX.Y.Z.apk` | Devices or emulators using 64-bit x86. |
-| `komikita-vX.Y.Z-foss.apk` | The separate FOSS variant, packaged as a universal APK. |
 
-The standard app uses `app.komikita`; FOSS uses `app.komikita.foss`. They can coexist and keep separate app data. An APK from one variant does not update the other. Both variants from the GitHub release workflow include the app updater, and neither includes Firebase by default.
+The GitHub release workflow builds the standard app (`app.komikita`) with the app updater and without Firebase by default. It no longer builds the separate FOSS variant (`app.komikita.foss`). Existing FOSS installations keep separate app data and cannot be updated with a standard APK.
 
 ### Install the app
 

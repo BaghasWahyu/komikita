@@ -68,9 +68,8 @@ Pada nama berkas di bawah, `X.Y.Z` merupakan versi rilis.
 | `komikita-armeabi-v7a-vX.Y.Z.apk` | Perangkat dengan ARM 32-bit. |
 | `komikita-x86-vX.Y.Z.apk` | Perangkat atau emulator x86 32-bit. |
 | `komikita-x86_64-vX.Y.Z.apk` | Perangkat atau emulator x86 64-bit. |
-| `komikita-vX.Y.Z-foss.apk` | Varian FOSS terpisah yang dikemas sebagai APK universal. |
 
-Aplikasi standar memakai `app.komikita`; FOSS memakai `app.komikita.foss`. Keduanya dapat dipasang bersamaan dan menyimpan data aplikasi secara terpisah. APK suatu varian tidak memperbarui varian lainnya. Kedua varian dari workflow rilis GitHub menyertakan updater aplikasi dan secara bawaan tidak menyertakan Firebase.
+Workflow rilis GitHub membangun aplikasi standar (`app.komikita`) dengan updater aplikasi dan secara bawaan tanpa Firebase. Workflow tidak lagi membangun varian FOSS terpisah (`app.komikita.foss`). Instalasi FOSS yang sudah ada menyimpan data aplikasi secara terpisah dan tidak dapat diperbarui dengan APK standar.
 
 ### Instal aplikasi
 

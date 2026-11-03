@@ -85,60 +85,11 @@ jobs:
             komikita-x86-${{ needs.get_tag.outputs.tag }}.apk
             komikita-x86_64-${{ needs.get_tag.outputs.tag }}.apk
 
-  build_foss:
-    if: github.repository == 'BaghasWahyu/komikita'
-    name: Build (FOSS)
-    runs-on: ubuntu-26.04
-    needs: get_tag
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up JDK
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        with:
-          java-version-file: .github/.java-version
-          distribution: temurin
-
-      - name: Set up Rust
-        uses: ./.github/actions/setup-rust
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-disabled: true
-
-      - name: Decode signing keystore
-        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/komikita.keystore"
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-
-      - name: Build
-        run: ./gradlew assembleFoss -Pdist=foss -Penable-updater=true
-        env:
-          storeFile: ${{ runner.temp }}/komikita.keystore
-          storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyAlias: ${{ secrets.ALIAS }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Rename APK
-        run: |
-          set -e
-
-          mv app/build/outputs/apk/foss/app-universal-foss.apk komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
-
-      - name: Upload APK
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: komikita-foss
-          path: komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
-
   release:
     if: github.repository == 'BaghasWahyu/komikita'
     name: Create GitHub Release
     runs-on: ubuntu-26.04
-    needs: [get_tag, build, build_foss]
+    needs: [get_tag, build]
 
     steps:
       - name: Checkout release history
@@ -171,9 +122,7 @@ jobs:
         uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118 # v6.0.0
         with:
           failOnError: false
-          name: |
-            komikita
-            komikita-foss
+          name: komikita
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
@@ -183,7 +132,6 @@ jobs:
           body_path: ${{ runner.temp }}/release-notes.md
           files: |
             komikita-${{ needs.get_tag.outputs.tag }}.apk
-            komikita-${{ needs.get_tag.outputs.tag }}-foss.apk
             komikita-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
             komikita-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
             komikita-x86-${{ needs.get_tag.outputs.tag }}.apk
