@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.repository.MangaRepository
 
@@ -28,21 +27,16 @@ class LibraryVisibility(
     ).distinctUntilChanged()
 
     suspend fun hiddenMangaIds(): Set<Long> {
-        val categories = hiddenCategoryIds().toSet()
+        val categories = hiddenCategoryIds()
         if (categories.isEmpty()) return emptySet()
-        return mangaRepository.getLibraryManga()
-            .filter { manga -> manga.categories.any { it in categories } }
-            .mapTo(mutableSetOf()) { it.id }
+        return mangaRepository.getHiddenLibraryMangaIds(categories)
     }
 
     fun hiddenMangaIdsFlow(): Flow<Set<Long>> = changes().flatMapLatest { categories ->
         if (categories.isEmpty()) {
             flowOf(emptySet())
         } else {
-            mangaRepository.getLibraryMangaAsFlow().map { mangas ->
-                mangas.filter { manga -> manga.categories.any { it in categories } }
-                    .mapTo(mutableSetOf()) { it.id }
-            }
+            mangaRepository.getHiddenLibraryMangaIdsAsFlow(categories)
         }
     }.distinctUntilChanged()
 

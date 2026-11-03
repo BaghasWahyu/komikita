@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="app.komikita.benchmark.DownloadIndexBenchmarkActivity"
+            android:exported="true" />
+        <activity
+            android:name="app.komikita.benchmark.NativeBenchmarkActivity"
+            android:exported="true" />
+        <activity
+            android:name="app.komikita.benchmark.PerformanceActivity"
+            android:exported="true" />
+    </application>
+</manifest>

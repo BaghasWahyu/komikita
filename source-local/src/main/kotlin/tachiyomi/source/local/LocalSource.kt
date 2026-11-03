@@ -82,6 +82,8 @@ class LocalSource(
 
     override val supportsLatest: Boolean = true
 
+    private val searchPages = LocalSourcePager<UniFile>()
+
     // Browse related
     override suspend fun getPopularManga(page: Int) = getSearchManga(page, "", PopularFilters)
 
@@ -96,40 +98,54 @@ class LocalSource(
             0L
         }
 
-        var mangaDirs = fileSystem.getFilesInBaseDirectory()
-            // Filter out files that are hidden and is not a folder
-            .filter { it.isDirectory && !it.name.orEmpty().startsWith('.') }
-            .distinctBy { it.name }
-            .filter {
-                if (lastModifiedLimit == 0L && query.isBlank()) {
-                    true
-                } else if (lastModifiedLimit == 0L) {
-                    it.name.orEmpty().contains(query, ignoreCase = true)
-                } else {
-                    it.lastModified() >= lastModifiedLimit
+        val searchKey = buildString {
+            append(fileSystem.getBaseDirectory()?.uri)
+            append('|').append(query)
+            append('|').append(filters === LatestFilters)
+            filters.forEach { append('|').append(it.javaClass.name).append(':').append(it.state) }
+        }
+        val (mangaDirs, hasNextPage) = searchPages.page(page, searchKey) {
+            var mangaDirs = fileSystem.getFilesInBaseDirectory()
+                // Filter out files that are hidden and is not a folder
+                .filter { it.isDirectory && !it.name.orEmpty().startsWith('.') }
+                .distinctBy { it.name }
+                .filter {
+                    if (lastModifiedLimit == 0L && query.isBlank()) {
+                        true
+                    } else if (lastModifiedLimit == 0L) {
+                        it.name.orEmpty().contains(query, ignoreCase = true)
+                    } else {
+                        it.lastModified() >= lastModifiedLimit
+                    }
+                }
+
+            filters.forEach { filter ->
+                when (filter) {
+                    is OrderBy.Popular -> {
+                        mangaDirs = if (filter.state!!.ascending) {
+                            mangaDirs.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.orEmpty() })
+                        } else {
+                            mangaDirs.sortedWith(
+                                compareByDescending(String.CASE_INSENSITIVE_ORDER) {
+                                    it.name.orEmpty()
+                                },
+                            )
+                        }
+                    }
+                    is OrderBy.Latest -> {
+                        mangaDirs = if (filter.state!!.ascending) {
+                            mangaDirs.sortedBy(UniFile::lastModified)
+                        } else {
+                            mangaDirs.sortedByDescending(UniFile::lastModified)
+                        }
+                    }
+                    else -> {
+                        /* Do nothing */
+                    }
                 }
             }
 
-        filters.forEach { filter ->
-            when (filter) {
-                is OrderBy.Popular -> {
-                    mangaDirs = if (filter.state!!.ascending) {
-                        mangaDirs.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.orEmpty() })
-                    } else {
-                        mangaDirs.sortedWith(compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.name.orEmpty() })
-                    }
-                }
-                is OrderBy.Latest -> {
-                    mangaDirs = if (filter.state!!.ascending) {
-                        mangaDirs.sortedBy(UniFile::lastModified)
-                    } else {
-                        mangaDirs.sortedByDescending(UniFile::lastModified)
-                    }
-                }
-                else -> {
-                    /* Do nothing */
-                }
-            }
+            mangaDirs
         }
 
         val mangas = mangaDirs
@@ -148,7 +164,7 @@ class LocalSource(
             }
             .awaitAll()
 
-        MangasPage(mangas, false)
+        MangasPage(mangas, hasNextPage)
     }
 
     override suspend fun getMangaUpdate(

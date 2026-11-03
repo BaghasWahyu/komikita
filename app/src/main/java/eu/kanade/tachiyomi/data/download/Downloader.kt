@@ -64,6 +64,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
+import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
@@ -460,6 +461,7 @@ class Downloader(
             }
 
             download.status = Download.State.DOWNLOADING
+            val files = ChapterFileIndex(tmpDir.listFiles().orEmpty())
 
             // Start downloading images, consider we can have downloaded images already
             coroutineScope {
@@ -477,7 +479,7 @@ class Downloader(
                             }
                         }
 
-                        getOrDownloadImage(page, download, tmpDir)
+                        getOrDownloadImage(page, download, tmpDir, files)
                         notifier.onProgressChange(download)
                     }.invokeOnCompletion { slots.release() }
                 }
@@ -502,7 +504,7 @@ class Downloader(
             if (downloadPreferences.saveChaptersAsCBZ.get()) {
                 archiveChapter(mangaDir, chapterDirname, tmpDir)
             } else {
-                tmpDir.renameTo(chapterDirname)
+                if (!tmpDir.renameTo(chapterDirname)) throw IOException("Unable to finalize chapter directory")
             }
             cache.addChapter(chapterDirname, mangaDir, download.manga)
 
@@ -525,7 +527,7 @@ class Downloader(
      * @param download the download of the page.
      * @param tmpDir the temporary directory of the download.
      */
-    private suspend fun getOrDownloadImage(page: Page, download: Download, tmpDir: UniFile) {
+    private suspend fun getOrDownloadImage(page: Page, download: Download, tmpDir: UniFile, files: ChapterFileIndex) {
         // If the image URL is empty, do nothing
         if (page.imageUrl == null) {
             return
@@ -535,17 +537,16 @@ class Downloader(
         val filename = "%0${digitCount}d".format(Locale.ENGLISH, page.number)
 
         // Try to find the image file
-        val imageFile = tmpDir.listFiles()?.firstOrNull {
-            isDownloadedPageImage(it.name ?: return@firstOrNull false, filename)
-        }
+        val imageFile = files.image(filename)
 
         try {
             // If the image is already downloaded, do nothing. Otherwise download from network
             val file = when {
                 imageFile != null -> imageFile
-                else -> copyImageFromCache(page.imageUrl!!, tmpDir, filename)
-                    ?: downloadImage(page, download.source, tmpDir, filename)
+                else -> copyImageFromCache(page.imageUrl!!, tmpDir, filename, files)
+                    ?: downloadImage(page, download.source, tmpDir, filename, files)
             }
+            files.add(file)
 
             // When the page is ready, set page path, progress (just in case) and status
             page.uri = file.uri
@@ -568,12 +569,18 @@ class Downloader(
      * @param tmpDir the temporary directory of the download.
      * @param filename the filename of the image.
      */
-    private suspend fun downloadImage(page: Page, source: HttpSource, tmpDir: UniFile, filename: String): UniFile {
+    private suspend fun downloadImage(
+        page: Page,
+        source: HttpSource,
+        tmpDir: UniFile,
+        filename: String,
+        files: ChapterFileIndex,
+    ): UniFile {
         page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
-            val file = tmpDir.findFile("$filename.tmp")
-                ?: tmpDir.createFile("$filename.tmp")!!
+            val file = files.temporary(filename)
+                ?: tmpDir.createFile("$filename.tmp")!!.also(files::add)
 
             try {
                 source.getImage(page, file.length()).use {
@@ -584,7 +591,7 @@ class Downloader(
                         stream = file.openOutputStream(it.code == 206),
                     )
                     val extension = getImageExtension(it, file)
-                    file.renameTo("$filename.$extension")
+                    if (!file.renameTo("$filename.$extension")) throw IOException("Unable to finalize page image")
                 }
             } catch (e: HttpException) {
                 if (e.code == 416) {
@@ -613,19 +620,26 @@ class Downloader(
      * @param tmpDir the temporary directory of the download.
      * @param filename the filename of the image.
      */
-    private suspend fun copyImageFromCache(imageUrl: String, tmpDir: UniFile, filename: String): UniFile? {
+    private suspend fun copyImageFromCache(
+        imageUrl: String,
+        tmpDir: UniFile,
+        filename: String,
+        files: ChapterFileIndex,
+    ): UniFile? {
         val tmpFile = chapterCache.openImage(imageUrl)?.use { input ->
             // Delete temp file if it exists
-            tmpDir.findFile("$filename.tmp")?.delete()
+            files.temporary(filename)?.delete()
             tmpDir.createFile("$filename.tmp")!!.also { tmpFile ->
+                files.add(tmpFile)
                 tmpFile.openOutputStream().use { output ->
                     input.copyTo(output)
                 }
             }
         } ?: return null
+        val extension = tmpFile.openInputStream().use { ImageUtil.findImageType(it) }
+            ?: throw IOException("Cached page is not an image")
+        if (!tmpFile.renameTo("$filename.${extension.extension}")) throw IOException("Unable to finalize cached page")
         chapterCache.removeImage(imageUrl)
-        val extension = tmpFile.openInputStream().use { ImageUtil.findImageType(it) } ?: return tmpFile
-        tmpFile.renameTo("$filename.${extension.extension}")
         return tmpFile
     }
 
@@ -674,18 +688,6 @@ class Downloader(
     }
 
     /**
-     * Checks if the file name matches a downloaded page image.
-     *
-     * @param fileName Name of the file to check
-     * @param pagePrefix Expected page prefix (e.g., "001")
-     */
-    private fun isDownloadedPageImage(fileName: String, pagePrefix: String): Boolean =
-        !fileName.endsWith(".tmp") && (
-            fileName.startsWith("$pagePrefix.") ||
-                fileName.startsWith("${pagePrefix}__001.")
-            )
-
-    /**
      * Archive the chapter pages as a CBZ.
      */
     private fun archiveChapter(
@@ -699,7 +701,7 @@ class Downloader(
                 writer.write(file)
             }
         }
-        zip.renameTo("$dirname.cbz")
+        if (!zip.renameTo("$dirname.cbz")) throw IOException("Unable to finalize chapter archive")
         tmpDir.delete()
     }
 

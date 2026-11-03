@@ -73,6 +73,7 @@ import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import java.io.File
+import java.util.Collections
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.AtomicBoolean
@@ -110,7 +111,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
     @Inject private lateinit var visibility: LibraryVisibility
 
-    private val reportEntries = CopyOnWriteArrayList<LibraryUpdateReport.Entry>()
+    private val reportEntries = Collections.synchronizedList(mutableListOf<LibraryUpdateReport.Entry>())
 
     private var mangaToUpdate: List<LibraryManga> = mutableListOf()
 
@@ -165,7 +166,9 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                             startedAt = startedAt,
                             finishedAt = Clock.System.now().toEpochMilliseconds(),
                             outcome = outcome,
-                            entries = reportEntries.toList().sortedBy { it.title.lowercase() },
+                            entries = synchronized(reportEntries) {
+                                reportEntries.toList()
+                            }.sortedBy { it.title.lowercase() },
                         ),
                     )
                     notifier.cancelProgressNotification()
@@ -276,8 +279,8 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         val semaphore = Semaphore(5)
         val progressCount = AtomicInt(0)
         val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
-        val newUpdates = CopyOnWriteArrayList<Pair<Manga, Array<Chapter>>>()
-        val failedUpdates = CopyOnWriteArrayList<Pair<Manga, String?>>()
+        val newUpdates = Collections.synchronizedList(mutableListOf<Pair<Manga, Array<Chapter>>>())
+        val failedUpdates = Collections.synchronizedList(mutableListOf<Pair<Manga, String?>>())
         val hasDownloads = AtomicBoolean(false)
         val timeZone = TimeZone.currentSystemDefault()
         val fetchWindow = fetchInterval.getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
@@ -360,15 +363,18 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         notifier.cancelProgressNotification()
 
-        if (newUpdates.isNotEmpty()) {
-            notifier.showUpdateNotifications(newUpdates)
+        val updatesSnapshot = synchronized(newUpdates) { newUpdates.toList() }
+        if (updatesSnapshot.isNotEmpty()) {
+            notifier.showUpdateNotifications(updatesSnapshot)
             if (hasDownloads.load()) {
                 downloadManager.startDownloads()
             }
         }
 
+        val failuresSnapshot = synchronized(failedUpdates) { failedUpdates.toList() }
+        if (failuresSnapshot.isEmpty()) return
         val hiddenIds = visibility.hiddenMangaIds()
-        val visibleFailures = failedUpdates.filterNot { it.first.id in hiddenIds }
+        val visibleFailures = failuresSnapshot.filterNot { it.first.id in hiddenIds }
         if (visibleFailures.isNotEmpty()) {
             val errorFile = writeErrorFile(visibleFailures)
             notifier.showUpdateErrorNotification(

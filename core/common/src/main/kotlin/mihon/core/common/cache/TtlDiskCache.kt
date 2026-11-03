@@ -10,19 +10,22 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.ByteString.Companion.encodeUtf8
+import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * A disk cache whose entries expire [ttl] after they're written, which is all that bounds its size.
+ * A disk cache bounded by [ttl] and [maxBytes]. Acquired files are protected until their leases close.
  *
  * An entry is one file named after its key's hash. It's written to a temporary file and moved into place, so a
  * crash or a failed write leaves either the old entry or none, never a partial one.
@@ -36,15 +39,17 @@ class TtlDiskCache(
     val directory: File,
     private val indexFile: File,
     private val ttl: Duration,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     private val saveDelay: Duration = 2.seconds,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val now: () -> Long = System::currentTimeMillis,
+    private val maxBytes: Long = Long.MAX_VALUE,
 ) {
 
     private class Entry(val file: File, val size: Long, val writtenAt: Long)
 
     private val mutex = Mutex()
+    private val pins = mutableMapOf<String, Int>()
 
     // In the order they were written, so the expired ones come first
     private val entries = LinkedHashMap<String, Entry>()
@@ -58,6 +63,7 @@ class TtlDiskCache(
     private val saveRequests = Channel<Unit>(Channel.CONFLATED)
 
     init {
+        require(maxBytes >= 0)
         scope.launch(dispatcher) {
             for (request in saveRequests) {
                 delay(saveDelay)
@@ -83,27 +89,72 @@ class TtlDiskCache(
     /**
      * The file holding [key]'s value, or null when there's none, it has expired or it was deleted.
      */
-    suspend fun get(key: String): File? = locked {
-        val entry = entries[fileName(key)] ?: return@locked null
-        if (entry.isExpired() || !entry.file.exists()) {
-            remove(entry)
-            return@locked null
+    suspend fun get(key: String): File? = locked { liveEntry(key)?.file }
+
+    /** Pins a file while a reader needs its path, even when the cache is over its budget. */
+    suspend fun acquire(key: String): Lease? {
+        var acquired: Lease? = null
+        try {
+            return locked { liveEntry(key)?.let { lease(it).also { value -> acquired = value } } }
+        } catch (e: Throwable) {
+            acquired?.close()
+            throw e
         }
-        entry.file
     }
 
-    /**
-     * Opens [key]'s value, or returns null when there's none, it has expired or it was deleted.
-     */
     suspend fun open(key: String): InputStream? {
-        val file = get(key) ?: return null
-        return withContext(dispatcher) {
-            try {
-                file.inputStream()
-            } catch (_: FileNotFoundException) {
-                // Deleted since it was looked up
-                mutex.withLock { entries[file.name]?.takeUnless { it.file.exists() }?.let { remove(it) } }
-                null
+        val lease = acquire(key) ?: return null
+        var opened: InputStream? = null
+        try {
+            return withContext(dispatcher) {
+                object : FilterInputStream(lease.file.inputStream()) {
+                    override fun close() {
+                        try {
+                            super.close()
+                        } finally {
+                            lease.close()
+                        }
+                    }
+                }.also { opened = it }
+            }
+        } catch (_: FileNotFoundException) {
+            lease.close()
+            return null
+        } catch (e: Throwable) {
+            opened?.close()
+            lease.close()
+            throw e
+        }
+    }
+
+    class Lease internal constructor(val file: File, private val release: () -> Unit) : Closeable {
+        private val closed = AtomicBoolean()
+
+        override fun close() {
+            if (closed.compareAndSet(false, true)) release()
+        }
+    }
+
+    private fun liveEntry(key: String): Entry? {
+        val entry = entries[fileName(key)] ?: return null
+        if (entry.isExpired() || !entry.file.exists()) {
+            if (pins[entry.file.name] == null) remove(entry)
+            return null
+        }
+        return entry
+    }
+
+    private fun lease(entry: Entry): Lease {
+        val name = entry.file.name
+        pins[name] = (pins[name] ?: 0) + 1
+        return Lease(entry.file) {
+            scope.launch(dispatcher) {
+                mutex.withLock {
+                    val count = pins.getValue(name) - 1
+                    if (count == 0) pins.remove(name) else pins[name] = count
+                    removeExpired()
+                    trimToSize()
+                }
             }
         }
     }
@@ -114,7 +165,22 @@ class TtlDiskCache(
      * Stores what [write] writes as [key]'s value, replacing any there is. Nothing is stored when [write] throws.
      */
     @Throws(IOException::class)
-    suspend fun put(key: String, write: (OutputStream) -> Unit): File = withContext(dispatcher) {
+    suspend fun put(key: String, write: (OutputStream) -> Unit): File = store(key, write) { it.file }
+
+    /** Commits and pins under the same lock, so eviction cannot race the receiving reader. */
+    suspend fun putAndAcquire(key: String, write: (OutputStream) -> Unit): Lease {
+        var acquired: Lease? = null
+        try {
+            return store(key, write) { lease(it).also { value -> acquired = value } }
+        } catch (e: Throwable) {
+            acquired?.close()
+            throw e
+        }
+    }
+
+    private suspend fun <T> store(key: String, write: (OutputStream) -> Unit, result: (Entry) -> T): T = withContext(
+        dispatcher,
+    ) {
         // Before the temporary file exists, as loading deletes those left over
         mutex.withLock { load() }
         val name = fileName(key)
@@ -137,10 +203,12 @@ class TtlDiskCache(
                 entries[name] = entry
                 size += entry.size
                 latestWrite = maxOf(latestWrite, entry.writtenAt)
+                val value = result(entry)
                 removeExpired()
+                trimToSize()
                 changed()
+                value
             }
-            file
         } finally {
             temp.delete()
         }
@@ -148,20 +216,19 @@ class TtlDiskCache(
 
     suspend fun remove(key: String): Boolean = locked {
         val entry = entries[fileName(key)] ?: return@locked false
+        if (pins[entry.file.name] != null) return@locked false
         remove(entry)
         true
     }
 
     /**
-     * Removes every entry, returning how many there were.
+     * Removes unpinned entries, returning how many were removed. Active readers retain their files.
      */
     suspend fun clear(): Int = locked {
-        val count = entries.size
-        entries.values.forEach { it.file.delete() }
-        entries.clear()
-        size = 0
+        val removable = entries.values.filter { pins[it.file.name] == null }
+        removable.forEach(::remove)
         save()
-        count
+        removable.size
     }
 
     /**
@@ -206,6 +273,7 @@ class TtlDiskCache(
 
         if (unindexed || entries.size != indexed.size) changed()
         removeExpired()
+        trimToSize()
     }
 
     /**
@@ -252,6 +320,21 @@ class TtlDiskCache(
         while (iterator.hasNext()) {
             val entry = iterator.next()
             if (!entry.isExpired()) break
+            if (pins[entry.file.name] != null) continue
+            iterator.remove()
+            entry.file.delete()
+            size -= entry.size
+            removed = true
+        }
+        if (removed) changed()
+    }
+
+    private fun trimToSize() {
+        val iterator = entries.values.iterator()
+        var removed = false
+        while (size > maxBytes && iterator.hasNext()) {
+            val entry = iterator.next()
+            if (pins[entry.file.name] != null) continue
             iterator.remove()
             entry.file.delete()
             size -= entry.size

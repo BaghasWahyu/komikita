@@ -15,6 +15,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import mihon.core.common.cache.TtlDiskCache
 import mihon.data.cache.ChapterCache
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentHashMap
@@ -34,6 +35,10 @@ internal class HttpPageLoader(
     private val chunkProcessLock = Any()
     private var chunkProcessJob: Job? = null
     private val downloadJobs = ConcurrentHashMap<Int, Job>()
+    private val leaseLock = Any()
+    private val imageLeases = mutableMapOf<Int, TtlDiskCache.Lease>()
+    private var retainedPages = 0..8
+    private var recycled = false
 
     override var isLocal: Boolean = false
 
@@ -60,6 +65,17 @@ internal class HttpPageLoader(
      * Loads a page through the queue. Handles re-enqueueing pages if they were evicted from the cache.
      */
     override suspend fun loadPage(page: ReaderPage) = withContext(Dispatchers.IO) {
+        synchronized(leaseLock) {
+            retainedPages = (page.index - 3)..(page.index + 8)
+            val iterator = imageLeases.iterator()
+            while (iterator.hasNext()) {
+                val entry = iterator.next()
+                if (entry.key !in retainedPages) {
+                    entry.value.close()
+                    iterator.remove()
+                }
+            }
+        }
         val imageUrl = page.imageUrl
 
         // Check if the image has been deleted
@@ -102,6 +118,12 @@ internal class HttpPageLoader(
         super.recycle()
         scope.cancel()
         downloadJobs.clear()
+        synchronized(leaseLock) {
+            recycled = true
+            imageLeases.values.forEach { it.close() }
+            imageLeases.clear()
+        }
+        chapter.pages?.forEach { it.downloadStream?.close() }
 
         // Cache current page list progress for online chapters to allow a faster reopen
         chapter.pages?.let { pages ->
@@ -225,7 +247,7 @@ internal class HttpPageLoader(
             }
             val imageUrl = page.imageUrl!!
 
-            val file = chapterCache.getImageFile(imageUrl).takeUnless { force } ?: run {
+            val lease = (if (force) null else chapterCache.acquireImage(imageUrl)) ?: run {
                 val live = page.downloadStream
                 page.status = Page.State.DownloadImage
                 try {
@@ -237,6 +259,14 @@ internal class HttpPageLoader(
                 }
             }
 
+            val file = lease.file
+            synchronized(leaseLock) {
+                if (!recycled && page.index in retainedPages) {
+                    imageLeases.put(page.index, lease)?.close()
+                } else {
+                    lease.close()
+                }
+            }
             page.downloadStream = null
             page.stream = {
                 try {
@@ -250,6 +280,7 @@ internal class HttpPageLoader(
             }
             page.status = Page.State.Ready
         } catch (e: Throwable) {
+            page.downloadStream?.close()
             page.downloadStream = null
             if (e is CancellationException) {
                 // Chunk chains get cancelled on every page turn, so a cancelled page isn't an error. Put it back in

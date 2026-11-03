@@ -7,6 +7,7 @@ import mihon.gradle.getLatestCommitCount
 import mihon.gradle.getLatestCommitSha
 import mihon.gradle.getLatestCommitTime
 import mihon.gradle.tasks.ReplaceShortcutsPlaceholderTask
+import org.gradle.api.tasks.testing.Test
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -37,8 +38,8 @@ android {
     defaultConfig {
         applicationId = "app.komikita"
 
-        versionCode = 43
-        versionName = "1.0.4"
+        versionCode = 45
+        versionName = "1.0.5"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
@@ -201,7 +202,18 @@ baselineProfile {
     mergeIntoMain = true
 }
 
+val performanceBenchmarkOutput = providers.environmentVariable("KOMIKITA_BENCHMARK_OUTPUT").orElse("")
+tasks.withType<Test>().configureEach {
+    val measuringPerformance = performanceBenchmarkOutput.get().isNotEmpty()
+    inputs.property("performanceBenchmarkOutput", performanceBenchmarkOutput)
+    outputs.upToDateWhen { !measuringPerformance }
+    outputs.doNotCacheIf("Performance measurements must execute on the current host") {
+        measuringPerformance
+    }
+}
+
 dependencies {
+    add("benchmarkImplementation", projects.core.native)
     baselineProfile(projects.baselineProfile)
 
     implementation(projects.i18n)
@@ -325,6 +337,7 @@ dependencies {
 
     // Tests
     testImplementation(libs.bundles.test)
+    testImplementation(projects.core.native)
     testRuntimeOnly(libs.junit.platform.launcher)
 
     // For detecting memory leaks; see https://square.github.io/leakcanary/

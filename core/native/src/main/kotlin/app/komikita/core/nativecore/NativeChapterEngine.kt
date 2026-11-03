@@ -12,6 +12,12 @@ object NativeChapterEngine {
         false
     }
 
+    /** Avoid allocating a transfer array when this build or device cannot use the native library. */
+    fun missingChaptersCount(numbers: List<Double>): Int? {
+        if (!available) return null
+        return missingChaptersCount(numbers.toDoubleArray())
+    }
+
     fun missingChaptersCount(numbers: DoubleArray): Int? {
         if (!available) return null
         return try {

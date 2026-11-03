@@ -8,6 +8,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -80,6 +81,16 @@ class MangaRepositoryImpl(
         return database.libraryViewQueries
             .library(MangaMapper::mapLibraryManga)
             .subscribeToList()
+    }
+
+    override suspend fun getHiddenLibraryMangaIds(categoryIds: List<Long>): Set<Long> {
+        if (categoryIds.isEmpty()) return emptySet()
+        return database.mangaQueries.getHiddenLibraryMangaIds(categoryIds).awaitAsList().toSet()
+    }
+
+    override fun getHiddenLibraryMangaIdsAsFlow(categoryIds: List<Long>): Flow<Set<Long>> {
+        if (categoryIds.isEmpty()) return flowOf(emptySet())
+        return database.mangaQueries.getHiddenLibraryMangaIds(categoryIds).subscribeToList().map { it.toSet() }
     }
 
     override fun getFavoritesBySourceId(sourceId: Long): Flow<List<Manga>> {

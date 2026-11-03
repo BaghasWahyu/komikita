@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import mihon.domain.manga.model.toDomainManga
 import tachiyomi.core.common.preference.toggle
@@ -47,7 +49,7 @@ abstract class SearchViewModel(
         state.update(function)
     }
 
-    private val coroutineDispatcher = Dispatchers.IO.limitedParallelism(5)
+    private val searchSlots = Semaphore(5)
     private var searchJob: Job? = null
 
     private val enabledLanguages = sourcePreferences.enabledLanguages.get()
@@ -167,8 +169,10 @@ abstract class SearchViewModel(
                     }
 
                     try {
-                        val page = withContext(coroutineDispatcher) {
-                            source.getSearchManga(1, query, source.getFilterList())
+                        val page = searchSlots.withPermit {
+                            withContext(Dispatchers.IO) {
+                                source.getSearchManga(1, query, source.getFilterList())
+                            }
                         }
 
                         val titles = page.mangas

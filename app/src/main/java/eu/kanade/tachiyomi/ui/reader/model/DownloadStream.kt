@@ -1,30 +1,31 @@
 package eu.kanade.tachiyomi.ui.reader.model
 
+import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 
 /**
- * A download's bytes as they arrive, for one reader. Past [MAX_BYTES], or once that reader is
+ * A download's bytes as they arrive, for one reader. Past its memory budget, or once that reader is
  * closed, it stops keeping them; [append] never throws, so the download itself carries on.
  */
-class DownloadStream {
+class DownloadStream internal constructor(
+    private val budget: StreamMemoryBudget = sharedBudget,
+    private val maxBytes: Int = DEFAULT_MAX_BYTES,
+) : Closeable {
     // Object exposes wait()/notifyAll(), which are unavailable on Any.
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private val lock = Object()
-    private var data = ByteArray(1 shl 16)
+    private var data = ByteArray(0)
     private var size = 0
     private var done = false
+    private var hasReader = false
     private var error: Throwable? = null
 
     /** Presizes for [bytes], e.g. Content-Length; ignored if implausible. */
     fun reserve(bytes: Long) {
         synchronized(lock) {
-            if (error == null && bytes > data.size && bytes <= MAX_RESERVE) {
-                try {
-                    data = data.copyOf(bytes.toInt())
-                } catch (e: OutOfMemoryError) {
-                    // Only a hint.
-                }
+            if (error == null && !done && bytes > data.size && bytes <= maxBytes) {
+                grow(bytes.toInt())
             }
         }
     }
@@ -33,19 +34,14 @@ class DownloadStream {
         synchronized(lock) {
             if (error != null || done) return
             val needed = size.toLong() + length
-            if (needed > MAX_BYTES) {
+            if (needed > maxBytes) {
                 // Too big to decode while downloading; the whole-file decode takes over.
                 drop("Download too large to stream")
                 return
             }
             if (needed > data.size) {
-                data = try {
-                    data.copyOf(maxOf(needed, minOf(data.size.toLong() * 2, MAX_BYTES)).toInt())
-                } catch (e: OutOfMemoryError) {
-                    // As too large: the download mustn't fail over this copy.
-                    drop("Out of memory buffering the download")
-                    return
-                }
+                val capacity = maxOf(needed, minOf(maxOf(data.size.toLong() * 2, 1 shl 16), maxBytes.toLong()))
+                if (!grow(capacity.toInt())) return
             }
             System.arraycopy(src, offset, data, size, length)
             size += length
@@ -57,26 +53,52 @@ class DownloadStream {
     fun finish(error: Throwable? = null) {
         synchronized(lock) {
             done = true
-            if (this.error == null) this.error = error
+            if (error != null || !hasReader) drop(error?.message ?: "Download complete; use cached file")
             lock.notifyAll()
         }
     }
 
     /** From the start; [Reader.read] blocks for bytes. Closing it drops what's kept. */
-    fun reader(): Reader = Reader()
+    fun reader(): Reader = synchronized(lock) {
+        hasReader = true
+        Reader()
+    }
+
+    override fun close() {
+        synchronized(lock) { drop("Reader released") }
+    }
+
+    private fun grow(capacity: Int): Boolean {
+        if (!budget.acquire(capacity)) {
+            drop("Streaming memory budget exhausted")
+            return false
+        }
+        val replacement = try {
+            data.copyOf(capacity)
+        } catch (_: OutOfMemoryError) {
+            budget.release(capacity)
+            drop("Out of memory buffering the download")
+            return false
+        }
+        budget.release(data.size)
+        data = replacement
+        return true
+    }
 
     // Rather than hold a second copy of the page.
     private fun drop(why: String) {
         if (error == null) error = IOException(why)
+        budget.release(data.size)
         data = ByteArray(0)
         size = 0
         lock.notifyAll()
     }
 
     private companion object {
-        // As the decoder's own input limit.
-        const val MAX_BYTES = 1L shl 30
-        const val MAX_RESERVE = 64L shl 20
+        const val DEFAULT_MAX_BYTES = 64 shl 20
+        val sharedBudget = StreamMemoryBudget(
+            (Runtime.getRuntime().maxMemory() / 8).coerceIn(8L shl 20, 128L shl 20),
+        )
     }
 
     inner class Reader : InputStream() {
@@ -90,8 +112,11 @@ class DownloadStream {
             }
 
         override fun read(): Int {
-            val b = ByteArray(1)
-            return if (read(b, 0, 1) < 0) -1 else b[0].toInt() and 0xFF
+            synchronized(lock) {
+                while (position >= size && !done && error == null) lock.wait()
+                checkError()
+                return if (position >= size) -1 else data[position++].toInt() and 0xFF
+            }
         }
 
         override fun read(b: ByteArray, off: Int, len: Int): Int {

@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+
 plugins {
     alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.spotless)
@@ -12,6 +14,16 @@ android {
 kotlin {
     compilerOptions {
         optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
+    }
+}
+
+val performanceBenchmarkOutput = providers.environmentVariable("KOMIKITA_BENCHMARK_OUTPUT").orElse("")
+tasks.withType<Test>().configureEach {
+    val measuringPerformance = performanceBenchmarkOutput.get().isNotEmpty()
+    inputs.property("performanceBenchmarkOutput", performanceBenchmarkOutput)
+    outputs.upToDateWhen { !measuringPerformance }
+    outputs.doNotCacheIf("Performance measurements must execute on the current host") {
+        measuringPerformance
     }
 }
 
@@ -33,4 +45,8 @@ dependencies {
     implementation(libs.jsoup)
 
     implementation(libs.kotlinx.datetime)
+
+    testImplementation(libs.bundles.test)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

@@ -35,7 +35,8 @@ class TtlDiskCacheTest {
         ttl: Duration = 1.hours,
         saveDelay: Duration = Duration.ZERO,
         dispatcher: CoroutineDispatcher = StandardTestDispatcher(testScheduler),
-    ) = TtlDiskCache(directory, index, ttl, backgroundScope, saveDelay, dispatcher, now = { time })
+        maxBytes: Long = Long.MAX_VALUE,
+    ) = TtlDiskCache(directory, index, ttl, backgroundScope, saveDelay, dispatcher, now = { time }, maxBytes = maxBytes)
 
     private suspend fun TtlDiskCache.put(key: String, value: String) = put(key) { it.write(value.toByteArray()) }
 
@@ -338,5 +339,76 @@ class TtlDiskCacheTest {
         index.lastModified() shouldNotBe 1_000
         index.readLines().size shouldBe 3
         reopened.totalSize() shouldBe 6
+    }
+
+    @Test
+    fun evictsOldestUnpinnedFilesToFitByteBudget() = runTest {
+        val cache = cache(maxBytes = 8)
+        cache.put("a", "aaaa")
+        cache.put("b", "bbbb")
+        cache.put("c", "cccc")
+        cache.read("a") shouldBe null
+        cache.read("b") shouldBe "bbbb"
+        cache.read("c") shouldBe "cccc"
+        cache.totalSize() shouldBe 8
+    }
+
+    @Test
+    fun protectsActiveFileAndEvictsAfterItsLastLeaseCloses() = runTest {
+        val cache = cache(maxBytes = 4)
+        val a = cache.putAndAcquire("a") { it.write("aaaaaaaa".toByteArray()) }
+        val b = cache.acquire("a")!!
+        cache.totalSize() shouldBe 8
+        cache.remove("a") shouldBe false
+        cache.clear() shouldBe 0
+        a.file.readText() shouldBe "aaaaaaaa"
+        a.close()
+        runCurrent()
+        b.file.exists() shouldBe true
+        b.close()
+        b.close()
+        runCurrent()
+        b.file.exists() shouldBe false
+        cache.totalSize() shouldBe 0
+    }
+
+    @Test
+    fun openingAnInputStreamProtectsTheFileUntilClose() = runTest {
+        val cache = cache(maxBytes = 4)
+        cache.put("a", "aaaa")
+        val input = cache.open("a")!!
+        cache.put("b", "bbbb")
+        input.readBytes().decodeToString() shouldBe "aaaa"
+        cache.read("a") shouldBe "aaaa"
+        cache.read("b") shouldBe null
+        input.close()
+        runCurrent()
+        cache.totalSize() shouldBe 4
+    }
+
+    @Test
+    fun expiresPinnedFileOnlyAfterReaderReleasesIt() = runTest {
+        val cache = cache(ttl = 1.seconds)
+        val lease = cache.putAndAcquire("a") { it.write("aaaa".toByteArray()) }
+        time += 1_000
+        cache.put("b", "bbbb")
+        cache.get("a") shouldBe null
+        lease.file.readText() shouldBe "aaaa"
+        lease.close()
+        runCurrent()
+        lease.file.exists() shouldBe false
+    }
+
+    @Test
+    fun enforcesByteBudgetWhenReopeningExistingCache() = runTest {
+        val unlimited = cache()
+        unlimited.put("a", "aaaa")
+        time++
+        unlimited.put("b", "bbbb")
+        val bounded = cache(maxBytes = 4)
+        bounded.warmUp()
+        bounded.totalSize() shouldBe 4
+        bounded.read("a") shouldBe null
+        bounded.read("b") shouldBe "bbbb"
     }
 }

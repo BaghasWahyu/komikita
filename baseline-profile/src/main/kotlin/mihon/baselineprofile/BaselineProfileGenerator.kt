@@ -37,6 +37,18 @@ class BaselineProfileGenerator {
 
             device.waitAndClick(By.text("More"))
             device.waitForIdle()
+
+            // The benchmark variant adds deterministic offline runtime fixtures.
+            if (TARGET_PACKAGE_NAME.endsWith(".benchmark")) {
+                for (mode in listOf("list", "grid")) {
+                    startActivityAndWait(fixtureIntent(mode))
+                    device.wait(Until.hasObject(By.text("Comic 0")), 10_000)
+                    repeat(6) {
+                        device.swipe(device.displayWidth / 2, device.displayHeight * 4 / 5,
+                            device.displayWidth / 2, device.displayHeight / 5, 30)
+                    }
+                }
+            }
         }
     }
 }

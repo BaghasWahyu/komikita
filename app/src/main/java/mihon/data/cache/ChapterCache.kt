@@ -7,6 +7,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.DownloadStream
+import eu.kanade.tachiyomi.util.system.DeviceUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,9 +44,21 @@ class ChapterCache(
     // Out of the cache directory, so the system clearing that leaves the indexes
     private val indexes = File(context.noBackupFilesDir, "chapter_cache")
 
-    private val pageLists = TtlDiskCache(File(root, "pages"), File(indexes, "pages.index"), 1.hours, scope)
+    private val pageLists = TtlDiskCache(
+        File(root, "pages"),
+        File(indexes, "pages.index"),
+        1.hours,
+        scope,
+        maxBytes = 16L shl 20,
+    )
 
-    private val images = TtlDiskCache(File(root, "images"), File(indexes, "images.index"), 1.days, scope)
+    private val images = TtlDiskCache(
+        File(root, "images"),
+        File(indexes, "images.index"),
+        1.days,
+        scope,
+        maxBytes = if (DeviceUtil.isLowRamDevice(context)) 256L shl 20 else 512L shl 20,
+    )
 
     init {
         scope.launch {
@@ -81,9 +94,9 @@ class ChapterCache(
     suspend fun isImageInCache(imageUrl: String): Boolean = imageUrl in images
 
     /**
-     * The image's file, or null when it isn't cached.
+     * Pins the image until the reader closes the returned lease, or returns null when it isn't cached.
      */
-    suspend fun getImageFile(imageUrl: String): File? = images.get(imageUrl)
+    suspend fun acquireImage(imageUrl: String): TtlDiskCache.Lease? = images.acquire(imageUrl)
 
     /**
      * Opens the image, or returns null when it isn't cached.
@@ -100,10 +113,10 @@ class ChapterCache(
      * @param live also receives the bytes as they arrive.
      */
     @Throws(IOException::class)
-    suspend fun putImage(imageUrl: String, response: Response, live: DownloadStream? = null): File {
+    suspend fun putImage(imageUrl: String, response: Response, live: DownloadStream? = null): TtlDiskCache.Lease {
         response.body.use { body ->
             live?.reserve(body.contentLength())
-            return images.put(imageUrl) { out ->
+            return images.putAndAcquire(imageUrl) { out ->
                 body.source().use { source ->
                     val buffer = ByteArray(1 shl 16)
                     while (true) {

@@ -6,7 +6,7 @@ import kotlin.math.floor
 
 fun List<Double>.missingChaptersCount(): Int {
     if (size >= 512) {
-        NativeChapterEngine.missingChaptersCount(toDoubleArray())?.let { return it }
+        NativeChapterEngine.missingChaptersCount(this)?.let { return it }
     }
     val chapters = IntArray(size)
     var count = 0
