@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -56,12 +57,9 @@ object CommonMangaItemDefaults {
 }
 
 private val ContinueReadingButtonSizeSmall = 44.dp
-private val ContinueReadingButtonSizeLarge = 48.dp
 
 private val ContinueReadingButtonIconSizeSmall = 16.dp
-private val ContinueReadingButtonIconSizeLarge = 20.dp
 
-private val ContinueReadingButtonGridPadding = 6.dp
 private val ContinueReadingButtonListSpacing = 8.dp
 
 private const val GRID_SELECTED_COVER_ALPHA = 0.76f
@@ -98,20 +96,18 @@ fun MangaCompactGridItem(
             },
             badgesStart = coverBadgeStart,
             badgesEnd = coverBadgeEnd,
-            content = {
+            content = { coverWidth ->
                 if (title != null) {
                     CoverTextOverlay(
                         title = title,
+                        coverWidth = coverWidth,
                         onClickContinueReading = onClickContinueReading,
                     )
                 } else if (onClickContinueReading != null) {
-                    ContinueReadingButton(
-                        size = ContinueReadingButtonSizeLarge,
-                        iconSize = ContinueReadingButtonIconSizeLarge,
+                    GridContinueReadingButton(
+                        coverWidth = coverWidth,
                         onClick = onClickContinueReading,
-                        modifier = Modifier
-                            .padding(ContinueReadingButtonGridPadding)
-                            .align(Alignment.BottomEnd),
+                        modifier = Modifier.align(Alignment.BottomEnd),
                     )
                 }
             },
@@ -125,6 +121,7 @@ fun MangaCompactGridItem(
 @Composable
 private fun BoxScope.CoverTextOverlay(
     title: String,
+    coverWidth: Dp,
     onClickContinueReading: (() -> Unit)? = null,
 ) {
     Box(
@@ -147,7 +144,7 @@ private fun BoxScope.CoverTextOverlay(
         GridItemTitle(
             modifier = Modifier
                 .weight(1f)
-                .padding(8.dp),
+                .padding((coverWidth * 0.06f).coerceIn(2.dp, 8.dp)),
             title = title,
             style = MaterialTheme.typography.titleSmall.copy(
                 color = Color.White,
@@ -159,14 +156,9 @@ private fun BoxScope.CoverTextOverlay(
             minLines = 1,
         )
         if (onClickContinueReading != null) {
-            ContinueReadingButton(
-                size = ContinueReadingButtonSizeSmall,
-                iconSize = ContinueReadingButtonIconSizeSmall,
+            GridContinueReadingButton(
+                coverWidth = coverWidth,
                 onClick = onClickContinueReading,
-                modifier = Modifier.padding(
-                    end = ContinueReadingButtonGridPadding,
-                    bottom = ContinueReadingButtonGridPadding,
-                ),
             )
         }
     }
@@ -206,15 +198,12 @@ fun MangaComfortableGridItem(
                 },
                 badgesStart = coverBadgeStart,
                 badgesEnd = coverBadgeEnd,
-                content = {
+                content = { coverWidth ->
                     if (onClickContinueReading != null) {
-                        ContinueReadingButton(
-                            size = ContinueReadingButtonSizeLarge,
-                            iconSize = ContinueReadingButtonIconSizeLarge,
+                        GridContinueReadingButton(
+                            coverWidth = coverWidth,
                             onClick = onClickContinueReading,
-                            modifier = Modifier
-                                .padding(ContinueReadingButtonGridPadding)
-                                .align(Alignment.BottomEnd),
+                            modifier = Modifier.align(Alignment.BottomEnd),
                         )
                     }
                 },
@@ -249,16 +238,16 @@ private fun MangaGridCover(
     cover: @Composable BoxScope.() -> Unit = {},
     badgesStart: (@Composable RowScope.() -> Unit)? = null,
     badgesEnd: (@Composable RowScope.() -> Unit)? = null,
-    content: @Composable (BoxScope.() -> Unit)? = null,
+    content: @Composable (BoxScope.(Dp) -> Unit)? = null,
 ) {
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(MangaCover.Book.ratio)
             .clip(MaterialTheme.shapes.medium),
     ) {
         cover()
-        content?.invoke(this)
+        content?.invoke(this, maxWidth)
         if (badgesStart != null) {
             BadgeGroup(
                 modifier = Modifier
@@ -415,6 +404,23 @@ fun MangaListItem(
             )
         }
     }
+}
+
+@Composable
+private fun GridContinueReadingButton(
+    coverWidth: Dp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val inset = (coverWidth * 0.04f).coerceIn(2.dp, 6.dp)
+    val availableWidth = (coverWidth - inset * 2).coerceAtLeast(0.dp)
+    val size = (coverWidth * 0.3f).coerceIn(18.dp, 40.dp).coerceAtMost(availableWidth)
+    ContinueReadingButton(
+        size = size,
+        iconSize = size * 0.6f,
+        onClick = onClick,
+        modifier = modifier.padding(inset),
+    )
 }
 
 @Composable

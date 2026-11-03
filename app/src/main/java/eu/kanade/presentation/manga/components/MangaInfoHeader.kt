@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.appendInlineContent
@@ -100,7 +102,7 @@ import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.findChildOfType
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
+import tachiyomi.presentation.core.components.material.ButtonDefaults
 import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -122,6 +124,18 @@ fun MangaInfoBox(
     doSearch: (query: String, global: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (!isTabletUi) {
+        MangaAndSourceTitlesSmall(
+            appBarPadding = appBarPadding,
+            manga = manga,
+            source = source,
+            isStubSource = isStubSource,
+            onCoverClick = onCoverClick,
+            doSearch = doSearch,
+            modifier = modifier,
+        )
+        return
+    }
     Box(modifier = modifier) {
         // Backdrop
         val backdropGradientColors = listOf(
@@ -149,25 +163,14 @@ fun MangaInfoBox(
 
         // Manga & source info
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-            if (!isTabletUi) {
-                MangaAndSourceTitlesSmall(
-                    appBarPadding = appBarPadding,
-                    manga = manga,
-                    source = source,
-                    isStubSource = isStubSource,
-                    onCoverClick = onCoverClick,
-                    doSearch = doSearch,
-                )
-            } else {
-                MangaAndSourceTitlesLarge(
-                    appBarPadding = appBarPadding,
-                    manga = manga,
-                    source = source,
-                    isStubSource = isStubSource,
-                    onCoverClick = onCoverClick,
-                    doSearch = doSearch,
-                )
-            }
+            MangaAndSourceTitlesLarge(
+                appBarPadding = appBarPadding,
+                manga = manga,
+                source = source,
+                isStubSource = isStubSource,
+                onCoverClick = onCoverClick,
+                doSearch = doSearch,
+            )
         }
     }
 }
@@ -186,7 +189,7 @@ fun MangaActionRow(
     onEditCategory: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val defaultActionButtonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA)
+    val defaultActionButtonColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     // TODO: show something better when using custom interval
     val nextUpdateDays = remember(nextUpdate) {
@@ -198,7 +201,10 @@ fun MangaActionRow(
         }
     }
 
-    Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
+    Row(
+        modifier = modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         MangaActionButton(
             title = if (favorite) {
                 stringResource(MR.strings.in_library)
@@ -209,6 +215,7 @@ fun MangaActionRow(
             color = if (favorite) MaterialTheme.colorScheme.primary else defaultActionButtonColor,
             onClick = onAddToLibraryClicked,
             onLongClick = onEditCategory,
+            highlighted = favorite,
         )
         MangaActionButton(
             title = when (nextUpdateDays) {
@@ -343,6 +350,30 @@ fun ExpandableMangaDescription(
 }
 
 @Composable
+fun MangaDetailsInfo(
+    manga: Manga,
+    source: Source,
+    doSearch: (query: String, global: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        MangaContentInfo(
+            title = manga.title,
+            author = manga.author,
+            artist = manga.artist,
+            status = manga.status,
+            source = source,
+            isStubSource = source is tachiyomi.domain.source.model.StubSource,
+            doSearch = doSearch,
+            showTitle = false,
+        )
+    }
+}
+
+@Composable
 private fun MangaAndSourceTitlesLarge(
     appBarPadding: Dp,
     manga: Manga,
@@ -388,9 +419,10 @@ private fun MangaAndSourceTitlesSmall(
     isStubSource: Boolean,
     onCoverClick: () -> Unit,
     doSearch: (query: String, global: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = 16.dp, top = appBarPadding + 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -398,7 +430,7 @@ private fun MangaAndSourceTitlesSmall(
     ) {
         MangaCover.Book(
             modifier = Modifier
-                .sizeIn(maxWidth = 100.dp)
+                .width(72.dp)
                 .align(Alignment.Top),
             data = ImageRequest.Builder(LocalContext.current)
                 .data(manga)
@@ -418,6 +450,7 @@ private fun MangaAndSourceTitlesSmall(
                 source = source,
                 isStubSource = isStubSource,
                 doSearch = doSearch,
+                compact = true,
             )
         }
     }
@@ -433,26 +466,32 @@ private fun ColumnScope.MangaContentInfo(
     isStubSource: Boolean,
     doSearch: (query: String, global: Boolean) -> Unit,
     textAlign: TextAlign? = LocalTextStyle.current.textAlign,
+    compact: Boolean = false,
+    showTitle: Boolean = true,
 ) {
     val context = LocalContext.current
-    Text(
-        text = title.ifBlank { stringResource(MR.strings.unknown_title) },
-        style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.clickableNoIndication(
-            onLongClick = {
-                if (title.isNotBlank()) {
-                    context.copyToClipboard(
-                        title,
-                        title,
-                    )
-                }
-            },
-            onClick = { if (title.isNotBlank()) doSearch(title, true) },
-        ),
-        textAlign = textAlign,
-    )
+    if (showTitle) {
+        Text(
+            text = title.ifBlank { stringResource(MR.strings.unknown_title) },
+            style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+            maxLines = if (compact) 2 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.clickableNoIndication(
+                onLongClick = {
+                    if (title.isNotBlank()) {
+                        context.copyToClipboard(
+                            title,
+                            title,
+                        )
+                    }
+                },
+                onClick = { if (title.isNotBlank()) doSearch(title, true) },
+            ),
+            textAlign = textAlign,
+        )
 
-    Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(2.dp))
+    }
 
     Row(
         modifier = Modifier.secondaryItemAlpha(),
@@ -467,7 +506,9 @@ private fun ColumnScope.MangaContentInfo(
         Text(
             text = author?.takeIf { it.isNotBlank() }
                 ?: stringResource(MR.strings.unknown_author),
-            style = MaterialTheme.typography.titleSmall,
+            style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.titleSmall,
+            maxLines = if (compact) 2 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .clickableNoIndication(
                     onLongClick = {
@@ -497,7 +538,9 @@ private fun ColumnScope.MangaContentInfo(
             )
             Text(
                 text = artist,
-                style = MaterialTheme.typography.titleSmall,
+                style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.titleSmall,
+                maxLines = if (compact) 2 else Int.MAX_VALUE,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .clickableNoIndication(
                         onLongClick = { context.copyToClipboard(artist, artist) },
@@ -529,7 +572,7 @@ private fun ColumnScope.MangaContentInfo(
                 .padding(end = 4.dp)
                 .size(16.dp),
         )
-        ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+        ProvideTextStyle(if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium) {
             Text(
                 text = when (status) {
                     SManga.ONGOING.toLong() -> stringResource(MR.strings.ongoing)
@@ -725,10 +768,21 @@ private fun RowScope.MangaActionButton(
     color: Color,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    highlighted: Boolean = false,
 ) {
     TextButton(
         onClick = onClick,
-        modifier = Modifier.weight(1f),
+        modifier = Modifier.weight(1f).heightIn(min = 64.dp),
+        shape = MaterialTheme.shapes.large,
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (highlighted) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            },
+            contentColor = color,
+        ),
         onLongClick = onLongClick,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -736,13 +790,15 @@ private fun RowScope.MangaActionButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = title,
                 color = color,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
             )
         }

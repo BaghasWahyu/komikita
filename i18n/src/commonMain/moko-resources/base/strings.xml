@@ -1111,4 +1111,6 @@
     <string name="komikita_list_view">List view</string>
     <string name="komikita_clear_search">Clear search</string>
     <string name="komikita_collection">Library</string>
+    <string name="komikita_manga_information">Information</string>
+    <string name="komikita_search_chapters">Search chapters</string>
 </resources>

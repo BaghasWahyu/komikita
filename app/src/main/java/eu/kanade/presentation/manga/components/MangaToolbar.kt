@@ -47,6 +47,7 @@ fun MangaToolbar(
     titleAlphaProvider: () -> Float,
     backgroundAlphaProvider: () -> Float,
     modifier: Modifier = Modifier,
+    showFilterAction: Boolean = true,
 ) {
     val isActionMode = actionModeCounter > 0
     AppBar(
@@ -102,14 +103,16 @@ fun MangaToolbar(
                             ),
                         )
                     }
-                    add(
-                        AppBar.Action(
-                            title = stringResource(MR.strings.action_filter),
-                            icon = MaterialSymbols.Rounded.FilterList,
-                            iconTint = filterTint,
-                            onClick = onClickFilter,
-                        ),
-                    )
+                    if (showFilterAction) {
+                        add(
+                            AppBar.Action(
+                                title = stringResource(MR.strings.action_filter),
+                                icon = MaterialSymbols.Rounded.FilterList,
+                                iconTint = filterTint,
+                                onClick = onClickFilter,
+                            ),
+                        )
+                    }
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_webview_refresh),

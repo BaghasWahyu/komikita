@@ -988,4 +988,6 @@
     <string name="komikita_list_view">Tampilan daftar</string>
     <string name="komikita_clear_search">Hapus pencarian</string>
     <string name="komikita_collection">Koleksi</string>
+    <string name="komikita_manga_information">Informasi</string>
+    <string name="komikita_search_chapters">Cari chapter</string>
 </resources>
