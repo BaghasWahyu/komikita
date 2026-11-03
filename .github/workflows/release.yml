@@ -141,6 +141,27 @@ jobs:
     needs: [get_tag, build, build_foss]
 
     steps:
+      - name: Checkout release history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.get_tag.outputs.tag }}
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '.[] | select(.draft == false and .prerelease == false) | .tag_name' \
+            > "$RUNNER_TEMP/published-release-tags.txt"
+          python3 .github/scripts/generate_release_notes.py \
+            --tag "$RELEASE_TAG" \
+            --repository "$GITHUB_REPOSITORY" \
+            --published-tags "$RUNNER_TEMP/published-release-tags.txt" \
+            --output "$RUNNER_TEMP/release-notes.md"
+          cat "$RUNNER_TEMP/release-notes.md" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Download all artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -159,22 +180,7 @@ jobs:
         with:
           tag_name: ${{ needs.get_tag.outputs.tag }}
           name: KomiKita ${{ needs.get_tag.outputs.tag }}
-          body: |
-            KomiKita — a customizable manga, comic, and webtoon reader for Android.
-
-            Documentation: [English](https://github.com/BaghasWahyu/komikita/blob/main/docs/README.md) · [Bahasa Indonesia](https://github.com/BaghasWahyu/komikita/blob/main/docs/id/README.md)
-
-            Check out the [past release notes](https://github.com/BaghasWahyu/komikita/releases) if you're upgrading from an earlier version.
-
-            <!-->
-
-
-
-            <!-->
-
-            > [!TIP]
-            >
-            > ### If you are unsure which version to download then go with `komikita-${{ needs.get_tag.outputs.tag }}.apk`
+          body_path: ${{ runner.temp }}/release-notes.md
           files: |
             komikita-${{ needs.get_tag.outputs.tag }}.apk
             komikita-${{ needs.get_tag.outputs.tag }}-foss.apk

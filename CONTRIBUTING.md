@@ -30,6 +30,19 @@ Firebase is not included by default. If needed, provide your own `app/google-ser
 
 The release workflow creates draft releases in the KomiKita repository. Configure the `SIGNING_KEY`, `KEY_STORE_PASSWORD`, `ALIAS`, and `KEY_PASSWORD` secrets before running it. For each new release, increase `versionName` and `versionCode` in `app/build.gradle.kts`, use a matching tag such as `v1.0.2`, and keep the same signing key. Publish the draft after checking its APK assets; the updater checks the latest published stable release, so drafts and prereleases are not offered. Users of older APKs with the updater disabled must install an updater-enabled APK manually once.
 
+### Release notes
+
+Before tagging, add a section such as `## 1.0.7 — YYYY-MM-DD` to `CHANGELOG.md` and `CHANGELOG.id.md`. Describe the behavior users will notice, including fixes and compatibility changes. The workflow uses only the section matching the tag, includes the Indonesian translation, and links to all commits since the previous published stable release. Without a matching English entry, it groups commit subjects into features, fixes, performance, documentation, and maintenance instead. Use Conventional Commit prefixes such as `feat(library):`, `fix(updater):`, and `perf:` to keep those groups useful.
+
+The release body also includes an APK selection table and update instructions. The existing `<!-->` separator keeps these download details out of the in-app update summary. Preview the generated body locally, with both tags available:
+
+```sh
+python .github/scripts/generate_release_notes.py --tag v1.0.6 --previous-tag v1.0.5 --output build/release-notes.md
+python -m unittest discover -s .github/scripts -p 'test_*.py'
+```
+
+Review the generated notes in the workflow summary and the draft before publishing. Workflow changes apply to subsequent tagged releases; they do not edit previously published release descriptions.
+
 ## Translations and compatibility
 
 English app strings are in `i18n/src/commonMain/moko-resources/base/`; Indonesian strings are in `i18n/src/commonMain/moko-resources/in/`. Existing upstream translations are retained. See the [translation guide](i18n/README.md).

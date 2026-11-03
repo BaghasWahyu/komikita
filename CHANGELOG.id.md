@@ -2,7 +2,19 @@
 
 # Changelog KomiKita
 
-## 1.0.0 — Belum dirilis
+## 1.0.6 — 2026-11-03
+
+### Perpustakaan
+
+- Kartu Lanjutkan Membaca tetap memilih komik yang terakhir dibuka selama masih memiliki chapter yang belum dibaca.
+- Setelah seluruh chapter selesai dibaca, kartu beralih ke komik belum dibaca dengan pembaruan chapter terbaru. Sumber tanpa tanggal unggah menggunakan waktu pengambilan chapter sebagai cadangan.
+- Rekomendasi mengikuti komik yang terlihat pada koleksi dan filter yang sedang digunakan.
+
+### Perbaikan
+
+- **Periksa pembaruan** secara manual kini meminta informasi rilis terbaru dan tidak memakai ulang respons cache.
+
+## 1.0.0 — 2026-11-02
 
 - Identitas KomiKita untuk nama aplikasi, ikon, splash, notifikasi, dokumentasi, metadata toko, dan rilis.
 - Application ID terpisah: app.komikita.
