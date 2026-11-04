@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SManga
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import logcat.LogPriority
@@ -59,20 +60,44 @@ class UpdateMangaFromRemote(
         fetchChapters: Boolean = false,
         manualFetch: Boolean = false,
         fetchWindow: ClosedRange<Instant>? = null,
+        fetchDetailsFirst: Boolean = false,
     ): Result<RemoteMangaUpdate> = withContext(Dispatchers.IO) {
         try {
             val chapters = chapterRepository.getChapterByMangaId(manga.id)
                 .sortedBy { it.sourceOrder }
+                .map(Chapter::toSChapter)
+            val earlyDetails = if (fetchDetailsFirst && fetchDetails && fetchChapters && chapters.isEmpty()) {
+                try {
+                    source.getMangaUpdate(manga.toSManga(), chapters, fetchDetails = true, fetchChapters = false).manga
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // The combined request may still work if the details-only request failed.
+                    logcat(LogPriority.WARN, e) { "Could not fetch manga details before chapters" }
+                    null
+                }
+            } else {
+                null
+            }
+            val savedDetails = if (earlyDetails != null && awaitUpdateFromSource(manga, earlyDetails, manualFetch)) {
+                mangaRepository.getMangaById(manga.id)
+            } else {
+                null
+            }
+            val currentManga = savedDetails ?: manga
+            val sourceManga = currentManga.toSManga().apply {
+                if (savedDetails != null) update_strategy = currentManga.updateStrategy
+            }
             val update = source.getMangaUpdate(
-                manga = manga.toSManga(),
-                chapters = chapters.map(Chapter::toSChapter),
-                fetchDetails = fetchDetails,
+                manga = sourceManga,
+                chapters = chapters,
+                fetchDetails = fetchDetails && savedDetails == null,
                 fetchChapters = fetchChapters,
             )
-            awaitUpdateFromSource(manga, update.manga, manualFetch)
+            awaitUpdateFromSource(currentManga, update.manga, manualFetch && savedDetails == null)
             val newChapters = syncChaptersWithSource.await(
                 rawSourceChapters = update.chapters,
-                manga = manga,
+                manga = currentManga,
                 source = source,
                 manualFetch = manualFetch,
                 fetchWindow = fetchWindow,

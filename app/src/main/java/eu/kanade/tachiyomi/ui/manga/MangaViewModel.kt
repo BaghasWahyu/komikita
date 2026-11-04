@@ -44,6 +44,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
@@ -106,6 +107,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.source.local.isLocal
 import kotlin.math.floor
 import kotlin.time.Duration.Companion.seconds
+
+private const val COMIX_SOURCE_ID = 7537715367149829912L
 
 @AssistedInject
 class MangaViewModel(
@@ -352,12 +355,15 @@ class MangaViewModel(
         fetchChapters: Boolean,
     ) {
         try {
+            val source = sourceManager.getOrStub(manga.source)
             val update = updateMangaFromRemote(
-                source = sourceManager.getOrStub(manga.source),
+                source = source,
                 manga = manga,
                 fetchDetails = fetchDetails,
                 fetchChapters = fetchChapters,
                 manualFetch = manualFetch,
+                // Comix returns combined updates only after walking the chapter list in its WebView.
+                fetchDetailsFirst = source is HttpSource && source.id == COMIX_SOURCE_ID,
             )
                 .getOrThrow()
 

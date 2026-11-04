@@ -6,10 +6,7 @@
 
 # KomiKita
 
-**Komik favorit, selalu dekat.**
-
-Pembaca manga, komik, dan webtoon open-source untuk Android.<br />
-Atur koleksi, baca secara offline, dan lanjutkan bacaan terakhir.
+KomiKita adalah aplikasi Android bersumber terbuka untuk membaca manga, komik, dan webtoon. Kamu bisa mengatur koleksi, mengunduh chapter untuk dibaca offline, dan melanjutkan bacaan terakhir.
 
 [![Rilis terbaru](https://img.shields.io/github/v/release/BaghasWahyu/komikita?label=rilis&color=0f766e)](https://github.com/BaghasWahyu/komikita/releases/latest)
 [![Android 8.0 ke atas](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)](#unduh-dan-instal)
@@ -20,7 +17,7 @@ Atur koleksi, baca secara offline, dan lanjutkan bacaan terakhir.
 
 </div>
 
-KomiKita merupakan fork dari [Mihon](https://github.com/mihonapp/mihon), yang melanjutkan basis kode Tachiyomi dengan identitas sendiri serta tambahan untuk pengelolaan perpustakaan, kelanjutan bacaan, dan pembaruan aplikasi. ID aplikasinya terpisah sehingga dapat dipasang berdampingan dengan Mihon.
+KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis kode Tachiyomi. Fork ini menambahkan pengaturan visibilitas perpustakaan, kartu Lanjutkan Membaca, dan pembaruan dari dalam aplikasi. KomiKita punya ID aplikasi sendiri dan bisa dipasang berdampingan dengan Mihon.
 
 ## Daftar isi
 
@@ -38,94 +35,88 @@ KomiKita merupakan fork dari [Mihon](https://github.com/mihonapp/mihon), yang me
 
 ## Fitur
 
-| Bagian | Kemampuan |
+| Fitur | Cara kerjanya |
 | --- | --- |
-| **Pembaca** | Pilih mode halaman atau webtoon serta atur arah baca, tema, dan kontrol pembaca. |
-| **Perpustakaan** | Kelompokkan komik ke dalam kategori, cari dan filter koleksi, serta gunakan tampilan grid atau daftar. |
-| **Lanjutkan Membaca** | Lanjutkan komik yang terakhir dibuka selama masih ada chapter belum dibaca. Setelah selesai, kartu beralih ke komik belum dibaca dengan pembaruan chapter terbaru dalam koleksi yang terlihat. |
-| **Konten offline dan lokal** | Unduh chapter untuk dibaca offline dan baca komik yang tersimpan di perangkat. |
-| **Pengaturan visibilitas** | Sembunyikan kategori beserta komiknya, atau sembunyikan ekstensi dan sumbernya dari Jelajah tanpa mencopot ekstensi. |
-| **Badge sumber** | Tampilkan ikon ekstensi pada komik di perpustakaan jika diinginkan. |
-| **Progres dan pelacakan** | Simpan riwayat serta progres membaca, jadwalkan pembaruan perpustakaan, dan hubungkan layanan yang didukung seperti AniList dan MyAnimeList. |
-| **Cadangan dan pemulihan** | Cadangkan perpustakaan, progres membaca, dan pengaturan ke lokasi pilihan. |
-| **Hemat baterai pembaca** | Prioritaskan refresh rate layar hingga 60 Hz saat membaca; preferensi ini dapat dinonaktifkan. |
-| **Pembaruan aplikasi** | Periksa rilis KomiKita yang telah dipublikasikan, baca catatan rilis, dan unduh APK kompatibel yang lebih baru dari aplikasi. |
+| Pembaca | Pilih mode halaman atau webtoon. Arah baca, tema, dan kontrol bisa diatur dari pembaca. |
+| Perpustakaan | Buat kategori, cari dan filter judul, lalu pilih tampilan grid atau daftar. |
+| Lanjutkan Membaca | Kartu menampilkan komik yang terakhir dibuka selama masih ada chapter yang belum dibaca. Setelah semua chapternya selesai dibaca, kartu memilih komik dengan pembaruan chapter paling baru di antara judul yang terlihat dan masih punya chapter belum dibaca. |
+| Bacaan offline dan lokal | Unduh chapter atau buka komik yang tersimpan di perangkat. |
+| Visibilitas | Sembunyikan kategori beserta komiknya. Di Jelajah, kamu juga bisa menyembunyikan ekstensi dan sumbernya tanpa mencopot ekstensi. |
+| Ikon ekstensi | Tampilkan ikon ekstensi pada komik di perpustakaan. |
+| Progres membaca | Simpan riwayat dan progres, jadwalkan pembaruan perpustakaan, atau hubungkan layanan seperti AniList dan MyAnimeList. |
+| Cadangan | Simpan cadangan perpustakaan, progres, dan pengaturan ke lokasi pilihan untuk dipulihkan nanti. |
+| Hemat baterai | Saat membaca, aplikasi mengutamakan refresh rate layar hingga 60 Hz. Opsi ini bisa dimatikan. |
+| Pembaruan aplikasi | Lihat catatan rilis dan unduh APK yang sesuai dari dalam aplikasi. |
 
-[Panduan penggunaan](docs/id/USER_GUIDE.md) menjelaskan kategori dan ekstensi tersembunyi, badge sumber, hemat baterai, dan migrasi. Dampak pada baterai bergantung pada perangkat serta kondisi membaca; lihat [catatan performa](docs/id/PERFORMANCE.md) untuk pengukuran dan batas kesimpulannya.
+Di versi `1.0.7`, KomiKita bisa memuat sampul dari sumber yang memberikan alamat gambar relatif, misalnya jalur yang diawali `/images/covers/`.
+
+Cara mengatur visibilitas, ikon ekstensi, dan mode hemat baterai ada di [panduan penggunaan](docs/id/USER_GUIDE.md). Dampak pengaturan refresh rate pada baterai bergantung pada perangkat dan kondisi membaca. Hasil pengukurannya ada di [catatan performa](docs/id/PERFORMANCE.md).
 
 ## Unduh dan instal
 
-KomiKita memerlukan **Android 8.0 (API 26) atau lebih baru**. Unduh APK melalui [GitHub Releases](https://github.com/BaghasWahyu/komikita/releases/latest).
+KomiKita membutuhkan Android 8.0 (API 26) atau lebih baru. Unduh APK dari [GitHub Releases](https://github.com/BaghasWahyu/komikita/releases/latest).
 
 ### Pilih APK
 
-Pada nama berkas di bawah, `X.Y.Z` merupakan versi rilis.
+Pilih APK universal jika kamu belum tahu arsitektur perangkatmu. `X.Y.Z` pada nama berkas adalah nomor versi.
 
 | Nama APK | Penggunaan |
 | --- | --- |
-| `komikita-vX.Y.Z.apk` | **APK universal — disarankan jika tidak yakin.** |
+| `komikita-vX.Y.Z.apk` | Semua arsitektur yang tercantum di bawah. |
 | `komikita-arm64-v8a-vX.Y.Z.apk` | Ponsel dan tablet ARM64. |
 | `komikita-armeabi-v7a-vX.Y.Z.apk` | Perangkat dengan ARM 32-bit. |
 | `komikita-x86-vX.Y.Z.apk` | Perangkat atau emulator x86 32-bit. |
 | `komikita-x86_64-vX.Y.Z.apk` | Perangkat atau emulator x86 64-bit. |
 
-Workflow rilis GitHub membangun aplikasi standar (`app.komikita`) dengan updater aplikasi dan secara bawaan tanpa Firebase. Workflow tidak lagi membangun varian FOSS terpisah (`app.komikita.foss`). Instalasi FOSS yang sudah ada menyimpan data aplikasi secara terpisah dan tidak dapat diperbarui dengan APK standar.
+Workflow rilis GitHub hanya menghasilkan APK standar (`app.komikita`). Fitur pembaruan aktif dan Firebase nonaktif secara bawaan. Android memasang APK standar sebagai aplikasi terpisah dari instalasi FOSS lama (`app.komikita.foss`), yang menyimpan datanya sendiri.
 
 ### Instal aplikasi
 
-1. Buka rilis terbaru dan unduh APK yang dipilih.
-2. Buka APK melalui browser atau pengelola berkas.
-3. Izinkan instalasi dari aplikasi tersebut saat Android memintanya, lalu konfirmasikan instalasi.
-4. Jalankan KomiKita dan selesaikan penyiapan awal.
+1. Unduh APK pilihanmu dari halaman rilis.
+2. Buka berkas APK lewat browser atau pengelola berkas.
+3. Saat Android meminta izin memasang dari aplikasi tersebut, beri izin lalu konfirmasi pemasangan.
+4. Buka KomiKita dan selesaikan penyiapan awal.
 
-Untuk memperbarui instalasi yang sudah ada, pasang APK lebih baru dengan **varian yang sama** di atas aplikasi lama. Pertahankan instalasi aplikasi agar datanya tetap tersimpan.
+Untuk memperbarui aplikasi dan mempertahankan data, pasang APK yang lebih baru dari varian yang sama di atas instalasi yang ada.
 
 ## Mulai menggunakan
 
-1. **Pilih folder penyimpanan.** Tentukan folder khusus saat penyiapan untuk unduhan, cadangan, dan berkas aplikasi lainnya.
-2. **Tambahkan bacaan.** Gunakan komik lokal atau atur ekstensi sumber yang kompatibel beserta repositorinya secara terpisah.
-3. **Susun perpustakaan.** Tambahkan judul ke koleksi, buat kategori, serta sesuaikan tampilan dan filter.
-4. **Atur cara membaca.** Pilih mode pembaca, arah baca, dan kontrol, atau unduh chapter sebelum membaca offline.
-5. **Simpan cadangan.** Atur pencadangan melalui pengaturan data dan penyimpanan sebelum berpindah perangkat atau mengubah instalasi.
-
-KomiKita tidak menyertakan komik atau menyediakan sumber kontennya sendiri. Ketersediaan dan perilaku konten mengikuti berkas lokal serta ekstensi yang dikonfigurasi.
+1. Saat penyiapan, pilih folder khusus untuk unduhan, cadangan, dan berkas aplikasi lainnya.
+2. Buka komik lokal atau siapkan repositori ekstensi yang kompatibel. KomiKita tidak menyertakan komik maupun sumber bawaan.
+3. Tambahkan judul ke perpustakaan. Gunakan kategori, tampilan, dan filter untuk mengatur koleksi.
+4. Atur mode, arah baca, dan kontrol di pembaca. Unduh chapter sebelum kamu perlu membaca offline.
+5. Buat cadangan dari pengaturan data dan penyimpanan sebelum pindah perangkat atau mengubah instalasi.
 
 ## Pembaruan aplikasi
 
-APK rilis resmi GitHub memeriksa pembaruan saat aplikasi dibuka dan setiap enam jam selama digunakan. Untuk memeriksa secara manual, buka:
+APK rilis GitHub memeriksa pembaruan saat aplikasi dibuka, lalu setiap enam jam selama aplikasi masih digunakan. Untuk memeriksa langsung, buka **Lainnya → Tentang → Periksa pembaruan**. Sejak versi `1.0.6`, pemeriksaan manual meminta data rilis baru dari GitHub.
 
-**Lainnya → Tentang → Periksa pembaruan**
+KomiKita menawarkan pembaruan jika ada rilis stabil yang sudah dipublikasikan, versinya lebih tinggi, dan APK-nya kompatibel. Aplikasi menampilkan catatan rilis dan menawarkan unduhan. Android meminta konfirmasi saat pemasangan.
 
-Jika tersedia pembaruan, KomiKita menampilkan catatan rilis dan menawarkan unduhan APK. Android akan meminta konfirmasi instalasi.
+Jika aplikasi menampilkan **No new updates**, bandingkan versi di **Tentang** dengan [rilis GitHub terbaru](https://github.com/BaghasWahyu/komikita/releases/latest). Jika ada versi yang lebih baru, kamu bisa memasang APK dari varian yang sama secara manual. Pemeriksa pembaruan pada build lokal dan CI harus diaktifkan saat build.
 
-Hanya **rilis stabil yang sudah dipublikasikan**, memiliki **versi lebih tinggi**, dan menyediakan **APK kompatibel** yang ditawarkan. Draft, prerelease, dan versi yang sudah terpasang tidak dianggap sebagai pembaruan baru. Versi `1.0.6` menambahkan permintaan jaringan baru saat pemeriksaan manual agar informasi rilis tidak diambil ulang dari cache.
-
-Jika build lama masih menampilkan **No new updates**, bandingkan versi terpasang pada **Tentang** dengan [rilis GitHub terbaru](https://github.com/BaghasWahyu/komikita/releases/latest). APK lebih baru dapat dipasang secara manual dengan varian yang sama. Build lokal dan CI menonaktifkan updater kecuali diaktifkan secara eksplisit saat build.
-
-Lihat [Memeriksa pembaruan aplikasi](docs/id/USER_GUIDE.md#memeriksa-pembaruan-aplikasi) untuk penjelasan lebih lanjut.
+Lihat [panduan pemeriksaan pembaruan](docs/id/USER_GUIDE.md#memeriksa-pembaruan-aplikasi).
 
 ## Berpindah dari Mihon
 
-KomiKita dapat dipasang berdampingan dengan Mihon, sehingga perpustakaan dapat dipindahkan sementara aplikasi asal tetap tersedia.
-
 1. Buat cadangan di Mihon.
 2. Instal KomiKita dan pilih folder penyimpanannya.
-3. Pulihkan cadangan melalui pengaturan data dan penyimpanan KomiKita.
-4. Periksa perpustakaan, ekstensi, progres membaca, dan koneksi tracker. Ekstensi serta login layanan mungkin perlu dikonfigurasi kembali.
+3. Buka pengaturan data dan penyimpanan KomiKita, lalu pulihkan cadangan.
+4. Periksa perpustakaan dan progres membaca. Jika perlu, pasang kembali ekstensi dan masuk lagi ke layanan pelacakan.
 
-Baca [Berpindah dari Mihon](docs/id/USER_GUIDE.md#berpindah-dari-mihon) untuk panduan migrasi dan [identitas serta kompatibilitas proyek](docs/id/BRANDING.md) untuk penjelasan tentang fork ini.
+Langkah pemulihan ada di [panduan migrasi](docs/id/USER_GUIDE.md#berpindah-dari-mihon). Lihat juga [identitas dan kompatibilitas proyek](docs/id/BRANDING.md).
 
 ## Privasi dan sumber konten
 
-Data perpustakaan, progres membaca, preferensi, dan kredensial tracker disimpan pada perangkat. Cadangan disimpan di lokasi yang dipilih.
+KomiKita menyimpan perpustakaan, progres membaca, preferensi, dan kredensial layanan pelacakan di perangkat. Kamu memilih lokasi cadangannya.
 
-Build bawaan tidak menyertakan Firebase Analytics dan Crashlytics. Sumber konten, ekstensi, tracker, dan penyedia DNS menerima permintaan yang diperlukan untuk fiturnya. APK rilis juga menghubungi GitHub untuk memeriksa dan mengunduh pembaruan aplikasi.
+Build bawaan tidak menyertakan Firebase Analytics atau Crashlytics. Aplikasi mengirim permintaan ke sumber konten, ekstensi, layanan pelacakan, dan penyedia DNS sesuai fitur yang digunakan. APK rilis juga menghubungi GitHub untuk memeriksa dan mengunduh pembaruan.
 
-Baca [kebijakan privasi](docs/id/PRIVACY.md) untuk penjelasan lengkap tentang penyimpanan data, permintaan jaringan, dan telemetry opsional.
+Rincian penyimpanan data, permintaan jaringan, dan telemetri opsional ada di [kebijakan privasi](docs/id/PRIVACY.md).
 
 ## Build dari source
 
-KomiKita menggunakan **Kotlin**, **Jetpack Compose**, **SQLDelight**, dan **WorkManager**. Modul **Rust** opsional melalui JNI memproses data chapter, dengan implementasi Kotlin sebagai fallback.
+KomiKita menggunakan Kotlin, Jetpack Compose, SQLDelight, dan WorkManager. Modul Rust opsional memproses data chapter melalui JNI. Build tanpa modul itu memakai implementasi Kotlin.
 
 ### Persyaratan
 
@@ -140,20 +131,20 @@ KomiKita menggunakan **Kotlin**, **Jetpack Compose**, **SQLDelight**, dan **Work
 
 [Katalog versi](gradle/mihon.versions.toml), [konfigurasi wrapper Gradle](gradle/wrapper/gradle-wrapper.properties), dan [workflow CI](.github/workflows/build.yml) menjadi acuan persyaratan build.
 
-### Build cepat dengan fallback Kotlin
+### Build debug tanpa modul native
 
 ```sh
 git clone https://github.com/BaghasWahyu/komikita.git
 cd komikita
 ```
 
-Atur lokasi Android SDK melalui `ANDROID_HOME`, atau buat berkas `local.properties` yang tidak dilacak Git pada root repositori:
+Atur lokasi Android SDK melalui `ANDROID_HOME`, atau buat berkas `local.properties` yang tidak dilacak Git di direktori utama repositori.
 
 ```properties
 sdk.dir=/absolute/path/to/Android/Sdk
 ```
 
-Kemudian jalankan build tanpa memerlukan toolchain Rust:
+Jalankan build debug dengan perintah berikut.
 
 ```sh
 ./gradlew assembleDebug -Penable-rust=false
@@ -163,7 +154,7 @@ Di Windows, ganti `./gradlew` dengan `.\gradlew.bat`. APK debug dihasilkan pada 
 
 ### Build dengan pemrosesan native
 
-Ikuti [panduan modul native](docs/id/NATIVE.md) untuk memasang Rust, target Android, dan `cargo-ndk`, lalu jalankan:
+Pasang Rust, target Android, dan `cargo-ndk` sesuai [panduan modul native](docs/id/NATIVE.md). Lalu jalankan perintah berikut.
 
 ```sh
 ./gradlew assembleDebug
@@ -177,7 +168,7 @@ Untuk memakai NDK lain yang sudah terpasang, tambahkan `-Prust-ndk-path=/path/to
 ./gradlew spotlessCheck testDebugUnitTest verifySqlDelightMigration -Penable-rust=false
 ```
 
-Hilangkan `-Penable-rust=false` untuk menyertakan build native setelah toolchain-nya siap. [Panduan kontribusi](CONTRIBUTING.id.md) menjelaskan signing, varian rilis, terjemahan, dan pembuatan catatan rilis. Konfigurasikan signing rilis sebelum mendistribusikan APK; pembaruan instalasi yang sudah ada memerlukan ID aplikasi dan signing key yang sama.
+Untuk menyertakan modul native dalam pemeriksaan, hapus `-Penable-rust=false` setelah toolchain siap. Atur penandatanganan APK sebelum mendistribusikan rilis. Android memakai ID aplikasi dan kunci penandatanganan untuk mencocokkan pembaruan dengan instalasi yang ada. Rincian penandatanganan, varian rilis, terjemahan, dan catatan rilis ada di [panduan kontribusi](CONTRIBUTING.id.md).
 
 ## Struktur proyek
 
