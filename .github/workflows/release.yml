@@ -64,6 +64,27 @@ jobs:
           keyAlias: ${{ secrets.ALIAS }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Verify APK versions
+        env:
+          RELEASE_TAG: ${{ needs.get_tag.outputs.tag }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          expected = tag.removeprefix("v")
+          metadata = Path("app/build/outputs/apk/release/output-metadata.json")
+          outputs = json.loads(metadata.read_text(encoding="utf-8"))["elements"]
+          if not outputs:
+              raise SystemExit("Gradle did not report any release APKs.")
+          for output in outputs:
+              actual = output["versionName"]
+              if actual != expected:
+                  raise SystemExit(f"{output['outputFile']} has versionName {actual}, but tag {tag} requires {expected}.")
+          PY
+
       - name: Rename APK
         run: |
           set -e
