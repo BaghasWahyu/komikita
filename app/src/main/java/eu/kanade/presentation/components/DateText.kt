@@ -11,6 +11,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.not_applicable
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Instant
 

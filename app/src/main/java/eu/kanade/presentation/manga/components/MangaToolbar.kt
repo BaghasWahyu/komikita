@@ -22,6 +22,15 @@ import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_edit_categories
+import tachiyomi.i18n.action_filter
+import tachiyomi.i18n.action_migrate
+import tachiyomi.i18n.action_notes
+import tachiyomi.i18n.action_select_all
+import tachiyomi.i18n.action_select_inverse
+import tachiyomi.i18n.action_share
+import tachiyomi.i18n.action_webview_refresh
+import tachiyomi.i18n.manga_download
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
 

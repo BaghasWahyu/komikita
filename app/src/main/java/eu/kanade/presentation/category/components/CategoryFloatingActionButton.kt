@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Add
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_add
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.shouldExpandFAB
 

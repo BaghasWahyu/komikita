@@ -18,6 +18,7 @@ import eu.kanade.tachiyomi.data.coil.InstalledSourceIcon
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Folder
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.komikita_extension_icon
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.i18n.stringResource
 

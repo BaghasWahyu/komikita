@@ -15,6 +15,9 @@ import mihon.domain.extension.model.ExtensionStore
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_webview_refresh
+import tachiyomi.i18n.extensionStores
+import tachiyomi.i18n.extensionStoresScreen_emptyLabel
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues

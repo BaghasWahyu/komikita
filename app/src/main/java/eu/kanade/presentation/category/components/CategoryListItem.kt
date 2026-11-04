@@ -21,6 +21,10 @@ import mihon.icons.materialsymbols.rounded.VisibilityOff
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_delete
+import tachiyomi.i18n.action_rename_category
+import tachiyomi.i18n.komikita_hide_category
+import tachiyomi.i18n.komikita_show_category
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 

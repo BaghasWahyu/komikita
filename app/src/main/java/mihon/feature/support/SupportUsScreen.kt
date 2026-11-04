@@ -32,6 +32,10 @@ import mihon.icons.simpleicons.Github
 import mihon.icons.simpleicons.SimpleIcons
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.komikita_contribute
+import tachiyomi.i18n.komikita_report_issue
+import tachiyomi.i18n.komikita_support_description
+import tachiyomi.i18n.label_support_us
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 

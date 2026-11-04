@@ -18,6 +18,7 @@ import androidx.glance.unit.ColorProvider
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.appwidget_unavailable_locked
 
 @Composable
 fun LockedWidget(

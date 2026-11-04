@@ -20,6 +20,10 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.TravelExplore
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_filter
+import tachiyomi.i18n.action_global_search
+import tachiyomi.i18n.internal_error
+import tachiyomi.i18n.label_sources
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

@@ -32,6 +32,9 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMaxBy
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.download_notifier_cache_renewal
+import tachiyomi.i18n.label_downloaded_only
+import tachiyomi.i18n.pref_incognito_mode
 import tachiyomi.presentation.core.i18n.stringResource
 
 val DownloadedOnlyBannerBackgroundColor

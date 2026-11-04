@@ -4,6 +4,8 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Parser
+import java.io.UncheckedIOException
 
 fun Element.selectText(css: String, defaultValue: String? = null): String? {
     return select(css).first()?.text() ?: defaultValue
@@ -22,5 +24,14 @@ fun Element.attrOrText(css: String): String {
  * @param html the body of the response. Use only if the body was read before calling this method.
  */
 fun Response.asJsoup(html: String? = null): Document {
-    return Jsoup.parse(html ?: body.string(), request.url.toString())
+    val baseUri = request.url.toString()
+    if (html != null) return Jsoup.parse(html, baseUri)
+
+    return body.charStream().use { reader ->
+        try {
+            Parser.htmlParser().parseInput(reader, baseUri)
+        } catch (error: UncheckedIOException) {
+            throw error.cause ?: error
+        }
+    }
 }

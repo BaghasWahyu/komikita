@@ -3,6 +3,11 @@ package mihon.feature.common.utils
 import dev.icerock.moko.resources.StringResource
 import mihon.domain.migration.models.MigrationFlag
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_notes
+import tachiyomi.i18n.categories
+import tachiyomi.i18n.chapters
+import tachiyomi.i18n.custom_cover
+import tachiyomi.i18n.delete_downloaded
 
 fun MigrationFlag.getLabel(): StringResource {
     return when (this) {

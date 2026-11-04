@@ -51,6 +51,7 @@ import mihon.icons.materialsymbols.rounded.FormatItalic
 import mihon.icons.materialsymbols.rounded.FormatListNumbered
 import mihon.icons.materialsymbols.rounded.FormatUnderlined
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.notes_placeholder
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds

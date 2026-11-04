@@ -24,6 +24,7 @@ import androidx.glance.unit.ColorProvider
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.information_no_recent
 import tachiyomi.presentation.widget.util.calculateRowAndColumnCount
 
 @Composable

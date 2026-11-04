@@ -23,6 +23,8 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.roundedfilled.Cancel
 import mihon.icons.materialsymbols.roundedfilled.Error
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_ok
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

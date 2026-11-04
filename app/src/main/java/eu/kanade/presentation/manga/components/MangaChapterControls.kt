@@ -27,6 +27,13 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.rounded.Search
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_filter_unread
+import tachiyomi.i18n.all
+import tachiyomi.i18n.chapters
+import tachiyomi.i18n.komikita_clear_search
+import tachiyomi.i18n.komikita_manga_information
+import tachiyomi.i18n.komikita_search_chapters
+import tachiyomi.i18n.label_downloaded
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

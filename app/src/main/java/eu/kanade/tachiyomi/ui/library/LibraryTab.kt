@@ -56,6 +56,15 @@ import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.getting_started_guide
+import tachiyomi.i18n.information_empty_library
+import tachiyomi.i18n.information_no_entries_found
+import tachiyomi.i18n.label_default
+import tachiyomi.i18n.label_library
+import tachiyomi.i18n.no_next_chapter
+import tachiyomi.i18n.update_already_running
+import tachiyomi.i18n.updating_category
+import tachiyomi.i18n.updating_library
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen

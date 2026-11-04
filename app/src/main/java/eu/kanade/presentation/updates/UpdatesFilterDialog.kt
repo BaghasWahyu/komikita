@@ -30,6 +30,14 @@ import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.updates.service.UpdatesPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_filter
+import tachiyomi.i18n.action_filter_bookmarked
+import tachiyomi.i18n.action_filter_excluded_scanlators
+import tachiyomi.i18n.action_filter_unread
+import tachiyomi.i18n.categories
+import tachiyomi.i18n.label_downloaded
+import tachiyomi.i18n.label_started
+import tachiyomi.i18n.pref_filter_update_categories_details
 import tachiyomi.presentation.core.components.SettingsItemsPaddings
 import tachiyomi.presentation.core.components.TriStateItem
 import tachiyomi.presentation.core.components.material.padding

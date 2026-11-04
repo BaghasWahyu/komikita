@@ -47,6 +47,9 @@ import mihon.app.di.appGraph
 import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.komikita_collection
+import tachiyomi.i18n.notification_chapters_generic
+import tachiyomi.i18n.update_check_notification_ext_updates
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 

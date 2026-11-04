@@ -7,6 +7,10 @@ import androidx.compose.ui.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import mihon.domain.extension.model.ContentWarning
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.ext_content_warning_mixed
+import tachiyomi.i18n.ext_content_warning_mixed_description
+import tachiyomi.i18n.ext_content_warning_nsfw
+import tachiyomi.i18n.ext_content_warning_nsfw_description
 
 internal data class ContentWarningLabel(
     val title: StringResource,

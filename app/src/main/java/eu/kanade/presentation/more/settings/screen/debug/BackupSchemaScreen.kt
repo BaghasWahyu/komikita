@@ -21,6 +21,7 @@ import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.ContentCopy
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_copy_to_clipboard
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 

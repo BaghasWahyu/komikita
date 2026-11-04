@@ -11,6 +11,9 @@ import okhttp3.Dns
 import okhttp3.OkHttpClient
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.completed
+import tachiyomi.i18n.reading
+import tachiyomi.i18n.unread
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Komga(id: Long) : BaseTracker(id, "Komga"), EnhancedTracker {

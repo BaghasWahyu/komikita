@@ -21,6 +21,13 @@ import mihon.icons.materialsymbols.rounded.Photo
 import mihon.icons.materialsymbols.rounded.Save
 import mihon.icons.materialsymbols.rounded.Share
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_copy_to_clipboard
+import tachiyomi.i18n.action_ok
+import tachiyomi.i18n.action_save
+import tachiyomi.i18n.action_share
+import tachiyomi.i18n.confirm_set_image_as_cover
+import tachiyomi.i18n.set_as_cover
 import tachiyomi.presentation.core.components.ActionButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource

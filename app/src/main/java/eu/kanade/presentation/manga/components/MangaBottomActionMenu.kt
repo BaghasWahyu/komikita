@@ -63,6 +63,16 @@ import mihon.icons.materialsymbols.rounded.MoreVert
 import mihon.icons.materialsymbols.rounded.RemoveDone
 import mihon.icons.materialsymbols.rounded.SwapCalls
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_bookmark
+import tachiyomi.i18n.action_delete
+import tachiyomi.i18n.action_download
+import tachiyomi.i18n.action_mark_as_read
+import tachiyomi.i18n.action_mark_as_unread
+import tachiyomi.i18n.action_mark_previous_as_read
+import tachiyomi.i18n.action_move_category
+import tachiyomi.i18n.action_remove_bookmark
+import tachiyomi.i18n.label_more
+import tachiyomi.i18n.migrate
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds
 

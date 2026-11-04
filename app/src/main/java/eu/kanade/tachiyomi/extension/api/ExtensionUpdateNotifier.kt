@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notify
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.update_check_notification_ext_updates
 import mihon.icons.materialsymbols.R as MaterialSymbolsR
 
 @Inject

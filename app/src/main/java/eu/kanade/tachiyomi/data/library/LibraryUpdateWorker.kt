@@ -72,6 +72,15 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.komikita_update_removed
+import tachiyomi.i18n.library_errors_help
+import tachiyomi.i18n.loader_not_implemented_error
+import tachiyomi.i18n.no_chapters_error
+import tachiyomi.i18n.skipped_reason_completed
+import tachiyomi.i18n.skipped_reason_not_always_update
+import tachiyomi.i18n.skipped_reason_not_caught_up
+import tachiyomi.i18n.skipped_reason_not_in_release_period
+import tachiyomi.i18n.skipped_reason_not_started
 import java.io.File
 import java.util.Collections
 import java.util.concurrent.CopyOnWriteArrayList

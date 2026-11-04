@@ -7,7 +7,7 @@ androidx-annotation = "1.11.0"
 androidx-appCompat = "1.8.0"
 androidx-baselineProfile = "1.5.0"
 androidx-benchmark = "1.5.0"
-androidx-biometric = "1.2.0-alpha05"
+androidx-biometric = "1.4.0-alpha07"
 androidx-compose-bom = "2026.10.01"
 androidx-constraintLayout = "2.2.2"
 androidx-core = "1.19.1"
@@ -57,7 +57,7 @@ material = "1.14.0"
 materialKolor = "5.0.1"
 metro = "1.5.2"
 mockk = "1.14.11"
-moko-resources = "0.26.4"
+moko-resources = "0.27.1"
 okhttp = "5.5.1"
 okio = "3.18.2"
 photoView = "2.3.0"
@@ -76,7 +76,7 @@ unifile = "08f224c8f9"
 valkyrie = "0.5.2"
 voyager = "2.2.21-1.10.3"
 webgpuviewer = "56"
-xmlutil = "1.0.2"
+xmlutil = "1.0.2.1"
 
 [libraries]
 aboutLibraries-compose = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
@@ -86,7 +86,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-appCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appCompat" }
 androidx-benchmark-macroJunit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "androidx-benchmark" }
-androidx-biometric = { module = "androidx.biometric:biometric-ktx", version.ref = "androidx-biometric" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
 androidx-compose-animation = { module = "androidx.compose.animation:animation" }
 androidx-compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom-beta", version.ref = "androidx-compose-bom" }

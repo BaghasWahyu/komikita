@@ -15,6 +15,8 @@ import okio.gzip
 import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.invalid_backup_file_json
+import tachiyomi.i18n.invalid_backup_file_unknown
 import java.io.IOException
 
 @Inject

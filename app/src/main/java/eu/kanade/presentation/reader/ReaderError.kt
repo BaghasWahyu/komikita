@@ -17,6 +17,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_open_in_web_view
+import tachiyomi.i18n.action_retry
+import tachiyomi.i18n.decode_image_error
 import tachiyomi.presentation.core.i18n.stringResource
 
 /**

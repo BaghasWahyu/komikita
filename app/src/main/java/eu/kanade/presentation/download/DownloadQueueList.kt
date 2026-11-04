@@ -58,6 +58,13 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import sh.calvin.reorderable.rememberScroller
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_menu
+import tachiyomi.i18n.action_move_to_bottom
+import tachiyomi.i18n.action_move_to_bottom_all_for_series
+import tachiyomi.i18n.action_move_to_top
+import tachiyomi.i18n.action_move_to_top_all_for_series
+import tachiyomi.i18n.cancel_all_for_series
 import tachiyomi.presentation.core.components.ListGroupHeader
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource

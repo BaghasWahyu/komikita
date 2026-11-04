@@ -9,6 +9,11 @@ import eu.kanade.tachiyomi.data.track.mangaupdates.dto.MUListItem
 import eu.kanade.tachiyomi.data.track.mangaupdates.dto.MURating
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.complete_list
+import tachiyomi.i18n.on_hold_list
+import tachiyomi.i18n.reading_list
+import tachiyomi.i18n.unfinished_list
+import tachiyomi.i18n.wish_list
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker {

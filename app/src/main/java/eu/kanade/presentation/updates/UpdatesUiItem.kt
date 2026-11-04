@@ -42,6 +42,10 @@ import mihon.icons.materialsymbols.roundedfilled.Bookmark
 import mihon.icons.materialsymbols.roundedfilled.Circle
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_filter_bookmarked
+import tachiyomi.i18n.chapter_progress
+import tachiyomi.i18n.unread
+import tachiyomi.i18n.updates_last_update_info
 import tachiyomi.presentation.core.components.ListGroupHeader
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding

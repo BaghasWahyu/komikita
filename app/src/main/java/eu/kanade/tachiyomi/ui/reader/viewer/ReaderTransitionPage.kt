@@ -21,6 +21,9 @@ import eu.kanade.presentation.reader.reportPress
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_retry
+import tachiyomi.i18n.transition_pages_error
+import tachiyomi.i18n.transition_pages_loading
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

@@ -15,6 +15,8 @@ import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.label_migration
+import tachiyomi.i18n.migration_help_guide
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

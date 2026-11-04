@@ -27,6 +27,11 @@ import mihon.icons.materialsymbols.roundedfilled.Keep
 import tachiyomi.domain.source.model.Pin
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_disable
+import tachiyomi.i18n.action_pin
+import tachiyomi.i18n.action_unpin
+import tachiyomi.i18n.latest
+import tachiyomi.i18n.source_empty_screen
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.components.material.padding

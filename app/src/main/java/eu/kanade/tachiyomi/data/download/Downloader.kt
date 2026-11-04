@@ -64,6 +64,10 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.app_name
+import tachiyomi.i18n.download_insufficient_space
+import tachiyomi.i18n.download_queue_size_warning
+import tachiyomi.i18n.page_list_empty_error
 import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap

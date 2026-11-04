@@ -10,6 +10,12 @@ import eu.kanade.tachiyomi.data.track.anilist.dto.ALOAuth
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.completed
+import tachiyomi.i18n.dropped
+import tachiyomi.i18n.on_hold
+import tachiyomi.i18n.plan_to_read
+import tachiyomi.i18n.reading
+import tachiyomi.i18n.repeating
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Anilist(id: Long) : BaseTracker(id, "AniList"), DeletableTracker {

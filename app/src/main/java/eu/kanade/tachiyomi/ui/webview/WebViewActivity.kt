@@ -29,6 +29,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.information_webview_required
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 class WebViewActivity : BaseActivity() {

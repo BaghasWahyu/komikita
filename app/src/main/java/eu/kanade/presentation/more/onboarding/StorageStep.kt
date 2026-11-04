@@ -23,6 +23,12 @@ import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
 import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.app_name
+import tachiyomi.i18n.file_picker_error
+import tachiyomi.i18n.onboarding_storage_action_select
+import tachiyomi.i18n.onboarding_storage_help_action
+import tachiyomi.i18n.onboarding_storage_help_info
+import tachiyomi.i18n.onboarding_storage_info
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource

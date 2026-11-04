@@ -24,6 +24,16 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_ok
+import tachiyomi.i18n.are_you_sure
+import tachiyomi.i18n.confirm_delete_chapters
+import tachiyomi.i18n.day
+import tachiyomi.i18n.label_default
+import tachiyomi.i18n.manga_interval_custom_amount
+import tachiyomi.i18n.manga_interval_expected_update
+import tachiyomi.i18n.manga_interval_expected_update_null
+import tachiyomi.i18n.pref_library_update_smart_update
 import tachiyomi.presentation.core.components.WheelTextPicker
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource

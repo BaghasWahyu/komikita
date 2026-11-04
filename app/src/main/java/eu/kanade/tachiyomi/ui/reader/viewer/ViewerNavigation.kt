@@ -6,6 +6,11 @@ import androidx.compose.ui.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_menu
+import tachiyomi.i18n.nav_zone_left
+import tachiyomi.i18n.nav_zone_next
+import tachiyomi.i18n.nav_zone_prev
+import tachiyomi.i18n.nav_zone_right
 
 /**
  * Tap zones of a viewer. [isReversed] is set for right to left books, where the right side of the

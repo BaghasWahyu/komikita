@@ -38,6 +38,23 @@ import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_download
+import tachiyomi.i18n.action_mark_as_read
+import tachiyomi.i18n.action_show_errors
+import tachiyomi.i18n.action_view_chapters
+import tachiyomi.i18n.app_name
+import tachiyomi.i18n.label_warning
+import tachiyomi.i18n.notification_chapters_generic
+import tachiyomi.i18n.notification_chapters_multiple
+import tachiyomi.i18n.notification_chapters_multiple_and_more
+import tachiyomi.i18n.notification_chapters_single
+import tachiyomi.i18n.notification_chapters_single_and_more
+import tachiyomi.i18n.notification_new_chapters
+import tachiyomi.i18n.notification_new_chapters_summary
+import tachiyomi.i18n.notification_size_warning
+import tachiyomi.i18n.notification_update_error
+import tachiyomi.i18n.notification_updating_progress
 import java.math.RoundingMode
 import java.text.NumberFormat
 import mihon.icons.materialsymbols.R as MaterialSymbolsR

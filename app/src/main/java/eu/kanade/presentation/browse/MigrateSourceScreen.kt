@@ -30,6 +30,13 @@ import mihon.icons.materialsymbols.rounded.Numbers
 import mihon.icons.materialsymbols.rounded.SortByAlpha
 import tachiyomi.domain.source.model.Source
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_asc
+import tachiyomi.i18n.action_desc
+import tachiyomi.i18n.action_sort_alpha
+import tachiyomi.i18n.action_sort_count
+import tachiyomi.i18n.information_empty_library
+import tachiyomi.i18n.migration_selection_prompt
+import tachiyomi.i18n.not_installed
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn

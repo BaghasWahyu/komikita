@@ -2,6 +2,11 @@ package eu.kanade.tachiyomi.data.backup.restore
 
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.app_settings
+import tachiyomi.i18n.categories
+import tachiyomi.i18n.extensionStores
+import tachiyomi.i18n.label_library
+import tachiyomi.i18n.source_settings
 
 data class RestoreOptions(
     val libraryEntries: Boolean = true,

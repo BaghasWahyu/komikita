@@ -104,6 +104,16 @@ import tachiyomi.domain.manga.model.applyFilter
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_add
+import tachiyomi.i18n.action_delete
+import tachiyomi.i18n.action_ok
+import tachiyomi.i18n.chapter_settings_updated
+import tachiyomi.i18n.confirm_tracker_update
+import tachiyomi.i18n.delete_downloads_for_manga
+import tachiyomi.i18n.no_chapters_error
+import tachiyomi.i18n.snack_add_to_library
+import tachiyomi.i18n.track_error
+import tachiyomi.i18n.trackers_updated_summary
 import tachiyomi.source.local.isLocal
 import kotlin.math.floor
 import kotlin.time.Duration.Companion.seconds

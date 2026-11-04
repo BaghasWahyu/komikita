@@ -30,6 +30,9 @@ import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.Keep
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.all
+import tachiyomi.i18n.has_results
+import tachiyomi.i18n.pinned_sources
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 

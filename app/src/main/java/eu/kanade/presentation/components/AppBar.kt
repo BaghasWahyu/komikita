@@ -58,6 +58,12 @@ import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.rounded.MoreVert
 import mihon.icons.materialsymbols.rounded.Search
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_bar_up_description
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_menu_overflow_description
+import tachiyomi.i18n.action_reset
+import tachiyomi.i18n.action_search
+import tachiyomi.i18n.action_search_hint
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clearFocusOnSoftKeyboardHide
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed

@@ -30,6 +30,8 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Check
 import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.login_success
+import tachiyomi.i18n.refresh_tracker_profile
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

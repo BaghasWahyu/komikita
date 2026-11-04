@@ -36,6 +36,16 @@ import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.Search
 import mihon.icons.materialsymbols.rounded.SelectAll
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_filter
+import tachiyomi.i18n.action_open_random_manga
+import tachiyomi.i18n.action_select_all
+import tachiyomi.i18n.action_select_inverse
+import tachiyomi.i18n.action_update_category
+import tachiyomi.i18n.action_update_library
+import tachiyomi.i18n.komikita_clear_search
+import tachiyomi.i18n.komikita_library_tagline
+import tachiyomi.i18n.komikita_search_library
+import tachiyomi.i18n.label_download_queue
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

@@ -29,6 +29,7 @@ import mihon.core.common.FeatureFlags
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Autorenew
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.pref_debug_info
 import tachiyomi.presentation.core.util.collectAsState
 
 class DebugInfoScreen : Screen() {

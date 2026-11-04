@@ -57,6 +57,17 @@ import mihon.icons.materialsymbols.rounded.DoneAll
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.migrationListScreenTitle
+import tachiyomi.i18n.migrationListScreenTitleWithProgress
+import tachiyomi.i18n.migrationListScreen_copyActionLabel
+import tachiyomi.i18n.migrationListScreen_copyNowActionLabel
+import tachiyomi.i18n.migrationListScreen_latestChapterLabel
+import tachiyomi.i18n.migrationListScreen_migrateActionLabel
+import tachiyomi.i18n.migrationListScreen_migrateNowActionLabel
+import tachiyomi.i18n.migrationListScreen_noMatchFoundText
+import tachiyomi.i18n.migrationListScreen_searchManuallyActionLabel
+import tachiyomi.i18n.migrationListScreen_skipActionLabel
+import tachiyomi.i18n.migrationListScreen_unknownLatestChapter
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.components.FastScrollLazyColumn

@@ -38,6 +38,12 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.cover_saved
+import tachiyomi.i18n.cover_updated
+import tachiyomi.i18n.error_saving_cover
+import tachiyomi.i18n.error_sharing_cover
+import tachiyomi.i18n.notification_cover_update_failed
+import tachiyomi.i18n.notification_first_add_to_library
 import tachiyomi.source.local.image.LocalCoverManager
 import kotlin.time.Duration.Companion.seconds
 

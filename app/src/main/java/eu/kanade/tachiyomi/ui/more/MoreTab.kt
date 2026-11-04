@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import mihon.feature.support.SupportUsScreen
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.label_more
 import tachiyomi.presentation.core.i18n.stringResource
 
 data object MoreTab : Tab {

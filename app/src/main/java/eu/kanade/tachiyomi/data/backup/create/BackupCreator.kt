@@ -35,6 +35,8 @@ import tachiyomi.domain.manga.interactor.GetFavorites
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.repository.MangaRepository
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.create_backup_file_error
+import tachiyomi.i18n.empty_backup_error
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -37,6 +37,9 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.ext_installed
+import tachiyomi.i18n.ext_not_loaded
+import tachiyomi.i18n.ext_updates_pending
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

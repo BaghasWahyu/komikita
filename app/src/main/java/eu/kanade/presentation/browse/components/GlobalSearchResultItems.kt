@@ -24,6 +24,7 @@ import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import mihon.icons.materialsymbols.roundedfilled.Error
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.unknown_error
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 

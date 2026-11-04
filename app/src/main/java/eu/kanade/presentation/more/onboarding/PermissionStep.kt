@@ -41,6 +41,17 @@ import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Check
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.onboarding_permission_action_grant
+import tachiyomi.i18n.onboarding_permission_analytics
+import tachiyomi.i18n.onboarding_permission_analytics_description
+import tachiyomi.i18n.onboarding_permission_crashlytics
+import tachiyomi.i18n.onboarding_permission_crashlytics_description
+import tachiyomi.i18n.onboarding_permission_ignore_battery_opts
+import tachiyomi.i18n.onboarding_permission_ignore_battery_opts_description
+import tachiyomi.i18n.onboarding_permission_install_apps
+import tachiyomi.i18n.onboarding_permission_install_apps_description
+import tachiyomi.i18n.onboarding_permission_notifications
+import tachiyomi.i18n.onboarding_permission_notifications_description
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.presentation.core.util.secondaryItemAlpha

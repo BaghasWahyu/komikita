@@ -29,6 +29,11 @@ import mihon.icons.materialsymbols.rounded.CheckBoxOutlineBlank
 import mihon.icons.materialsymbols.roundedfilled.CheckBox
 import mihon.icons.materialsymbols.roundedfilled.DisabledByDefault
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_ok
+import tachiyomi.i18n.disabled
+import tachiyomi.i18n.not_selected
+import tachiyomi.i18n.selected
 import tachiyomi.presentation.core.i18n.stringResource
 
 private enum class State {

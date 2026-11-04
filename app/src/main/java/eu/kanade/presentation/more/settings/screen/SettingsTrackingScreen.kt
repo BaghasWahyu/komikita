@@ -63,6 +63,27 @@ import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.roundedfilled.Visibility
 import mihon.icons.materialsymbols.roundedfilled.VisibilityOff
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_cancel
+import tachiyomi.i18n.action_close
+import tachiyomi.i18n.email
+import tachiyomi.i18n.enhanced_services
+import tachiyomi.i18n.enhanced_services_not_installed
+import tachiyomi.i18n.enhanced_tracking_info
+import tachiyomi.i18n.logging_in
+import tachiyomi.i18n.login
+import tachiyomi.i18n.login_success
+import tachiyomi.i18n.login_title
+import tachiyomi.i18n.logout
+import tachiyomi.i18n.logout_success
+import tachiyomi.i18n.logout_title
+import tachiyomi.i18n.password
+import tachiyomi.i18n.pref_auto_update_manga_on_mark_read
+import tachiyomi.i18n.pref_auto_update_manga_sync
+import tachiyomi.i18n.pref_category_tracking
+import tachiyomi.i18n.services
+import tachiyomi.i18n.tracking_guide
+import tachiyomi.i18n.tracking_info
+import tachiyomi.i18n.username
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 

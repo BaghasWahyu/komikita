@@ -16,6 +16,20 @@ import mihon.app.di.appGraph
 import mihon.domain.extension.model.ContentWarning
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.browse
+import tachiyomi.i18n.content_warnings_info
+import tachiyomi.i18n.ext_content_warning_mixed
+import tachiyomi.i18n.ext_content_warning_nsfw
+import tachiyomi.i18n.ext_content_warning_safe
+import tachiyomi.i18n.extensionStores
+import tachiyomi.i18n.label_sources
+import tachiyomi.i18n.none
+import tachiyomi.i18n.num_repos
+import tachiyomi.i18n.pref_allowed_content_warnings
+import tachiyomi.i18n.pref_apply_content_warnings_to_installed
+import tachiyomi.i18n.pref_apply_content_warnings_to_installed_summary
+import tachiyomi.i18n.pref_category_extensions
+import tachiyomi.i18n.pref_hide_in_library_items
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 
