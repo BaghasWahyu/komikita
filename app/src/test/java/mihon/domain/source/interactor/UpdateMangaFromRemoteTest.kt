@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import tachiyomi.domain.chapter.model.Chapter
@@ -17,6 +18,7 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaRemoteUpdate
 import tachiyomi.domain.manga.repository.MangaRepository
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 
 class UpdateMangaFromRemoteTest {
     private val manga = Manga.create().copy(id = 1, url = "/manga", title = "Manga")
@@ -62,7 +64,52 @@ class UpdateMangaFromRemoteTest {
 
         result.exceptionOrNull() shouldBe failure
         storedManga.description shouldBe "Synopsis"
+        storedManga.initialized shouldBe true
         coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun respectsSourcesThatRejectConcurrentRequestsForTheSameManga() = runTest {
+        val requestActive = AtomicBoolean(false)
+        val sourceChapter = SChapter.create().apply { url = "/chapter/1" }
+        val chapter = Chapter.create().copy(url = sourceChapter.url)
+        coEvery { source.getMangaUpdate(any(), emptyList(), any(), any()) } coAnswers {
+            check(requestActive.compareAndSet(false, true)) { "Concurrent requests for the same manga" }
+            try {
+                delay(10)
+                val remoteManga = firstArg<SManga>().apply { description = "Synopsis" }
+                val remoteChapters = if (arg<Boolean>(3)) listOf(sourceChapter) else emptyList()
+                SMangaUpdate(remoteManga, remoteChapters)
+            } finally {
+                requestActive.set(false)
+            }
+        }
+        coEvery { syncChapters.await(listOf(sourceChapter), any(), source, false, null) } returns listOf(chapter)
+
+        val result = update(
+            source,
+            manga,
+            fetchDetails = true,
+            fetchChapters = true,
+            fetchDetailsFirst = true,
+        ).getOrThrow()
+
+        result.manga.description shouldBe "Synopsis"
+        result.newChapters shouldBe listOf(chapter)
+    }
+
+    @Test
+    fun fetchesStoredChapterListsInOneRequest() = runTest {
+        val chapter = Chapter.create().copy(url = "/chapter/1", name = "Chapter 1")
+        coEvery { chapterRepository.getChapterByMangaId(manga.id) } returns listOf(chapter)
+        coEvery { source.getMangaUpdate(any(), any(), true, true) } coAnswers {
+            SMangaUpdate(firstArg(), secondArg())
+        }
+        coEvery { syncChapters.await(any(), manga, source, false, null) } returns emptyList()
+
+        update(source, manga, fetchDetails = true, fetchChapters = true, fetchDetailsFirst = true).getOrThrow()
+
+        coVerify(exactly = 1) { source.getMangaUpdate(any(), any(), any(), any()) }
     }
 
     @Test

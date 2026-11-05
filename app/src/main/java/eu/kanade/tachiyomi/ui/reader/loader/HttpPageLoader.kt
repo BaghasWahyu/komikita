@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.loader
 
 import eu.kanade.domain.chapter.model.toSChapter
+import eu.kanade.tachiyomi.source.isComix
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
@@ -14,6 +15,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import mihon.core.common.cache.TtlDiskCache
 import mihon.data.cache.ChapterCache
@@ -35,6 +38,7 @@ internal class HttpPageLoader(
     private val chunkProcessLock = Any()
     private var chunkProcessJob: Job? = null
     private val downloadJobs = ConcurrentHashMap<Int, Job>()
+    private val imageUrlLock = Mutex()
     private val leaseLock = Any()
     private val imageLeases = mutableMapOf<Int, TtlDiskCache.Lease>()
     private var retainedPages = 0..8
@@ -57,7 +61,11 @@ internal class HttpPageLoader(
             }
         }
             .also {
-                it.loadByRollingChunked(0, 1, 1)
+                if (it.isNotEmpty()) {
+                    val initialPage = chapter.requestedPage.coerceIn(0, it.lastIndex)
+                    retainPagesAround(initialPage)
+                    it.loadByRollingChunked(initialPage, 1, 1)
+                }
             }
     }
 
@@ -65,17 +73,7 @@ internal class HttpPageLoader(
      * Loads a page through the queue. Handles re-enqueueing pages if they were evicted from the cache.
      */
     override suspend fun loadPage(page: ReaderPage) = withContext(Dispatchers.IO) {
-        synchronized(leaseLock) {
-            retainedPages = (page.index - 3)..(page.index + 8)
-            val iterator = imageLeases.iterator()
-            while (iterator.hasNext()) {
-                val entry = iterator.next()
-                if (entry.key !in retainedPages) {
-                    entry.value.close()
-                    iterator.remove()
-                }
-            }
-        }
+        retainPagesAround(page.index)
         val imageUrl = page.imageUrl
 
         // Check if the image has been deleted
@@ -98,6 +96,20 @@ internal class HttpPageLoader(
             val continueLoading = chunks.take(2).flatten().map { it.index }.toSet()
             downloadJobs.keys.filter { it !in continueLoading }
                 .forEach { downloadJobs.remove(it)?.cancel() }
+        }
+    }
+
+    private fun retainPagesAround(index: Int) {
+        synchronized(leaseLock) {
+            retainedPages = (index - 3)..(index + 8)
+            val iterator = imageLeases.iterator()
+            while (iterator.hasNext()) {
+                val entry = iterator.next()
+                if (entry.key !in retainedPages) {
+                    entry.value.close()
+                    iterator.remove()
+                }
+            }
         }
     }
 
@@ -243,7 +255,13 @@ internal class HttpPageLoader(
         try {
             if (page.imageUrl.isNullOrEmpty()) {
                 page.status = Page.State.LoadPage
-                page.imageUrl = source.getImageUrl(page)
+                // Comix's WebView has one seek target. Concurrent URL lookups keep moving it away
+                // from the page being read. Only serialize discovery; image downloads can overlap.
+                page.imageUrl = if (source.isComix()) {
+                    imageUrlLock.withLock { source.getImageUrl(page) }
+                } else {
+                    source.getImageUrl(page)
+                }
             }
             val imageUrl = page.imageUrl!!
 

@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.source
 
 import android.content.Context
+import eu.kanade.tachiyomi.source.online.HttpSource
 import mihon.app.di.appGraph
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.source.local.isLocal
@@ -23,3 +24,7 @@ fun Source.getNameForMangaInfo(): String {
 }
 
 fun Source.isLocalOrStub(): Boolean = isLocal() || this is StubSource
+
+internal fun Source.isComix(): Boolean = this is HttpSource && id == COMIX_SOURCE_ID
+
+private const val COMIX_SOURCE_ID = 7537715367149829912L
