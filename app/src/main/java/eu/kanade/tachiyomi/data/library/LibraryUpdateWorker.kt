@@ -37,8 +37,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
@@ -158,6 +163,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             reportStore.save(LibraryUpdateReport(startedAt = startedAt))
             try {
                 val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
+                publishProgress(0)
                 addMangaToQueue(categoryId, retryIds)
                 updateChapterList()
                 Result.success()
@@ -287,12 +293,15 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     private suspend fun updateChapterList() {
         val semaphore = Semaphore(5)
         val progressCount = AtomicInt(0)
+        val progressMutex = Mutex()
         val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
         val newUpdates = Collections.synchronizedList(mutableListOf<Pair<Manga, Array<Chapter>>>())
         val failedUpdates = Collections.synchronizedList(mutableListOf<Pair<Manga, String?>>())
         val hasDownloads = AtomicBoolean(false)
         val timeZone = TimeZone.currentSystemDefault()
         val fetchWindow = fetchInterval.getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
+
+        publishProgress(0)
 
         coroutineScope {
             mangaToUpdate.groupBy { it.manga.source }.values
@@ -312,12 +321,16 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                                             context.stringResource(MR.strings.komikita_update_removed),
                                         ),
                                     )
+                                    progressMutex.withLock {
+                                        publishProgress(progressCount.incrementAndFetch())
+                                    }
                                     return@forEach
                                 }
 
                                 withUpdateNotification(
                                     currentlyUpdatingManga,
                                     progressCount,
+                                    progressMutex,
                                     manga,
                                 ) {
                                     try {
@@ -426,6 +439,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     private suspend fun withUpdateNotification(
         updatingManga: CopyOnWriteArrayList<Manga>,
         completed: AtomicInt,
+        progressMutex: Mutex,
         manga: Manga,
         block: suspend () -> Unit,
     ) = coroutineScope {
@@ -443,11 +457,20 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         ensureActive()
 
         updatingManga.remove(manga)
-        completed.incrementAndFetch()
-        notifier.showProgressNotification(
-            updatingManga,
-            completed.load(),
-            mangaToUpdate.size,
+        progressMutex.withLock {
+            val current = completed.incrementAndFetch()
+            publishProgress(current)
+            notifier.showProgressNotification(updatingManga, current, mangaToUpdate.size)
+        }
+    }
+
+    private suspend fun publishProgress(completed: Int) {
+        setProgress(
+            workDataOf(
+                KEY_PROGRESS_COMPLETED to completed,
+                KEY_PROGRESS_TOTAL to mangaToUpdate.size,
+                KEY_PROGRESS_CATEGORY to (inputData.getLong(KEY_CATEGORY, -1L) != -1L),
+            ),
         )
     }
 
@@ -495,6 +518,22 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
          */
         private const val KEY_CATEGORY = "category"
         private const val KEY_RETRY_REPORT = "retry_report"
+        private const val KEY_PROGRESS_COMPLETED = "progress_completed"
+        private const val KEY_PROGRESS_TOTAL = "progress_total"
+        private const val KEY_PROGRESS_CATEGORY = "progress_category"
+
+        fun observeProgress(workManager: WorkManager): Flow<LibraryUpdateProgress?> =
+            workManager.getWorkInfosByTagFlow(TAG)
+                .map { workInfos ->
+                    workInfos.firstOrNull { it.state == WorkInfo.State.RUNNING }?.let { workInfo ->
+                        LibraryUpdateProgress(
+                            completed = workInfo.progress.getInt(KEY_PROGRESS_COMPLETED, 0),
+                            total = workInfo.progress.getInt(KEY_PROGRESS_TOTAL, 0),
+                            isCategoryUpdate = workInfo.progress.getBoolean(KEY_PROGRESS_CATEGORY, false),
+                        )
+                    }
+                }
+                .distinctUntilChanged()
 
         fun setupTask(
             context: Context,

@@ -979,6 +979,7 @@
     <string name="komikita_reader_battery_saver_summary">Utamakan refresh rate layar hingga 60 Hz saat membaca. Matikan untuk scrolling dengan refresh rate tinggi.</string>
     <string name="komikita_update_removed">Dilewati karena komik telah dihapus dari pustaka</string>
     <string name="komikita_library_tagline">Komik favorit, selalu dekat.</string>
+    <string name="komikita_library_update_progress">%1$d / %2$d (%3$d%%)</string>
     <string name="komikita_search_library">Cari di perpustakaan</string>
     <string name="komikita_your_collection">Koleksimu</string>
     <string name="komikita_continue_reading">Lanjutkan membaca</string>

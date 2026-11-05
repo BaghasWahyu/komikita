@@ -100,6 +100,9 @@ data object LibraryTab : Tab {
         val viewModel = metroViewModel<LibraryViewModel>()
         val settingsViewModel = metroViewModel<LibrarySettingsViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val updateProgress by remember(context) {
+            LibraryUpdateWorker.observeProgress(context.workManager)
+        }.collectAsStateWithLifecycle(initialValue = null)
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -135,6 +138,7 @@ data object LibraryTab : Tab {
                     page = state.coercedActiveCategoryIndex,
                 )
                 LibraryToolbar(
+                    updateProgress = updateProgress,
                     hasActiveFilters = state.hasActiveFilters,
                     selectedCount = state.selection.size,
                     title = title,
