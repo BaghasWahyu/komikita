@@ -1,12 +1,36 @@
 **English** | [Bahasa Indonesia](id/USER_GUIDE.md)
 
-# KomiKita 1.0.0 user guide
+# KomiKita user guide
 
 ## Hiding categories
 
 Open **More → Categories** and tap a category's eye icon. The category tab and all comics belonging to that category are hidden from the library and library search. A comic that also belongs to another category remains hidden while any of its categories is hidden.
 
-To show the category again, return to category management and tap the eye icon again. Hiding a category does not delete comics or downloads.
+Hidden titles also disappear from Continue reading, history, updates, update notifications, widgets, and yearly reading recaps, even when a title also belongs to a visible category. Hiding does not delete comics or downloads.
+
+Category locking is enabled by default in **Settings → Security and privacy → Lock hidden categories**. Set up an Android screen lock first. KomiKita uses the system biometric prompt with the device PIN, pattern, or password as a fallback; it does not store a separate PIN. If authentication is unavailable or cancelled, categories remain locked.
+
+To reveal them temporarily, open the library's three-dot menu → **Unlock hidden categories**, then authenticate. The menu also lets you lock them immediately. They lock again when the app enters the background. While revealed, screenshots are blocked. Hidden titles remain excluded from the other surfaces above during the unlocked session.
+
+To make a category visible permanently, open **More → Categories**, authenticate, then tap its eye icon again. Changing the category-lock setting also requires authentication.
+
+## Continue reading
+
+Swipe the library carousel to see up to five visible titles with unread chapters. The first recommendation keeps the existing priority: your latest opened title while it has unread chapters, otherwise the most recently updated title. Other cards show recent reads and updates. Tap a card to open its next unread chapter. Search and category filters apply to the carousel.
+
+New chapter notifications include **Continue reading**, which opens the first unread chapter according to the title's chapter order. Home-screen update widgets follow the same hidden-category exclusions.
+
+## Reading statistics and yearly recap
+
+Open **More → Statistics**. The reading-year card shows completed chapters, reading time, titles read, current streak, best streak for the selected year, active reading days, top three titles by time, and monthly reading time. Tap the year to select another recorded year.
+
+Daily activity starts with this version; older aggregate history is not assigned invented reading dates. A chapter is counted once per selected year when completed in the reader. Marking chapters read manually does not create reading sessions. A current streak continues through yesterday until today ends. Sessions crossing midnight are split by the device's local calendar date. Incognito sessions are not recorded; hidden titles are excluded from recaps.
+
+Daily activity is stored locally and is not included in the existing backup format. Clearing all history also clears the daily activity and recap.
+
+## Exporting diagnostic logs
+
+Open **Settings → Advanced → Export diagnostic logs** after reproducing a bug. Android's share sheet offers a `komikita_diagnostics.txt` attachment containing app and device details, extension diagnostics, and up to 2,000 recent entries from the app process. URLs, common credential fields, the installation ID, and hidden titles are redacted. Review the attachment before attaching it to your bug report.
 
 ## Hiding extensions
 

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import ca.mpreg.webgpuviewer.renderer.ImageFilterWgsl
+import ca.mpreg.webgpuviewer.renderer.Sampler
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
@@ -61,8 +62,10 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.action_add_shader
+import tachiyomi.i18n.action_choose_shader
 import tachiyomi.i18n.action_delete
 import tachiyomi.i18n.action_ok
+import tachiyomi.i18n.action_remove
 import tachiyomi.i18n.action_reset
 import tachiyomi.i18n.image_filter_invalid
 import tachiyomi.i18n.pref_category_for_this_series
@@ -74,7 +77,10 @@ import tachiyomi.i18n.pref_crop_instead_of_zoom
 import tachiyomi.i18n.pref_cutout_mode
 import tachiyomi.i18n.pref_cutout_mode_dual
 import tachiyomi.i18n.pref_disable_double_tap_gestures
+import tachiyomi.i18n.pref_downscaler
 import tachiyomi.i18n.pref_dual_page_view
+import tachiyomi.i18n.pref_fast_rendering_only
+import tachiyomi.i18n.pref_hold_until_final
 import tachiyomi.i18n.pref_image_filters
 import tachiyomi.i18n.pref_image_scale_type
 import tachiyomi.i18n.pref_landscape_zoom
@@ -82,6 +88,7 @@ import tachiyomi.i18n.pref_navigate_pan
 import tachiyomi.i18n.pref_tile_filters
 import tachiyomi.i18n.pref_transition_animation
 import tachiyomi.i18n.pref_transition_animation_dual
+import tachiyomi.i18n.pref_upscaler
 import tachiyomi.i18n.pref_webtoon_disable_zoom_out
 import tachiyomi.i18n.pref_zoom_start
 import tachiyomi.i18n.rotation_type
@@ -305,24 +312,47 @@ internal fun WebGpuViewerSettings(viewModel: ReaderSettingsViewModel) {
 
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        WebGpuShaders.prune(context, listOf(viewModel.preferences.imageFilters, viewModel.preferences.tileFilters))
+        WebGpuShaders.prune(
+            context,
+            listOf(
+                viewModel.preferences.imageFilters,
+                viewModel.preferences.tileFilters,
+                viewModel.preferences.upscaler,
+                viewModel.preferences.downscaler,
+            ),
+        )
     }
-    ShaderList(MR.strings.pref_image_filters, viewModel.preferences.imageFilters)
-    ShaderList(MR.strings.pref_tile_filters, viewModel.preferences.tileFilters)
+
+    CheckboxItem(
+        label = stringResource(MR.strings.pref_fast_rendering_only),
+        pref = viewModel.preferences.fastRenderingOnly,
+    )
+    val fastRenderingOnly by viewModel.preferences.fastRenderingOnly.collectAsState()
+    if (!fastRenderingOnly) {
+        ShaderList(MR.strings.pref_image_filters, viewModel.preferences.imageFilters)
+        ShaderList(MR.strings.pref_tile_filters, viewModel.preferences.tileFilters)
+        SamplerItem(MR.strings.pref_upscaler, Sampler.CATMULL_ROM_FILE, viewModel.preferences.upscaler)
+        SamplerItem(MR.strings.pref_downscaler, Sampler.BOX_FILE, viewModel.preferences.downscaler)
+
+        CheckboxItem(
+            label = stringResource(MR.strings.pref_hold_until_final),
+            pref = viewModel.preferences.holdUntilFinal,
+        )
+    }
 }
 
+/** Imports into [pref] - see [WebGpuShaders.import]. Shows its own errors. */
 @Composable
-private fun ShaderList(labelRes: StringResource, pref: Preference<List<WebGpuShader>>) {
+private fun rememberShaderPicker(pref: Preference<List<WebGpuShader>>, sampler: Boolean): () -> Unit {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val filters by pref.collectAsState()
     var error by remember { mutableStateOf<String?>(null) }
 
     val pickShader = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
             try {
-                WebGpuShaders.import(context, uri, pref)
+                WebGpuShaders.import(context, uri, pref, sampler)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -352,6 +382,54 @@ private fun ShaderList(labelRes: StringResource, pref: Preference<List<WebGpuSha
             },
         )
     }
+
+    return {
+        try {
+            pickShader.launch(arrayOf("*/*"))
+        } catch (e: ActivityNotFoundException) {
+            error = e.message ?: e.toString()
+        }
+    }
+}
+
+@Composable
+private fun SamplerItem(labelRes: StringResource, defaultName: String, pref: Preference<List<WebGpuShader>>) {
+    val context = LocalContext.current
+    val shader = pref.collectAsState().value.firstOrNull()
+    val pick = rememberShaderPicker(pref, sampler = true)
+
+    HeadingItem(labelRes)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = SettingsItemsPaddings.Horizontal, end = MaterialTheme.padding.small),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = shader?.name ?: defaultName,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        TextButton(onClick = pick) {
+            Text(stringResource(MR.strings.action_choose_shader))
+        }
+        shader?.let {
+            IconButton(onClick = { WebGpuShaders.remove(context, pref, it) }) {
+                Icon(
+                    imageVector = MaterialSymbols.Rounded.Delete,
+                    contentDescription = stringResource(MR.strings.action_remove),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShaderList(labelRes: StringResource, pref: Preference<List<WebGpuShader>>) {
+    val context = LocalContext.current
+    val filters by pref.collectAsState()
+    val pick = rememberShaderPicker(pref, sampler = false)
 
     HeadingItem(labelRes)
     ReorderableColumn(
@@ -419,13 +497,7 @@ private fun ShaderList(labelRes: StringResource, pref: Preference<List<WebGpuSha
         }
     }
     TextButton(
-        onClick = {
-            try {
-                pickShader.launch(arrayOf("*/*"))
-            } catch (e: ActivityNotFoundException) {
-                error = e.message ?: e.toString()
-            }
-        },
+        onClick = pick,
         modifier = Modifier.padding(horizontal = SettingsItemsPaddings.Horizontal - MaterialTheme.padding.small),
     ) {
         Icon(imageVector = MaterialSymbols.Rounded.Add, contentDescription = null)

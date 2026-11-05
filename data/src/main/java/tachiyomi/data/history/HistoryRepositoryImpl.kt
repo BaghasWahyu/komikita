@@ -17,8 +17,13 @@ import tachiyomi.data.subscribeToList
 import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.model.HistoryWithRelations
+import tachiyomi.domain.history.model.ReadingActivity
+import tachiyomi.domain.history.model.activitySlices
 import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.library.service.LibraryVisibility
+import java.time.LocalDate
+import java.time.ZoneId
+import kotlin.time.Instant
 
 @Inject
 @SingleIn(AppScope::class)
@@ -45,7 +50,7 @@ class HistoryRepositoryImpl(
 
     override suspend fun getTotalReadDuration(): Long {
         return database.historyQueries
-            .getReadDuration()
+            .getReadDuration(visibility.hiddenMangaIds())
             .awaitAsOne()
     }
 
@@ -82,7 +87,10 @@ class HistoryRepositoryImpl(
 
     override suspend fun deleteAllHistory(): Boolean {
         return try {
-            database.historyQueries.removeAllHistory()
+            database.transaction {
+                database.historyQueries.removeAllHistory()
+                database.readingActivityQueries.deleteAll()
+            }
             true
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e)
@@ -96,13 +104,38 @@ class HistoryRepositoryImpl(
 
     override suspend fun upsertHistory(historyUpdate: HistoryUpdate) {
         try {
-            database.historyQueries.upsert(
-                chapterId = historyUpdate.chapterId,
-                readAt = historyUpdate.readAt,
-                readDuration = historyUpdate.sessionReadDuration,
-            )
+            database.transaction {
+                database.historyQueries.upsert(
+                    chapterId = historyUpdate.chapterId,
+                    readAt = historyUpdate.readAt,
+                    readDuration = historyUpdate.sessionReadDuration.coerceAtLeast(0),
+                )
+                historyUpdate.activitySlices(ZoneId.systemDefault()).forEach { slice ->
+                    database.readingActivityQueries.upsert(
+                        chapterId = historyUpdate.chapterId,
+                        readDate = slice.date.toString(),
+                        readDuration = slice.durationMillis,
+                        completed = false,
+                    )
+                }
+            }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e)
         }
+    }
+
+    override fun getReadingActivity(): Flow<List<ReadingActivity>> =
+        database.readingActivityQueries.getActivity { chapterId, mangaId, date, duration, completed ->
+            ReadingActivity(chapterId, mangaId, LocalDate.parse(date), duration, completed)
+        }.subscribeToList()
+
+    override suspend fun recordCompletedChapter(chapterId: Long, readAt: Instant) {
+        database.readingActivityQueries.upsert(
+            chapterId = chapterId,
+            readDate = java.time.Instant.ofEpochMilli(readAt.toEpochMilliseconds())
+                .atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+            readDuration = 0,
+            completed = true,
+        )
     }
 }

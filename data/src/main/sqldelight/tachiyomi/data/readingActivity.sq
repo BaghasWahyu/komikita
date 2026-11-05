@@ -1,0 +1,26 @@
+import kotlin.Boolean;
+
+CREATE TABLE reading_activity (
+    chapter_id INTEGER NOT NULL,
+    read_date TEXT NOT NULL,
+    read_duration INTEGER NOT NULL DEFAULT 0,
+    completed INTEGER AS Boolean NOT NULL DEFAULT 0,
+    PRIMARY KEY (chapter_id, read_date),
+    FOREIGN KEY (chapter_id) REFERENCES chapter(id) ON DELETE CASCADE
+);
+
+upsert:
+INSERT INTO reading_activity(chapter_id, read_date, read_duration, completed)
+VALUES (:chapterId, :readDate, :readDuration, :completed)
+ON CONFLICT(chapter_id, read_date) DO UPDATE SET
+    read_duration = reading_activity.read_duration + excluded.read_duration,
+    completed = max(reading_activity.completed, excluded.completed);
+
+getActivity:
+SELECT A.chapter_id, C.manga_id, A.read_date, A.read_duration, A.completed
+FROM reading_activity A
+JOIN chapter C ON C.id = A.chapter_id
+ORDER BY A.read_date;
+
+deleteAll:
+DELETE FROM reading_activity;

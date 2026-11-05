@@ -34,7 +34,9 @@ import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.history.interactor.GetNextChapters
 import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
@@ -44,6 +46,7 @@ import tachiyomi.i18n.action_mark_as_read
 import tachiyomi.i18n.action_show_errors
 import tachiyomi.i18n.action_view_chapters
 import tachiyomi.i18n.app_name
+import tachiyomi.i18n.komikita_continue_reading
 import tachiyomi.i18n.label_warning
 import tachiyomi.i18n.notification_chapters_generic
 import tachiyomi.i18n.notification_chapters_multiple
@@ -64,6 +67,8 @@ class LibraryUpdateNotifier(
     private val context: Context,
     private val securityPreferences: SecurityPreferences,
     private val sourceManager: SourceManager,
+    private val visibility: LibraryVisibility,
+    private val getNextChapters: GetNextChapters,
 ) {
 
     private val percentFormatter = NumberFormat.getPercentInstance().apply {
@@ -116,7 +121,7 @@ class LibraryUpdateNotifier(
      * @param total the total progress.
      */
     @Synchronized
-    fun showProgressNotification(manga: List<Manga>, current: Int, total: Int) {
+    fun showProgressNotification(current: Int, total: Int) {
         val now = SystemClock.elapsedRealtime()
         if (current < total && now - lastProgressNotificationTime < NOTIF_PROGRESS_INTERVAL_MS) return
         lastProgressNotificationTime = now
@@ -128,11 +133,6 @@ class LibraryUpdateNotifier(
                     percentFormatter.format(current.toFloat() / total),
                 ),
             )
-
-        if (!securityPreferences.hideNotificationContent.get()) {
-            val updatingText = manga.joinToString("\n") { it.title.chop(40) }
-            progressNotificationBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(updatingText))
-        }
 
         context.notify(
             Notifications.ID_LIBRARY_PROGRESS,
@@ -197,7 +197,18 @@ class LibraryUpdateNotifier(
      *
      * @param updates a list of manga with new updates.
      */
-    suspend fun showUpdateNotifications(updates: List<Pair<Manga, Array<Chapter>>>) {
+    suspend fun showUpdateNotifications(rawUpdates: List<Pair<Manga, Array<Chapter>>>) {
+        val hiddenIds = visibility.hiddenMangaIds()
+        val candidates = rawUpdates.filterNot { it.first.id in hiddenIds }.filter { it.second.isNotEmpty() }
+        // Cover loading can suspend. Check privacy again after it finishes and immediately before posting.
+        val notifications = if (securityPreferences.hideNotificationContent.get()) {
+            emptyList()
+        } else {
+            candidates.map { (manga, chapters) -> manga.id to createNewChaptersNotification(manga, chapters) }
+        }
+        val hiddenAtPost = visibility.hiddenMangaIds()
+        val updates = candidates.filterNot { it.first.id in hiddenAtPost }
+        if (updates.isEmpty()) return
         // Parent group notification
         context.notify(
             Notifications.ID_NEW_CHAPTERS,
@@ -241,10 +252,10 @@ class LibraryUpdateNotifier(
         // Per-manga notification
         if (!securityPreferences.hideNotificationContent.get()) {
             context.notify(
-                updates.map { (manga, chapters) ->
+                notifications.filterNot { it.first in hiddenAtPost }.map { (mangaId, notification) ->
                     NotificationManagerCompat.NotificationWithIdAndTag(
-                        manga.id.hashCode(),
-                        createNewChaptersNotification(manga, chapters),
+                        mangaId.hashCode(),
+                        notification,
                     )
                 },
             )
@@ -253,6 +264,7 @@ class LibraryUpdateNotifier(
 
     private suspend fun createNewChaptersNotification(manga: Manga, chapters: Array<Chapter>): Notification {
         val icon = getMangaIcon(manga)
+        val nextChapter = getNextChapters.await(manga.id).firstOrNull()
         return context.notificationBuilder(Notifications.CHANNEL_NEW_CHAPTERS) {
             setContentTitle(manga.title)
 
@@ -274,6 +286,14 @@ class LibraryUpdateNotifier(
             setContentIntent(NotificationReceiver.openChapterPendingActivity(context, manga, chapters.first()))
             setAutoCancel(true)
 
+            if (nextChapter != null) {
+                addAction(
+                    MaterialSymbolsR.drawable.rounded_book,
+                    context.stringResource(MR.strings.komikita_continue_reading),
+                    NotificationReceiver.openChapterPendingActivity(context, manga, nextChapter),
+                )
+            }
+
             // Mark chapters as read action
             addAction(
                 MaterialSymbolsR.drawable.rounded_check,
@@ -285,16 +305,18 @@ class LibraryUpdateNotifier(
                     Notifications.ID_NEW_CHAPTERS,
                 ),
             )
-            // View chapters action
-            addAction(
-                MaterialSymbolsR.drawable.rounded_book,
-                context.stringResource(MR.strings.action_view_chapters),
-                NotificationReceiver.openChapterPendingActivity(
-                    context,
-                    manga,
-                    Notifications.ID_NEW_CHAPTERS,
-                ),
-            )
+            // Android shows up to three actions; keep Download alongside Continue and Mark as read.
+            if (nextChapter == null) {
+                addAction(
+                    MaterialSymbolsR.drawable.rounded_book,
+                    context.stringResource(MR.strings.action_view_chapters),
+                    NotificationReceiver.openChapterPendingActivity(
+                        context,
+                        manga,
+                        Notifications.ID_NEW_CHAPTERS,
+                    ),
+                )
+            }
             // Download chapters action
             // Only add the action when chapters is within threshold
             if (chapters.size <= Downloader.CHAPTERS_PER_SOURCE_QUEUE_WARNING_THRESHOLD) {

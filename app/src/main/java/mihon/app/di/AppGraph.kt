@@ -51,6 +51,7 @@ import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.library.service.HiddenLibrarySession
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.manga.interactor.GetFavorites
@@ -89,6 +90,7 @@ interface AppGraph : ViewModelGraph {
     val networkPreferences: NetworkPreferences
     val libraryPreferences: LibraryPreferences
     val libraryVisibility: LibraryVisibility
+    val hiddenLibrarySession: HiddenLibrarySession
     val libraryUpdateReportStore: LibraryUpdateReportStore
     val sourcePreferences: SourcePreferences
     val trackPreferences: TrackPreferences

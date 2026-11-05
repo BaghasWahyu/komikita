@@ -10,6 +10,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.confirm_lock_change
+import tachiyomi.i18n.komikita_auth_unavailable
 import kotlin.coroutines.resume
 
 object AuthenticatorUtil {
@@ -28,7 +29,7 @@ object AuthenticatorUtil {
         confirmationRequired: Boolean = true,
         onSuccess: () -> Unit,
         onError: (CharSequence) -> Unit,
-    ) {
+    ): BiometricPrompt {
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setSubtitle(subtitle)
@@ -52,27 +53,39 @@ object AuthenticatorUtil {
         )
         isAuthenticating = true
         prompt.authenticate(promptInfo)
+        return prompt
     }
 
     suspend fun FragmentActivity.authenticate(
         title: String,
         subtitle: String? = stringResource(MR.strings.confirm_lock_change),
+        allowUnsupported: Boolean = true,
     ): Boolean = suspendCancellableCoroutine { cont ->
         if (!isAuthenticationSupported()) {
-            cont.resume(true)
+            if (!allowUnsupported) applicationContext.toast(MR.strings.komikita_auth_unavailable)
+            cont.resume(allowUnsupported)
+            return@suspendCancellableCoroutine
+        }
+
+        if (isAuthenticating) {
+            cont.resume(false)
             return@suspendCancellableCoroutine
         }
 
         val toastContext = applicationContext
-        startAuthentication(
+        val prompt = startAuthentication(
             title,
             subtitle,
-            onSuccess = { cont.resume(true) },
+            onSuccess = { if (cont.isActive) cont.resume(true) },
             onError = { error ->
                 toastContext.toast(error.toString())
-                cont.resume(false)
+                if (cont.isActive) cont.resume(false)
             },
         )
+        cont.invokeOnCancellation {
+            isAuthenticating = false
+            prompt.cancelAuthentication()
+        }
     }
 
     /**

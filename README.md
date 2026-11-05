@@ -17,6 +17,14 @@ KomiKita is an open-source Android app for reading manga, comics, and webtoons. 
 
 </div>
 
+<p align="center">
+  <img src=".github/assets/screenshots/library.png" alt="KomiKita library with a Continue reading carousel" width="30%" />
+  <img src=".github/assets/screenshots/reading-year.png" alt="Reading year recap, completed chapters, reading time, and streaks" width="30%" />
+  <img src=".github/assets/screenshots/privacy.png" alt="Hidden categories protected by Android biometrics or device PIN" width="30%" />
+</p>
+
+Actual app screenshots with original demo titles. [Reproduce the demo](tools/demo/README.md).
+
 [Mihon](https://github.com/mihonapp/mihon) carries on the Tachiyomi codebase. KomiKita is a Mihon fork that adds library visibility controls, a Continue reading card, and in-app updates. Its separate application ID lets you install it alongside Mihon.
 
 ## Contents
@@ -39,9 +47,12 @@ KomiKita is an open-source Android app for reading manga, comics, and webtoons. 
 | --- | --- |
 | Reader | Choose page or webtoon mode. Set the reading direction, theme, and controls in the reader. |
 | Library | Create categories, search and filter titles, and switch between grid and list views. |
-| Continue reading | The card shows the last comic you opened while it has unread chapters. Once you catch up, it picks the most recently updated comic among the visible titles that still have unread chapters. |
+| Continue reading | Swipe through up to five recommendations. Keep reading your latest title or pick another recent read or update. New chapter notifications also offer a Continue reading action. |
 | Offline and local reading | Download chapters or open comics stored on your device. |
-| Visibility | Hide categories and their comics. In Browse, you can also hide extensions and their sources without uninstalling them. |
+| Privacy | Unlock hidden categories using Android biometrics or your device PIN, pattern, or password. They lock again in the background. Hidden titles stay out of Continue reading, history, update notifications, and widgets. |
+| Visibility | In Browse, hide extensions and their sources without uninstalling them. |
+| Reading statistics | See completed chapters, reading time, current and best streaks, and yearly recaps with your most read titles and monthly reading time. |
+| Diagnostic logs | Export recent app logs and device details from Advanced settings, with URLs, credentials, and hidden titles redacted. |
 | Extension icons | Show extension icons on library covers. |
 | Reading progress | Save your history and progress, schedule library updates, or connect a tracker such as AniList or MyAnimeList. |
 | Backups | Save a copy of your library, progress, and settings to a location you choose so you can restore them later. |

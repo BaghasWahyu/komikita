@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.webkit.WebView
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -190,6 +191,18 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         // Updates widget update
         widgetManager.init(scope)
+
+        // Remove already posted titles as soon as category membership or visibility changes.
+        graph.libraryVisibility.hiddenMangaIdsFlow()
+            .onEach { hiddenIds ->
+                if (hiddenIds.isNotEmpty()) {
+                    val manager = NotificationManagerCompat.from(this)
+                    manager.activeNotifications
+                        .filter { it.notification.group == Notifications.GROUP_NEW_CHAPTERS }
+                        .forEach { manager.cancel(it.tag, it.id) }
+                }
+            }
+            .launchIn(scope)
 
         if (!LogcatLogger.isInstalled) {
             val minLogPriority = when {

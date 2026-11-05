@@ -3,6 +3,7 @@ package tachiyomi.domain.history.interactor
 import dev.zacsweers.metro.Inject
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.repository.HistoryRepository
+import kotlin.time.Instant
 
 @Inject
 class UpsertHistory(
@@ -11,5 +12,9 @@ class UpsertHistory(
 
     suspend fun await(historyUpdate: HistoryUpdate) {
         historyRepository.upsertHistory(historyUpdate)
+    }
+
+    suspend fun recordCompletedChapter(chapterId: Long, readAt: Instant) {
+        historyRepository.recordCompletedChapter(chapterId, readAt)
     }
 }

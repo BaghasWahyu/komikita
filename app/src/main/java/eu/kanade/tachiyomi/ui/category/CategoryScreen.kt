@@ -14,6 +14,7 @@ import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.category.components.CategoryRenameDialog
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.ui.security.hiddenCategoryAccess
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -22,6 +23,7 @@ class CategoryScreen : Screen() {
 
     @Composable
     override fun Content() {
+        if (!hiddenCategoryAccess()) return
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val viewModel = metroViewModel<CategoryViewModel>()

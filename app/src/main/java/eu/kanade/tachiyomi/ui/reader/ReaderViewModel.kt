@@ -699,6 +699,9 @@ class ReaderViewModel(
     }
 
     private suspend fun updateChapterProgressOnComplete(readerChapter: ReaderChapter) {
+        if (!incognitoMode) {
+            upsertHistory.recordCompletedChapter(readerChapter.chapter.id, Clock.System.now())
+        }
         updateTrackChapterRead(readerChapter)
         deleteChapterIfNeeded(readerChapter)
 

@@ -447,7 +447,6 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
 
         updatingManga.add(manga)
         notifier.showProgressNotification(
-            updatingManga,
             completed.load(),
             mangaToUpdate.size,
         )
@@ -460,7 +459,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         progressMutex.withLock {
             val current = completed.incrementAndFetch()
             publishProgress(current)
-            notifier.showProgressNotification(updatingManga, current, mangaToUpdate.size)
+            notifier.showProgressNotification(current, mangaToUpdate.size)
         }
     }
 

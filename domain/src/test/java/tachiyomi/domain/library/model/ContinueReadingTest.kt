@@ -141,4 +141,15 @@ class ContinueReadingTest {
     )
 
     private fun instant(value: Long) = Instant.fromEpochMilliseconds(value)
+
+    @Test
+    fun carouselKeepsFirstRecommendationDeduplicatesAndLimitsResults() {
+        val reading = comic(1, lastRead = 100)
+        val recent = comic(2, lastRead = 90)
+        val updated = comic(3, uploaded = 200)
+        val caughtUp = comic(4, read = 10)
+        sequenceOf(updated, reading, recent, reading, caughtUp)
+            .getContinueReadingMangaList(2) shouldBe listOf(reading, recent)
+        sequenceOf(reading).getContinueReadingMangaList(0) shouldBe emptyList()
+    }
 }

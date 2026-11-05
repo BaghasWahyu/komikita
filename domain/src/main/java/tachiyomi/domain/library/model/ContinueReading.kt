@@ -24,6 +24,22 @@ fun Sequence<LibraryManga>.getContinueReadingManga(): LibraryManga? {
     return lastRead?.takeIf { it.unreadCount > 0 } ?: latestUnread
 }
 
+/** Keeps the existing first recommendation, followed by recent reads and recent updates. */
+fun Sequence<LibraryManga>.getContinueReadingMangaList(limit: Int = 5): List<LibraryManga> {
+    if (limit <= 0) return emptyList()
+    val candidates = distinctBy { it.id }.toList()
+    val first = candidates.asSequence().getContinueReadingManga() ?: return emptyList()
+    return (
+        listOf(first) + candidates.filter { it.unreadCount > 0 && it.id != first.id }
+            .sortedWith(
+                compareByDescending<LibraryManga> { it.lastRead != null }
+                    .thenByDescending { it.lastRead }
+                    .then(latestUpdateComparator.reversed()),
+            )
+        )
+        .take(limit)
+}
+
 private val lastReadComparator = compareBy<LibraryManga> { it.lastRead }
     .thenBy { it.id }
 

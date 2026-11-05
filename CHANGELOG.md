@@ -2,6 +2,16 @@
 
 # KomiKita changelog
 
+## Unreleased
+
+- Merge Mihon upstream through `ede052af1`, updating WebGPU viewer to version 57 with fast rendering, final-tile display, and custom upscaler/downscaler settings. Retain KomiKita's newer XML dependency and direct resource imports.
+- Protect hidden categories with Android biometrics or device credentials, with automatic locking in the background and protected reader entry points.
+- Exclude hidden titles from Continue reading, history, updates, notifications, widgets, and reading recaps, including titles that also belong to visible categories.
+- Swipe through up to five Continue reading recommendations and resume from new chapter notifications.
+- Export diagnostic logs with app and device details, bounded collection time, and redacted URLs, credentials, and hidden titles.
+- Record daily reading activity for current and best streaks, yearly completed chapters, time, top titles, and monthly recaps. Daily activity begins with this version and is not yet included in backups.
+- Add original emulator screenshots to both READMEs and a reproducible demo script.
+
 ## 1.0.6 — 2026-11-03
 
 ### Library

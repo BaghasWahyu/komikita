@@ -17,6 +17,14 @@ KomiKita adalah aplikasi Android bersumber terbuka untuk membaca manga, komik, d
 
 </div>
 
+<p align="center">
+  <img src=".github/assets/screenshots/library.png" alt="Pustaka KomiKita dengan carousel Lanjutkan membaca" width="30%" />
+  <img src=".github/assets/screenshots/reading-year.png" alt="Rekap tahunan, chapter selesai, waktu baca, dan streak" width="30%" />
+  <img src=".github/assets/screenshots/privacy.png" alt="Kategori tersembunyi dilindungi biometrik atau PIN perangkat Android" width="30%" />
+</p>
+
+Screenshot aplikasi asli dengan judul demo orisinal. [Cara membuat ulang demo](tools/demo/README.md).
+
 KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis kode Tachiyomi. Fork ini menambahkan pengaturan visibilitas perpustakaan, kartu Lanjutkan Membaca, dan pembaruan dari dalam aplikasi. KomiKita punya ID aplikasi sendiri dan bisa dipasang berdampingan dengan Mihon.
 
 ## Daftar isi
@@ -39,9 +47,12 @@ KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis 
 | --- | --- |
 | Pembaca | Pilih mode halaman atau webtoon. Arah baca, tema, dan kontrol bisa diatur dari pembaca. |
 | Perpustakaan | Buat kategori, cari dan filter judul, lalu pilih tampilan grid atau daftar. |
-| Lanjutkan Membaca | Kartu menampilkan komik yang terakhir dibuka selama masih ada chapter yang belum dibaca. Setelah semua chapternya selesai dibaca, kartu memilih komik dengan pembaruan chapter paling baru di antara judul yang terlihat dan masih punya chapter belum dibaca. |
+| Lanjutkan Membaca | Geser hingga lima rekomendasi: bacaan terakhir, bacaan lain yang baru dibuka, atau komik dengan chapter baru. Notifikasi chapter baru juga memiliki tombol Lanjutkan membaca. |
 | Bacaan offline dan lokal | Unduh chapter atau buka komik yang tersimpan di perangkat. |
-| Visibilitas | Sembunyikan kategori beserta komiknya. Di Jelajah, kamu juga bisa menyembunyikan ekstensi dan sumbernya tanpa mencopot ekstensi. |
+| Privasi | Buka kategori tersembunyi dengan biometrik atau PIN, pola, atau sandi perangkat Android. Kategori terkunci lagi saat aplikasi masuk latar belakang. Judulnya tidak muncul di Lanjutkan membaca, riwayat, notifikasi pembaruan, dan widget. |
+| Visibilitas | Di Jelajah, sembunyikan ekstensi dan sumbernya tanpa mencopot ekstensi. |
+| Statistik membaca | Lihat chapter selesai, waktu baca, streak saat ini dan terpanjang, serta rekap tahunan berisi judul favorit dan waktu baca bulanan. |
+| Log diagnostik | Ekspor log aplikasi terbaru dan detail perangkat dari pengaturan Lanjutan, dengan URL, kredensial, dan judul tersembunyi disamarkan. |
 | Ikon ekstensi | Tampilkan ikon ekstensi pada komik di perpustakaan. |
 | Progres membaca | Simpan riwayat dan progres, jadwalkan pembaruan perpustakaan, atau hubungkan layanan seperti AniList dan MyAnimeList. |
 | Cadangan | Simpan cadangan perpustakaan, progres, dan pengaturan ke lokasi pilihan untuk dipulihkan nanti. |

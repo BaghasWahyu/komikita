@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -43,11 +44,13 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
+import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import eu.kanade.tachiyomi.util.system.workManager
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
 import mihon.feature.migration.config.MigrationConfigScreen
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
@@ -59,6 +62,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.getting_started_guide
 import tachiyomi.i18n.information_empty_library
 import tachiyomi.i18n.information_no_entries_found
+import tachiyomi.i18n.komikita_lock_hidden
+import tachiyomi.i18n.komikita_unlock_hidden
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.label_library
 import tachiyomi.i18n.no_next_chapter
@@ -70,6 +75,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.source.local.isLocal
 
 data object LibraryTab : Tab {
@@ -96,10 +102,22 @@ data object LibraryTab : Tab {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
+        val graph = remember(context) { context.appGraph }
+        val hiddenCategories by graph.libraryPreferences.hiddenCategories.collectAsState()
+        val hiddenUnlocked by graph.hiddenLibrarySession.unlocked.collectAsStateWithLifecycle()
 
         val viewModel = metroViewModel<LibraryViewModel>()
         val settingsViewModel = metroViewModel<LibrarySettingsViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
+        // A stopped collector can replay the previously revealed library before its query catches up.
+        if (!hiddenUnlocked && (
+                state.libraryData.hiddenCategoriesRevealed ||
+                    state.libraryData.hiddenCategoryIds != hiddenCategories.mapNotNull(String::toLongOrNull).toSet()
+                )
+        ) {
+            LoadingScreen()
+            return
+        }
         val updateProgress by remember(context) {
             LibraryUpdateWorker.observeProgress(context.workManager)
         }.collectAsStateWithLifecycle(initialValue = null)
@@ -138,6 +156,33 @@ data object LibraryTab : Tab {
                     page = state.coercedActiveCategoryIndex,
                 )
                 LibraryToolbar(
+                    hiddenCategoriesAction = if (hiddenCategories.isEmpty()) {
+                        null
+                    } else {
+                        if (hiddenUnlocked) {
+                            stringResource(MR.strings.komikita_lock_hidden)
+                        } else {
+                            stringResource(MR.strings.komikita_unlock_hidden)
+                        }
+                    },
+                    onToggleHiddenCategories = {
+                        if (hiddenUnlocked) {
+                            graph.hiddenLibrarySession.lock()
+                        } else {
+                            scope.launch {
+                                val enabled = graph.securityPreferences.authenticateHiddenCategories.get()
+                                val activity = context as? FragmentActivity ?: return@launch
+                                if (!enabled || activity.authenticate(
+                                        title = context.stringResource(MR.strings.komikita_unlock_hidden),
+                                        subtitle = null,
+                                        allowUnsupported = false,
+                                    )
+                                ) {
+                                    graph.hiddenLibrarySession.unlock()
+                                }
+                            }
+                        }
+                    },
                     updateProgress = updateProgress,
                     hasActiveFilters = state.hasActiveFilters,
                     selectedCount = state.selection.size,

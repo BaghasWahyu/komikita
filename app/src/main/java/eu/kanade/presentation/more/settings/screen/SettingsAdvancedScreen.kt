@@ -70,6 +70,8 @@ import tachiyomi.i18n.ext_installer_pref
 import tachiyomi.i18n.ext_installer_shizuku
 import tachiyomi.i18n.ext_installer_shizuku_unavailable_dialog
 import tachiyomi.i18n.ext_revoke_trust
+import tachiyomi.i18n.komikita_export_logs
+import tachiyomi.i18n.komikita_export_logs_summary
 import tachiyomi.i18n.label_background_activity
 import tachiyomi.i18n.label_data
 import tachiyomi.i18n.label_extensions
@@ -87,8 +89,6 @@ import tachiyomi.i18n.pref_disable_battery_optimization_summary
 import tachiyomi.i18n.pref_disallow_non_ascii_filenames
 import tachiyomi.i18n.pref_disallow_non_ascii_filenames_details
 import tachiyomi.i18n.pref_dns_over_https
-import tachiyomi.i18n.pref_dump_crash_logs
-import tachiyomi.i18n.pref_dump_crash_logs_summary
 import tachiyomi.i18n.pref_enable_chapter_name_hash
 import tachiyomi.i18n.pref_enable_chapter_name_hash_details
 import tachiyomi.i18n.pref_high_quality_renderer
@@ -135,8 +135,8 @@ object SettingsAdvancedScreen : SearchableSettings {
 
         return listOf(
             Preference.PreferenceItem.TextPreference(
-                title = stringResource(MR.strings.pref_dump_crash_logs),
-                subtitle = stringResource(MR.strings.pref_dump_crash_logs_summary),
+                title = stringResource(MR.strings.komikita_export_logs),
+                subtitle = stringResource(MR.strings.komikita_export_logs_summary),
                 onClick = {
                     scope.launch {
                         crashLogUtil.dumpLogs()

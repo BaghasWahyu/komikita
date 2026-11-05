@@ -31,7 +31,7 @@ class SecurityPreferences(
 
     val authenticateHiddenCategories: Preference<Boolean> = preferenceStore.getBoolean(
         "komikita_authenticate_hidden_categories",
-        false,
+        true,
     )
 
     /**

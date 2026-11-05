@@ -2,10 +2,10 @@ package tachiyomi.domain.library.service
 
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.repository.MangaRepository
 
@@ -15,16 +15,10 @@ class LibraryVisibility(
     private val preferences: LibraryPreferences,
     private val mangaRepository: MangaRepository,
 ) {
-    fun hiddenCategoryIds(): List<Long> = categoryIds(
-        preferences.hiddenCategories.get(),
-        preferences.hideHiddenCategoriesEverywhere.get(),
-    )
+    fun hiddenCategoryIds(): List<Long> = categoryIds(preferences.hiddenCategories.get())
 
-    fun changes(): Flow<List<Long>> = combine(
-        preferences.hiddenCategories.changes(),
-        preferences.hideHiddenCategoriesEverywhere.changes(),
-        ::categoryIds,
-    ).distinctUntilChanged()
+    fun changes(): Flow<List<Long>> = preferences.hiddenCategories.changes()
+        .map(::categoryIds).distinctUntilChanged()
 
     suspend fun hiddenMangaIds(): Set<Long> {
         val categories = hiddenCategoryIds()
@@ -40,8 +34,7 @@ class LibraryVisibility(
         }
     }.distinctUntilChanged()
 
-    private fun categoryIds(hidden: Set<String>, everywhere: Boolean): List<Long> =
-        if (everywhere) hidden.mapNotNull(String::toLongOrNull) else emptyList()
+    private fun categoryIds(hidden: Set<String>): List<Long> = hidden.mapNotNull(String::toLongOrNull)
 }
 
 fun LibraryManga.isHiddenInLibrary(hiddenCategories: Set<String>): Boolean =

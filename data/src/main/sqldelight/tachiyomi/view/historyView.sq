@@ -47,6 +47,9 @@ AND NOT EXISTS (
     WHERE manga_category.manga_id = historyView.mangaId
     AND manga_category.category_id IN :hiddenCategories
 )
+AND (0 NOT IN :hiddenCategories OR EXISTS (
+    SELECT 1 FROM manga_category WHERE manga_category.manga_id = historyView.mangaId
+))
 ORDER BY readAt DESC;
 
 getLatestHistory:
@@ -73,5 +76,8 @@ AND NOT EXISTS (
     WHERE manga_category.manga_id = manga.id
     AND manga_category.category_id IN :hiddenCategories
 )
+AND (0 NOT IN :hiddenCategories OR EXISTS (
+    SELECT 1 FROM manga_category WHERE manga_category.manga_id = manga.id
+))
 ORDER BY history.read_at DESC
 LIMIT 1;

@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.history.model.HistoryWithRelations
+import tachiyomi.domain.history.model.ReadingActivity
+import kotlin.time.Instant
 
 interface HistoryRepository {
 
@@ -26,4 +28,8 @@ interface HistoryRepository {
     suspend fun deleteResetHistory()
 
     suspend fun upsertHistory(historyUpdate: HistoryUpdate)
+
+    fun getReadingActivity(): Flow<List<ReadingActivity>>
+
+    suspend fun recordCompletedChapter(chapterId: Long, readAt: Instant)
 }

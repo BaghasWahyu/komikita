@@ -991,4 +991,24 @@
     <string name="komikita_collection">Koleksi</string>
     <string name="komikita_manga_information">Informasi</string>
     <string name="komikita_search_chapters">Cari chapter</string>
+    <string name="komikita_unlock_hidden">Buka kategori tersembunyi</string>
+    <string name="komikita_lock_hidden">Kunci kategori tersembunyi</string>
+    <string name="komikita_hidden_locked">Kategori tersembunyi terkunci</string>
+    <string name="komikita_auth_unavailable">Siapkan PIN, pola, sandi, atau biometrik layar kunci di pengaturan Android, lalu coba lagi.</string>
+    <string name="komikita_lock_categories">Kunci kategori tersembunyi</string>
+    <string name="komikita_lock_categories_summary">Gunakan biometrik atau PIN perangkat untuk membuka kategori tersembunyi. Terkunci lagi saat aplikasi masuk latar belakang. Judul tersembunyi tetap tidak muncul di Lanjutkan Membaca, riwayat, pembaruan, dan widget.</string>
+    <string name="komikita_reading_wrapped">Tahun bacaanmu</string>
+    <string name="komikita_current_streak">Streak saat ini (hari)</string>
+    <string name="komikita_longest_streak">Streak terpanjang (hari)</string>
+    <string name="komikita_active_days">Hari membaca</string>
+    <string name="komikita_wrapped_note">Statistik harian dimulai dari versi ini. Sesi samaran dan judul tersembunyi tidak disertakan. Chapter selesai dihitung sekali per tahun. Menghapus seluruh riwayat juga menghapus rekap ini.</string>
+    <string name="komikita_top_titles">Judul paling sering dibaca</string>
+    <string name="komikita_monthly_reading">Waktu baca per bulan</string>
+    <string name="komikita_export_logs">Ekspor log diagnostik</string>
+    <string name="komikita_export_logs_summary">Bagikan log aplikasi terbaru dan detail perangkat untuk laporan bug. URL, kredensial, dan judul tersembunyi disamarkan.</string>
+    <string name="komikita_export_logs_failed">Log gagal diekspor. Silakan coba lagi.</string>
+    <string name="komikita_hidden_locked_summary">Buka dengan biometrik atau PIN perangkat. Kategori tersembunyi terkunci lagi saat aplikasi masuk latar belakang.</string>
+    <string name="komikita_device_security">Atur keamanan perangkat</string>
+    <string name="komikita_completed_chapters">Chapter selesai</string>
+    <string name="komikita_reading_titles">Judul dibaca</string>
 </resources>

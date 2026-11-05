@@ -2,12 +2,16 @@ package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -18,11 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -30,13 +36,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.tachiyomi.ui.library.LibraryItem
+import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
-import tachiyomi.domain.library.model.getContinueReadingManga
+import tachiyomi.domain.library.model.getContinueReadingMangaList
+import tachiyomi.domain.library.service.isHiddenInLibrary
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.komikita_continue_reading
 import tachiyomi.i18n.komikita_grid_view
@@ -44,6 +52,7 @@ import tachiyomi.i18n.komikita_list_view
 import tachiyomi.i18n.komikita_reading_progress
 import tachiyomi.i18n.komikita_your_collection
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.collectAsState
 
 @Composable
 internal fun LibraryCollectionHeader(
@@ -56,18 +65,32 @@ internal fun LibraryCollectionHeader(
     categories: @Composable () -> Unit,
 ) {
     // Only inspect this page's visible, filtered items, including for hidden categories.
-    val continueReading = remember(items) {
+    val context = LocalContext.current
+    val hidden by context.appGraph.libraryPreferences.hiddenCategories.collectAsState()
+    val continueReading = remember(items, hidden) {
         items.asSequence()
             .map { it.libraryManga }
-            .getContinueReadingManga()
+            .filterNot { it.isHiddenInLibrary(hidden) }
+            .getContinueReadingMangaList()
     }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (!selectionMode && showContinueReading && continueReading != null) {
-            ContinueReadingCard(continueReading, onClick = { onContinueReading(continueReading) })
+        if (!selectionMode && showContinueReading && continueReading.isNotEmpty()) {
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val cardWidth = if (continueReading.size == 1) maxWidth else (maxWidth * 0.88f).coerceAtMost(420.dp)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(continueReading, key = { it.id }) { manga ->
+                        ContinueReadingCard(
+                            manga,
+                            modifier = Modifier.widthIn(min = cardWidth, max = cardWidth),
+                            onClick = { onContinueReading(manga) },
+                        )
+                    }
+                }
+            }
         }
         if (!selectionMode) {
             Row(
@@ -135,11 +158,12 @@ private fun LibraryViewToggle(
 @Composable
 private fun ContinueReadingCard(
     manga: LibraryManga,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,

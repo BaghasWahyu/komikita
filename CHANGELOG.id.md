@@ -2,6 +2,16 @@
 
 # Changelog KomiKita
 
+## Belum dirilis
+
+- Gabungkan Mihon upstream hingga `ede052af1`, memperbarui WebGPU viewer ke versi 57 dengan pengaturan rendering cepat, tampilan tiles akhir, serta upscaler/downscaler khusus. Pertahankan dependensi XML KomiKita yang lebih baru dan impor resource langsung.
+- Lindungi kategori tersembunyi dengan biometrik atau kredensial perangkat Android, dengan penguncian otomatis di latar belakang dan perlindungan akses langsung ke pembaca.
+- Kecualikan judul tersembunyi dari Lanjutkan membaca, riwayat, pembaruan, notifikasi, widget, dan rekap membaca, termasuk judul yang juga berada di kategori terlihat.
+- Geser hingga lima rekomendasi Lanjutkan membaca dan lanjutkan bacaan dari notifikasi chapter baru.
+- Ekspor log diagnostik berisi detail aplikasi dan perangkat, dengan batas waktu pengumpulan serta penyamaran URL, kredensial, dan judul tersembunyi.
+- Catat aktivitas membaca harian untuk streak saat ini dan terpanjang, chapter selesai tahunan, waktu baca, judul teratas, dan rekap bulanan. Aktivitas harian dimulai dari versi ini dan belum disertakan dalam cadangan.
+- Tambahkan screenshot emulator orisinal pada kedua README dan skrip demo yang dapat dijalankan ulang.
+
 ## 1.0.6 — 2026-11-03
 
 ### Perpustakaan

@@ -34,6 +34,7 @@ interface SecureActivityDelegate {
         var requireUnlock = true
 
         fun onApplicationStopped(context: Context) {
+            context.appGraph.hiddenLibrarySession.lock()
             val preferences = context.appGraph.securityPreferences
             if (!preferences.useAuthenticator.get()) return
 
@@ -99,8 +100,12 @@ class SecureActivityDelegateImpl : SecureActivityDelegate, DefaultLifecycleObser
     private fun setSecureScreen() {
         val secureScreenFlow = securityPreferences.secureScreen.changes()
         val incognitoModeFlow = preferences.incognitoMode.changes()
-        combine(secureScreenFlow, incognitoModeFlow) { secureScreen, incognitoMode ->
-            secureScreen == SecurityPreferences.SecureScreenMode.ALWAYS ||
+        combine(secureScreenFlow, incognitoModeFlow, activity.appGraph.hiddenLibrarySession.unlocked) {
+                secureScreen,
+                incognitoMode,
+                hiddenUnlocked,
+            ->
+            hiddenUnlocked || secureScreen == SecurityPreferences.SecureScreenMode.ALWAYS ||
                 (secureScreen == SecurityPreferences.SecureScreenMode.INCOGNITO && incognitoMode)
         }
             .onEach(activity.window::setSecureScreen)

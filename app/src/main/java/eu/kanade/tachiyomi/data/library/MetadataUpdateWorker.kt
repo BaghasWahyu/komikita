@@ -149,7 +149,6 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
 
         updatingManga.add(manga)
         notifier.showProgressNotification(
-            updatingManga,
             completed.load(),
             mangaToUpdate.size,
         )
@@ -161,7 +160,6 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
         updatingManga.remove(manga)
         completed.fetchAndIncrement()
         notifier.showProgressNotification(
-            updatingManga,
             completed.load(),
             mangaToUpdate.size,
         )

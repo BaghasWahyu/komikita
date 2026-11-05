@@ -198,6 +198,11 @@ class ReaderActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setComposeContent {
+            if (!eu.kanade.tachiyomi.ui.security.hiddenCategoryAccess(viewModel.mangaId)) return@setComposeContent
+            androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+                viewModel.restartReadTimer()
+                onPauseOrDispose { viewModel.saveHistory() }
+            }
             val state by viewModel.state.collectAsState()
             val general by settingsViewModel.general.collectAsState()
             val showPageNumber by readerPreferences.showPageNumber.collectAsState()
@@ -423,7 +428,6 @@ class ReaderActivity : BaseActivity() {
      */
     override fun onResume() {
         super.onResume()
-        viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
     }
 

@@ -34,6 +34,9 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE dateUpload > :after
+AND (0 NOT IN :hiddenCategories OR EXISTS (
+    SELECT 1 FROM manga_category WHERE manga_category.manga_id = updatesView.mangaId
+))
 AND NOT EXISTS (
     SELECT 1 FROM manga_category
     WHERE manga_category.manga_id = updatesView.mangaId
@@ -85,6 +88,9 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE read = 1
+AND (0 NOT IN :hiddenCategories OR EXISTS (
+    SELECT 1 FROM manga_category WHERE manga_category.manga_id = updatesView.mangaId
+))
 AND NOT EXISTS (
     SELECT 1 FROM manga_category
     WHERE manga_category.manga_id = updatesView.mangaId
@@ -101,6 +107,9 @@ SELECT
     excludedScanlator
 FROM updatesView
 WHERE read = 0
+AND (0 NOT IN :hiddenCategories OR EXISTS (
+    SELECT 1 FROM manga_category WHERE manga_category.manga_id = updatesView.mangaId
+))
 AND NOT EXISTS (
     SELECT 1 FROM manga_category
     WHERE manga_category.manga_id = updatesView.mangaId

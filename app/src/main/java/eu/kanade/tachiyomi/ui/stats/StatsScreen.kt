@@ -42,6 +42,7 @@ class StatsScreen : Screen() {
             StatsScreenContent(
                 state = state as StatsScreenState.Success,
                 paddingValues = paddingValues,
+                onSelectYear = viewModel::selectYear,
             )
         }
     }

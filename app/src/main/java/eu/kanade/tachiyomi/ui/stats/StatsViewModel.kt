@@ -18,18 +18,25 @@ import eu.kanade.tachiyomi.source.model.SManga
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tachiyomi.domain.history.interactor.GetTotalReadDuration
+import tachiyomi.domain.history.model.currentReadingStreak
+import tachiyomi.domain.history.model.readingRecap
+import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_UNREAD
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
+import tachiyomi.domain.library.service.LibraryVisibility
 import tachiyomi.domain.manga.interactor.GetLibraryManga
+import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.track.interactor.GetTracksPerManga
 import tachiyomi.domain.track.model.Track
 import tachiyomi.source.local.isLocal
+import java.time.LocalDate
 
 @Inject
 @ViewModelKey
@@ -41,16 +48,25 @@ class StatsViewModel(
     private val getTracksPerManga: GetTracksPerManga,
     private val preferences: LibraryPreferences,
     private val trackerManager: TrackerManager,
+    private val historyRepository: HistoryRepository,
+    private val visibility: LibraryVisibility,
+    private val getManga: GetManga,
 ) : ViewModel() {
 
     val state: StateFlow<StatsScreenState>
         field = MutableStateFlow<StatsScreenState>(StatsScreenState.Loading)
 
     private val loggedInTrackers by lazy { trackerManager.loggedInTrackers() }
+    private val selectedYear = MutableStateFlow(LocalDate.now().year)
+
+    fun selectYear(year: Int) {
+        selectedYear.value = year
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val libraryManga = getLibraryManga.await()
+            val hiddenIds = visibility.hiddenMangaIds()
+            val libraryManga = getLibraryManga.await().filterNot { it.id in hiddenIds }
 
             val distinctLibraryManga = libraryManga.fastDistinctBy { it.id }
 
@@ -92,6 +108,26 @@ class StatsViewModel(
                     chapters = chaptersStatData,
                     trackers = trackersStatData,
                 )
+            }
+
+            combine(historyRepository.getReadingActivity(), selectedYear, visibility.hiddenMangaIdsFlow()) {
+                    activity,
+                    year,
+                    hidden,
+                ->
+                val visible = activity.filterNot { it.mangaId in hidden }
+                Triple(visible, year, visible.readingRecap(year))
+            }.collect { (activity, year, recap) ->
+                val topTitles = recap.topMangaIds.mapNotNull { getManga.await(it)?.title }
+                state.update { previous ->
+                    (previous as StatsScreenState.Success).copy(
+                        reading = recap,
+                        currentStreak = activity.currentReadingStreak(LocalDate.now()),
+                        availableYears = (activity.map { it.date.year } + LocalDate.now().year + year)
+                            .distinct().sortedDescending(),
+                        topTitles = topTitles,
+                    )
+                }
             }
         }
     }

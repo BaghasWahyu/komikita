@@ -17,6 +17,8 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.firebase_summary
 import tachiyomi.i18n.hide_notification_content
+import tachiyomi.i18n.komikita_lock_categories
+import tachiyomi.i18n.komikita_lock_categories_summary
 import tachiyomi.i18n.lock_after_mins
 import tachiyomi.i18n.lock_always
 import tachiyomi.i18n.lock_never
@@ -65,6 +67,19 @@ object SettingsSecurityScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_security),
             preferenceItems = listOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = securityPreferences.authenticateHiddenCategories,
+                    title = stringResource(MR.strings.komikita_lock_categories),
+                    subtitle = stringResource(MR.strings.komikita_lock_categories_summary),
+                    onValueChanged = {
+                        val authenticated = (context as FragmentActivity).authenticate(
+                            title = context.stringResource(MR.strings.komikita_lock_categories),
+                            allowUnsupported = false,
+                        )
+                        if (authenticated) context.appGraph.hiddenLibrarySession.lock()
+                        authenticated
+                    },
+                ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = useAuthPref,
                     title = stringResource(MR.strings.lock_with_biometrics),

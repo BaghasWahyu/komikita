@@ -2,22 +2,29 @@ package eu.kanade.tachiyomi.util
 
 import android.content.Context
 import android.os.Build
+import android.os.Process
 import dev.zacsweers.metro.Inject
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
-import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toLocalDateTime
+import tachiyomi.domain.library.service.LibraryVisibility
+import tachiyomi.domain.manga.interactor.GetManga
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.komikita_export_logs_failed
+import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 
 @Inject
@@ -25,24 +32,47 @@ class CrashLogUtil(
     private val context: Context,
     private val extensionManager: ExtensionManager,
     private val preferences: BasePreferences,
-    private val networkPreferences: NetworkPreferences,
+    private val visibility: LibraryVisibility,
+    private val getManga: GetManga,
 ) {
 
     suspend fun dumpLogs(exception: Throwable? = null) = withContext(Dispatchers.IO) {
+        val rawLog = File.createTempFile("komikita-logcat-", ".tmp", context.cacheDir)
         try {
-            val file = context.createFileInCacheDir("mihon_crash_logs.txt")
-
-            file.appendText(getDebugInfo() + "\n\n")
-            getExtensionsInfo()?.let { file.appendText("$it\n\n") }
-            exception?.let { file.appendText("$it\n\n") }
-
-            val logPriority = if (networkPreferences.verboseLogging.get()) "V" else "E"
-            Runtime.getRuntime().exec("logcat *:$logPriority -d -v year -v zone -f ${file.absolutePath}").waitFor()
+            val file = context.createFileInCacheDir("komikita_diagnostics.txt")
+            val process = ProcessBuilder(
+                "logcat",
+                "--pid=${Process.myPid()}",
+                "-d",
+                "-t",
+                "2000",
+                "-v",
+                "threadtime",
+            ).redirectErrorStream(true).redirectOutput(rawLog).start()
+            try {
+                check(process.waitFor(10, TimeUnit.SECONDS)) { "Log collection timed out" }
+                check(process.exitValue() == 0) { "Log collection failed" }
+            } finally {
+                if (process.isAlive) process.destroyForcibly()
+            }
+            val hiddenTitles = visibility.hiddenMangaIds().mapNotNull { getManga.await(it)?.title }
+            val diagnostics = buildString {
+                appendLine(getDebugInfo())
+                getExtensionsInfo()?.let { appendLine(it) }
+                exception?.let { appendLine(it.stackTraceToString()) }
+                appendLine("\nRecent application logs (up to 2000 entries):")
+                append(rawLog.inputStream().bufferedReader().use { it.readText().takeLast(2_000_000) })
+            }
+            file.writeText(LogRedactor.redact(diagnostics, hiddenTitles))
 
             val uri = file.getUriCompat(context)
             withContext(Dispatchers.Main) { context.startActivity(uri.toShareIntent(context, "text/plain")) }
-        } catch (_: Throwable) {
-            withContext(Dispatchers.Main) { context.toast("Failed to get logs") }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            withContext(Dispatchers.Main) { context.toast(MR.strings.komikita_export_logs_failed) }
+        } finally {
+            rawLog.delete()
         }
     }
 

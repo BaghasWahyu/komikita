@@ -429,6 +429,8 @@
     <string name="pref_high_quality_renderer">Use high quality renderer</string>
     <string name="pref_crop_borders">Crop borders</string>
     <string name="pref_crop_instead_of_zoom">Crop instead of zoom</string>
+    <string name="pref_fast_rendering_only">Disable tiles</string>
+    <string name="pref_hold_until_final">Show all tiles together</string>
     <string name="pref_custom_brightness">Custom brightness</string>
     <string name="pref_grayscale">Grayscale</string>
     <string name="pref_inverted_colors">Inverted</string>
@@ -546,6 +548,9 @@
     <string name="pref_continuous_gap">Gap</string>
     <string name="pref_image_filters">Image filters</string>
     <string name="pref_tile_filters">Tile filters</string>
+    <string name="pref_upscaler">Upscaler</string>
+    <string name="pref_downscaler">Downscaler</string>
+    <string name="action_choose_shader">Choose shader</string>
     <string name="pref_disable_double_tap_gestures">Disable double tap gestures</string>
     <string name="action_add_shader">Add shader</string>
     <string name="image_filter_invalid">Couldn\'t add shader</string>
@@ -1118,4 +1123,24 @@
     <string name="komikita_collection">Library</string>
     <string name="komikita_manga_information">Information</string>
     <string name="komikita_search_chapters">Search chapters</string>
+    <string name="komikita_unlock_hidden">Unlock hidden categories</string>
+    <string name="komikita_lock_hidden">Lock hidden categories</string>
+    <string name="komikita_hidden_locked">Hidden categories are locked</string>
+    <string name="komikita_auth_unavailable">Set a screen lock PIN, pattern, password, or biometric in Android settings, then try again.</string>
+    <string name="komikita_lock_categories">Lock hidden categories</string>
+    <string name="komikita_lock_categories_summary">Use biometrics or your device PIN to reveal hidden categories. Locks again when the app enters the background. Hidden titles stay out of Continue reading, history, updates, and widgets.</string>
+    <string name="komikita_reading_wrapped">Your reading year</string>
+    <string name="komikita_current_streak">Current streak (days)</string>
+    <string name="komikita_longest_streak">Best streak (days)</string>
+    <string name="komikita_active_days">Reading days</string>
+    <string name="komikita_wrapped_note">Daily statistics start with this version. Incognito sessions and hidden titles are excluded. Completed chapters are counted once per year. Clearing all history also clears this recap.</string>
+    <string name="komikita_top_titles">Most read titles</string>
+    <string name="komikita_monthly_reading">Reading time by month</string>
+    <string name="komikita_export_logs">Export diagnostic logs</string>
+    <string name="komikita_export_logs_summary">Share recent app logs and device details for a bug report. URLs, credentials, and hidden titles are redacted.</string>
+    <string name="komikita_export_logs_failed">Could not export logs. Please try again.</string>
+    <string name="komikita_hidden_locked_summary">Unlock with biometrics or your device PIN. Hidden categories lock again when the app enters the background.</string>
+    <string name="komikita_device_security">Set up device security</string>
+    <string name="komikita_completed_chapters">Chapters completed</string>
+    <string name="komikita_reading_titles">Titles read</string>
 </resources>
