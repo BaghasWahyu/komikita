@@ -95,13 +95,17 @@ class UpdateMangaFromRemote(
                 fetchChapters = fetchChapters,
             )
             awaitUpdateFromSource(currentManga, update.manga, manualFetch && savedDetails == null)
-            val newChapters = syncChaptersWithSource.await(
-                rawSourceChapters = update.chapters,
-                manga = currentManga,
-                source = source,
-                manualFetch = manualFetch,
-                fetchWindow = fetchWindow,
-            )
+            val newChapters = if (fetchChapters) {
+                syncChaptersWithSource.await(
+                    rawSourceChapters = update.chapters,
+                    manga = currentManga,
+                    source = source,
+                    manualFetch = manualFetch,
+                    fetchWindow = fetchWindow,
+                )
+            } else {
+                emptyList()
+            }
             val updatedManga = mangaRepository.getMangaById(manga.id)
 
             Result.success(RemoteMangaUpdate(manga = updatedManga, newChapters = newChapters))

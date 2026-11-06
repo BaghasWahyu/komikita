@@ -1,6 +1,7 @@
 package mihon.domain.source.interactor
 
 import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
@@ -8,7 +9,9 @@ import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -21,18 +24,19 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 class UpdateMangaFromRemoteTest {
-    private val manga = Manga.create().copy(id = 1, url = "/manga", title = "Manga")
+    private val manga = Manga.create().copy(id = 1, source = 1, url = "/manga", title = "Manga")
     private var storedManga = manga
     private val source = mockk<Source>()
     private val chapterRepository = mockk<ChapterRepository>()
     private val mangaRepository = mockk<MangaRepository>()
     private val syncChapters = mockk<SyncChaptersWithSource>()
+    private val coverCache = mockk<CoverCache>()
     private val update = UpdateMangaFromRemote(
         sourceManager = mockk(),
         chapterRepository = chapterRepository,
         mangaRepository = mangaRepository,
         syncChaptersWithSource = syncChapters,
-        coverCache = mockk(),
+        coverCache = coverCache,
         libraryPreferences = mockk(),
         downloadManager = mockk(relaxed = true),
     )
@@ -42,9 +46,33 @@ class UpdateMangaFromRemoteTest {
         coEvery { mangaRepository.getMangaById(manga.id) } coAnswers { storedManga }
         coEvery { mangaRepository.updateRemote(any()) } coAnswers {
             val change = firstArg<MangaRemoteUpdate>()
-            storedManga = storedManga.copy(description = change.description, initialized = change.initialized)
+            storedManga = storedManga.copy(
+                description = change.description,
+                initialized = change.initialized,
+                coverLastModified = change.coverLastModified ?: storedManga.coverLastModified,
+                thumbnailUrl = change.thumbnailUrl ?: storedManga.thumbnailUrl,
+            )
             true
         }
+    }
+
+    @Test
+    fun manualDetailsRefreshInvalidatesTheCoverEvenWhenItsUrlIsUnchanged() = runTest {
+        val mangaWithCover = manga.copy(thumbnailUrl = "https://example.org/cover.jpg")
+        storedManga = mangaWithCover
+        coEvery { source.getMangaUpdate(any(), emptyList(), true, false) } coAnswers {
+            SMangaUpdate(firstArg(), emptyList())
+        }
+        every { coverCache.hasCustomCover(mangaWithCover.id) } returns false
+        every { coverCache.deleteFromCache(mangaWithCover, false) } returns 1
+
+        val result = update(source, mangaWithCover, fetchDetails = true, manualFetch = true).getOrThrow()
+
+        result.manga.thumbnailUrl shouldBe mangaWithCover.thumbnailUrl
+        (result.manga.coverLastModified != null) shouldBe true
+        result.newChapters shouldBe emptyList()
+        verify(exactly = 1) { coverCache.deleteFromCache(mangaWithCover, false) }
+        coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any()) }
     }
 
     @Test

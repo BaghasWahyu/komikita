@@ -123,6 +123,7 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
                                             source = source,
                                             manga = manga,
                                             fetchDetails = true,
+                                            manualFetch = true,
                                         ).getOrThrow()
                                     } catch (e: Throwable) {
                                         // Ignore errors and continue
