@@ -127,6 +127,25 @@ class ReleaseNotesTest(unittest.TestCase):
         self.assertIn("/compare/v1.0.5...v1.0.6", body)
         self.assertEqual(changelog_entry(self.root / "missing.md", "v1.0.6"), "")
 
+    def test_cli_accepts_four_part_tags_and_compares_revisions_numerically(self):
+        self.commit("fix: previous hotfix")
+        git(self.root, "tag", "v1.0.5.2")
+        self.commit("fix: current hotfix")
+        git(self.root, "tag", "v1.0.5.10")
+        git(self.root, "tag", "v1.0.5.9-rc.1")
+        published = self.root / "published-tags.txt"
+        published.write_text("v1.0.5\nv1.0.5.2\nv1.0.5.9-rc.1\n", encoding="utf-8")
+        output = self.root / "release-notes.md"
+        subprocess.run(
+            [sys.executable, str(Path(__file__).with_name("generate_release_notes.py")),
+             "--tag", "v1.0.5.10", "--published-tags", str(published), "--output", str(output)],
+            cwd=self.root, capture_output=True, check=True,
+        )
+        body = output.read_text(encoding="utf-8")
+        self.assertIn("/compare/v1.0.5.2...v1.0.5.10", body)
+        self.assertIn("current hotfix", body)
+        self.assertNotIn("previous hotfix", body)
+
 
 if __name__ == "__main__":
     unittest.main()

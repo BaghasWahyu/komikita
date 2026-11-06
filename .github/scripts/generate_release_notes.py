@@ -25,8 +25,8 @@ def git(root, *arguments):
 
 
 def version_key(tag):
-    match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", tag)
-    return tuple(map(int, match.groups())) if match else None
+    match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?", tag)
+    return tuple(map(int, match.groups(default="0"))) if match else None
 
 
 def previous_release(root, tag, published_tags):
@@ -154,7 +154,7 @@ def main():
     base.add_argument("--previous-tag")
     arguments = parser.parse_args()
     if version_key(arguments.tag) is None:
-        parser.error("--tag must be a stable version such as v1.0.6")
+        parser.error("--tag must be a stable version such as v1.0.13 or v1.0.13.2")
     root = Path(git(Path.cwd(), "rev-parse", "--show-toplevel"))
     git(root, "rev-parse", "--verify", f"refs/tags/{arguments.tag}^{{commit}}")
     tags = (
