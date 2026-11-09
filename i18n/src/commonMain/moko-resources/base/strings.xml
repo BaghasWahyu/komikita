@@ -1112,6 +1112,9 @@
     <string name="komikita_update_removed">Skipped because comic was removed from the library</string>
     <string name="komikita_library_tagline">Your favorite comics, always close.</string>
     <string name="komikita_library_update_progress">%1$d / %2$d (%3$d%%)</string>
+    <string name="komikita_category_update_queued">Category update added to queue</string>
+    <string name="komikita_category_update_already_queued">This category is already updating or queued</string>
+    <string name="komikita_category_updates_pending">Categories waiting: %1$d</string>
     <string name="komikita_search_library">Search your library</string>
     <string name="komikita_your_collection">Your collection</string>
     <string name="komikita_continue_reading">Continue reading</string>

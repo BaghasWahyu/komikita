@@ -14,6 +14,12 @@ Untuk membuka sementara, pilih menu titik tiga di pustaka → **Buka kategori te
 
 Untuk menampilkan kategori secara permanen, buka **Lainnya → Kategori**, autentikasi, lalu tekan ikon mata lagi. Mengubah pengaturan kunci kategori juga memerlukan autentikasi.
 
+## Antrean pembaruan kategori
+
+Di pustaka, buka kategori lalu pilih **Perbarui kategori** dari menu titik tiga, atau tarik ke bawah untuk memperbarui. Saat pembaruan berjalan, pindah ke kategori lain dan ulangi untuk menambahkannya ke antrean. Kategori diproses sesuai urutan penambahan, dan area progres menampilkan jumlah kategori yang menunggu. Kategori yang sedang berjalan atau menunggu tidak dapat ditambahkan lagi.
+
+Antrean disimpan di perangkat. Tombol **Batal** pada notifikasi pembaruan menghentikan proses saat ini beserta seluruh kategori yang menunggu. Filter pembaruan yang sudah diatur tetap berlaku pada setiap kategori.
+
 ## Lanjutkan membaca
 
 Geser carousel di pustaka untuk melihat hingga lima judul yang terlihat dan memiliki chapter belum dibaca. Rekomendasi pertama mempertahankan urutan sebelumnya: judul yang terakhir dibuka selama masih punya chapter belum dibaca, kemudian judul dengan pembaruan terbaru. Kartu berikutnya menampilkan bacaan dan pembaruan lain. Tekan kartu untuk membuka chapter berikutnya yang belum dibaca. Filter pencarian dan kategori juga berlaku pada carousel.

@@ -4,4 +4,5 @@ data class LibraryUpdateProgress(
     val completed: Int,
     val total: Int,
     val isCategoryUpdate: Boolean,
+    val queuedCategories: Int = 0,
 )

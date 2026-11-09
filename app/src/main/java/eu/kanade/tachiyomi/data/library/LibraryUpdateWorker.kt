@@ -16,7 +16,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.zacsweers.metro.Inject
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -130,6 +130,16 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     private var mangaToUpdate: List<LibraryManga> = mutableListOf()
 
     override suspend fun doWork(): Result {
+        // Scheduled updates have their own WorkManager chain. Never let them overlap the manual queue.
+        if (!executionMutex.tryLock()) return Result.retry()
+        return try {
+            doUpdate()
+        } finally {
+            executionMutex.unlock()
+        }
+    }
+
+    private suspend fun doUpdate(): Result {
         graph.inject(this)
 
         if (tags.contains(WORK_NAME_AUTO)) {
@@ -507,6 +517,10 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         private const val TAG = "LibraryUpdate"
         private const val WORK_NAME_AUTO = "LibraryUpdate-auto"
         private const val WORK_NAME_MANUAL = "LibraryUpdate-manual"
+        private const val CATEGORY_TAG_PREFIX = "LibraryUpdate-category-"
+
+        private val queueMutex = Mutex()
+        private val executionMutex = Mutex()
 
         private const val ERROR_LOG_HELP_URL = "https://mihon.app/docs/guides/troubleshooting/"
 
@@ -524,11 +538,19 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         fun observeProgress(workManager: WorkManager): Flow<LibraryUpdateProgress?> =
             workManager.getWorkInfosByTagFlow(TAG)
                 .map { workInfos ->
-                    workInfos.firstOrNull { it.state == WorkInfo.State.RUNNING }?.let { workInfo ->
+                    val running = workInfos.firstOrNull { it.state == WorkInfo.State.RUNNING }
+                    val pending = workInfos.filter {
+                        WORK_NAME_MANUAL in it.tags && !it.state.isFinished && it.state != WorkInfo.State.RUNNING
+                    }
+                    (running ?: pending.firstOrNull())?.let { workInfo ->
                         LibraryUpdateProgress(
                             completed = workInfo.progress.getInt(KEY_PROGRESS_COMPLETED, 0),
                             total = workInfo.progress.getInt(KEY_PROGRESS_TOTAL, 0),
-                            isCategoryUpdate = workInfo.progress.getBoolean(KEY_PROGRESS_CATEGORY, false),
+                            isCategoryUpdate = workInfo.tags.any { it.startsWith(CATEGORY_TAG_PREFIX) } ||
+                                workInfo.progress.getBoolean(KEY_PROGRESS_CATEGORY, false),
+                            queuedCategories = pending.count { work ->
+                                work.tags.any { it.startsWith(CATEGORY_TAG_PREFIX) }
+                            },
                         )
                     }
                 }
@@ -590,10 +612,21 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             workManager: WorkManager,
             category: Category? = null,
             retryReport: Long? = null,
-        ): Boolean {
-            if (workManager.isRunning(TAG)) {
-                // Already running either as a scheduled or manual job
-                return false
+        ): Boolean = enqueue(workManager, category, retryReport) != StartResult.ALREADY_RUNNING
+
+        suspend fun enqueue(
+            workManager: WorkManager,
+            category: Category? = null,
+            retryReport: Long? = null,
+        ): StartResult = queueMutex.withLock {
+            val activeWork = workManager.getWorkInfosByTagFlow(TAG).first().filter {
+                !it.state.isFinished && (WORK_NAME_MANUAL in it.tags || it.state == WorkInfo.State.RUNNING)
+            }
+            val categoryTag = category?.let { "$CATEGORY_TAG_PREFIX${it.id}" }
+            if ((category == null && activeWork.isNotEmpty()) ||
+                (categoryTag != null && activeWork.any { categoryTag in it.tags })
+            ) {
+                return@withLock StartResult.ALREADY_RUNNING
             }
 
             val inputData = workDataOf(
@@ -603,28 +636,35 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             val request = OneTimeWorkRequestBuilder<LibraryUpdateWorker>()
                 .addTag(TAG)
                 .addTag(WORK_NAME_MANUAL)
+                .apply { if (categoryTag != null) addTag(categoryTag) }
                 .setInputData(inputData)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS)
                 .build()
-            workManager.enqueueUniqueWork(WORK_NAME_MANUAL, ExistingWorkPolicy.KEEP, request)
+            val policy = if (category != null) ExistingWorkPolicy.APPEND_OR_REPLACE else ExistingWorkPolicy.KEEP
+            // Wait for persistence before releasing the lock so rapid taps cannot enqueue duplicates.
+            withContext(NonCancellable) {
+                workManager.enqueueUniqueWork(WORK_NAME_MANUAL, policy, request).result.await()
+            }
 
-            return true
+            if (activeWork.isEmpty()) StartResult.STARTED else StartResult.QUEUED
         }
 
-        suspend fun stop(context: Context) {
+        suspend fun stop(context: Context) = queueMutex.withLock {
             val workManager = context.workManager
-            val workQuery = WorkQuery.Builder.fromTags(listOf(TAG))
-                .addStates(listOf(WorkInfo.State.RUNNING))
-                .build()
-            workManager.getWorkInfosFlow(workQuery).first()
-                // Should only return one work but just in case
-                .forEach {
-                    workManager.cancelWorkById(it.id)
-
-                    // Re-enqueue cancelled scheduled work
-                    if (it.tags.contains(WORK_NAME_AUTO)) {
-                        setupTask(context)
-                    }
+            val runningAutomaticWork = workManager.getWorkInfosByTagFlow(WORK_NAME_AUTO).first()
+                .filter { it.state == WorkInfo.State.RUNNING }
+            withContext(NonCancellable) {
+                // Cancel the whole chain, including categories that have not started yet.
+                workManager.cancelUniqueWork(WORK_NAME_MANUAL).result.await()
+                runningAutomaticWork.forEach {
+                    workManager.cancelWorkById(it.id).result.await()
                 }
+                if (runningAutomaticWork.isNotEmpty()) {
+                    setupTask(context)
+                }
+            }
         }
     }
+
+    enum class StartResult { STARTED, QUEUED, ALREADY_RUNNING }
 }

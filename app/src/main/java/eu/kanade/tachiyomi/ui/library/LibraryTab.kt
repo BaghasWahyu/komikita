@@ -62,6 +62,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.getting_started_guide
 import tachiyomi.i18n.information_empty_library
 import tachiyomi.i18n.information_no_entries_found
+import tachiyomi.i18n.komikita_category_update_already_queued
+import tachiyomi.i18n.komikita_category_update_queued
 import tachiyomi.i18n.komikita_lock_hidden
 import tachiyomi.i18n.komikita_unlock_hidden
 import tachiyomi.i18n.label_default
@@ -136,16 +138,23 @@ data object LibraryTab : Tab {
         }
 
         val onClickRefresh: suspend (Category?) -> Boolean = { category ->
-            val started = LibraryUpdateWorker.startNow(context.workManager, category)
+            val result = LibraryUpdateWorker.enqueue(context.workManager, category)
             scope.launch {
                 val msgRes = when {
-                    !started -> MR.strings.update_already_running
+                    result == LibraryUpdateWorker.StartResult.ALREADY_RUNNING -> {
+                        if (category != null) {
+                            MR.strings.komikita_category_update_already_queued
+                        } else {
+                            MR.strings.update_already_running
+                        }
+                    }
+                    result == LibraryUpdateWorker.StartResult.QUEUED -> MR.strings.komikita_category_update_queued
                     category != null -> MR.strings.updating_category
                     else -> MR.strings.updating_library
                 }
                 snackbarHostState.showSnackbar(context.stringResource(msgRes))
             }
-            started
+            result != LibraryUpdateWorker.StartResult.ALREADY_RUNNING
         }
 
         Scaffold(

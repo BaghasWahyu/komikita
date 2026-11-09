@@ -14,6 +14,12 @@ To reveal them temporarily, open the library's three-dot menu → **Unlock hidde
 
 To make a category visible permanently, open **More → Categories**, authenticate, then tap its eye icon again. Changing the category-lock setting also requires authentication.
 
+## Queuing category updates
+
+In the library, open a category and choose **Update category** from the three-dot menu, or pull down to refresh. While an update is running, switch to another category and repeat to add it to the queue. Categories run in the order you add them, and the progress area shows how many are waiting. A category that is already running or waiting cannot be added again.
+
+The queue is saved on the device. **Cancel** in the update notification stops the current update and all waiting categories. Your existing update filters still apply to each category.
+
 ## Continue reading
 
 Swipe the library carousel to see up to five visible titles with unread chapters. The first recommendation keeps the existing priority: your latest opened title while it has unread chapters, otherwise the most recently updated title. Other cards show recent reads and updates. Tap a card to open its next unread chapter. Search and category filters apply to the carousel.

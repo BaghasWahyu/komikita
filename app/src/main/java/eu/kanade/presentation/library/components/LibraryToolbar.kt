@@ -48,6 +48,7 @@ import tachiyomi.i18n.action_select_all
 import tachiyomi.i18n.action_select_inverse
 import tachiyomi.i18n.action_update_category
 import tachiyomi.i18n.action_update_library
+import tachiyomi.i18n.komikita_category_updates_pending
 import tachiyomi.i18n.komikita_clear_search
 import tachiyomi.i18n.komikita_library_tagline
 import tachiyomi.i18n.komikita_library_update_progress
@@ -149,6 +150,13 @@ private fun LibraryUpdateProgressIndicator(progress: LibraryUpdateProgress) {
             )
         } else {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        if (progress.queuedCategories > 0) {
+            Text(
+                text = stringResource(MR.strings.komikita_category_updates_pending, progress.queuedCategories),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -331,7 +339,12 @@ private fun LibraryToolbarUpdatePreview() {
             searchQuery = null,
             onSearchQueryChange = {},
             scrollBehavior = null,
-            updateProgress = LibraryUpdateProgress(completed = 12, total = 60, isCategoryUpdate = true),
+            updateProgress = LibraryUpdateProgress(
+                completed = 12,
+                total = 60,
+                isCategoryUpdate = true,
+                queuedCategories = 2,
+            ),
         )
     }
 }
