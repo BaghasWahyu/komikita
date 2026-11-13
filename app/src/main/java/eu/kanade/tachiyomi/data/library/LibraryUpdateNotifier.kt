@@ -30,6 +30,8 @@ import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.getBitmapOrNull
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
@@ -90,10 +92,11 @@ class LibraryUpdateNotifier(
         BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
     }
 
-    /**
-     * Cached progress notification to avoid creating a lot.
-     */
-    val progressNotificationBuilder by lazy {
+    private val progressNotificationBuilder by lazy { createProgressNotificationBuilder() }
+
+    fun buildInitialProgressNotification(): Notification = createProgressNotificationBuilder().build()
+
+    private fun createProgressNotificationBuilder() =
         context.notificationBuilder(Notifications.CHANNEL_LIBRARY_PROGRESS) {
             setContentTitle(context.stringResource(MR.strings.app_name))
             setSmallIcon(MaterialSymbolsR.drawable.rounded_refresh)
@@ -106,8 +109,8 @@ class LibraryUpdateNotifier(
                 cancelIntent,
             )
         }
-    }
 
+    private val progressNotificationMutex = Mutex()
     private var lastProgressNotificationTime = 0L
 
     /**
@@ -120,26 +123,34 @@ class LibraryUpdateNotifier(
      * @param current the current progress.
      * @param total the total progress.
      */
-    @Synchronized
-    fun showProgressNotification(current: Int, total: Int) {
-        val now = SystemClock.elapsedRealtime()
-        if (current < total && now - lastProgressNotificationTime < NOTIF_PROGRESS_INTERVAL_MS) return
-        lastProgressNotificationTime = now
+    suspend fun showProgressNotification(manga: List<Manga>, current: Int, total: Int) {
+        progressNotificationMutex.withLock {
+            val now = SystemClock.elapsedRealtime()
+            if (current < total && now - lastProgressNotificationTime < NOTIF_PROGRESS_INTERVAL_MS) return
+            lastProgressNotificationTime = now
 
-        progressNotificationBuilder
-            .setContentTitle(
-                context.stringResource(
-                    MR.strings.notification_updating_progress,
-                    percentFormatter.format(current.toFloat() / total),
-                ),
+            val titles = if (manga.isNotEmpty() && !securityPreferences.hideNotificationContent.get()) {
+                val hiddenIds = visibility.hiddenMangaIds()
+                manga.filterNot { it.id in hiddenIds }.map { it.title.chop(NOTIF_TITLE_MAX_LEN) }
+            } else {
+                emptyList()
+            }.takeIf { it.isNotEmpty() && !securityPreferences.hideNotificationContent.get() }
+
+            context.notify(
+                Notifications.ID_LIBRARY_PROGRESS,
+                progressNotificationBuilder
+                    .setContentTitle(
+                        context.stringResource(
+                            MR.strings.notification_updating_progress,
+                            percentFormatter.format(current.toFloat() / total),
+                        ),
+                    )
+                    .setContentText(titles?.joinToString(", "))
+                    .setStyle(titles?.let { NotificationCompat.BigTextStyle().bigText(it.joinToString("\n")) })
+                    .setProgress(total, current, false)
+                    .build(),
             )
-
-        context.notify(
-            Notifications.ID_LIBRARY_PROGRESS,
-            progressNotificationBuilder
-                .setProgress(total, current, false)
-                .build(),
-        )
+        }
     }
 
     /**
@@ -195,7 +206,7 @@ class LibraryUpdateNotifier(
     /**
      * Shows the notification containing the result of the update done by the service.
      *
-     * @param updates a list of manga with new updates.
+     * @param rawUpdates a list of manga with new updates.
      */
     suspend fun showUpdateNotifications(rawUpdates: List<Pair<Manga, Array<Chapter>>>) {
         val hiddenIds = visibility.hiddenMangaIds()
@@ -209,32 +220,25 @@ class LibraryUpdateNotifier(
         val hiddenAtPost = visibility.hiddenMangaIds()
         val updates = candidates.filterNot { it.first.id in hiddenAtPost }
         if (updates.isEmpty()) return
+        val titles = if (securityPreferences.hideNotificationContent.get()) {
+            emptyList()
+        } else {
+            updates.map { it.first.title.chop(NOTIF_TITLE_MAX_LEN) }
+        }
+        val summary = context.pluralStringResource(
+            MR.plurals.notification_new_chapters_summary,
+            updates.size,
+            updates.size,
+        )
         // Parent group notification
         context.notify(
             Notifications.ID_NEW_CHAPTERS,
             Notifications.CHANNEL_NEW_CHAPTERS,
         ) {
             setContentTitle(context.stringResource(MR.strings.notification_new_chapters))
-            if (updates.size == 1 && !securityPreferences.hideNotificationContent.get()) {
-                setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
-            } else {
-                setContentText(
-                    context.pluralStringResource(
-                        MR.plurals.notification_new_chapters_summary,
-                        updates.size,
-                        updates.size,
-                    ),
-                )
-
-                if (!securityPreferences.hideNotificationContent.get()) {
-                    setStyle(
-                        NotificationCompat.BigTextStyle().bigText(
-                            updates.joinToString("\n") {
-                                it.first.title.chop(NOTIF_TITLE_MAX_LEN)
-                            },
-                        ),
-                    )
-                }
+            setContentText(if (titles.isEmpty()) summary else titles.joinToString(", "))
+            if (titles.size > 1) {
+                setStyle(NotificationCompat.BigTextStyle().bigText(titles.joinToString("\n")).setSummaryText(summary))
             }
 
             setSmallIcon(R.drawable.ic_komikita)

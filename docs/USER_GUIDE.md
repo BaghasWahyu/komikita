@@ -14,11 +14,11 @@ To reveal them temporarily, open the library's three-dot menu → **Unlock hidde
 
 To make a category visible permanently, open **More → Categories**, authenticate, then tap its eye icon again. Changing the category-lock setting also requires authentication.
 
-## Queuing category updates
+## Adding categories to an update
 
-In the library, open a category and choose **Update category** from the three-dot menu, or pull down to refresh. While an update is running, switch to another category and repeat to add it to the queue. Categories run in the order you add them, and the progress area shows how many are waiting. A category that is already running or waiting cannot be added again.
+In the library, open a category and choose **Update category** from the three-dot menu, or pull down to refresh. While the update runs, switch to another category and repeat to add its eligible titles to the same update. The progress total grows as new titles are added. Titles shared by multiple categories are checked once.
 
-The queue is saved on the device. **Cancel** in the update notification stops the current update and all waiting categories. Your existing update filters still apply to each category.
+Up to five sources are checked at once, with one title at a time per source. **Cancel** in the update notification stops the entire session. Categories added during a session are kept in memory and are lost if Android kills the app process.
 
 ## Continue reading
 

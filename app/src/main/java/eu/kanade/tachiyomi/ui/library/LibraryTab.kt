@@ -62,8 +62,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.getting_started_guide
 import tachiyomi.i18n.information_empty_library
 import tachiyomi.i18n.information_no_entries_found
-import tachiyomi.i18n.komikita_category_update_already_queued
-import tachiyomi.i18n.komikita_category_update_queued
+import tachiyomi.i18n.komikita_category_update_added
+import tachiyomi.i18n.komikita_category_update_already_included
 import tachiyomi.i18n.komikita_lock_hidden
 import tachiyomi.i18n.komikita_unlock_hidden
 import tachiyomi.i18n.label_default
@@ -138,23 +138,21 @@ data object LibraryTab : Tab {
         }
 
         val onClickRefresh: suspend (Category?) -> Boolean = { category ->
-            val result = LibraryUpdateWorker.enqueue(context.workManager, category)
+            val result = LibraryUpdateWorker.startOrAdd(context.workManager, category)
             scope.launch {
-                val msgRes = when {
-                    result == LibraryUpdateWorker.StartResult.ALREADY_RUNNING -> {
-                        if (category != null) {
-                            MR.strings.komikita_category_update_already_queued
-                        } else {
-                            MR.strings.update_already_running
-                        }
+                val msgRes = when (result) {
+                    LibraryUpdateWorker.StartResult.STARTED -> {
+                        if (category != null) MR.strings.updating_category else MR.strings.updating_library
                     }
-                    result == LibraryUpdateWorker.StartResult.QUEUED -> MR.strings.komikita_category_update_queued
-                    category != null -> MR.strings.updating_category
-                    else -> MR.strings.updating_library
+                    LibraryUpdateWorker.StartResult.ADDED -> MR.strings.komikita_category_update_added
+                    LibraryUpdateWorker.StartResult.CATEGORY_INCLUDED -> {
+                        MR.strings.komikita_category_update_already_included
+                    }
+                    LibraryUpdateWorker.StartResult.ALREADY_RUNNING -> MR.strings.update_already_running
                 }
                 snackbarHostState.showSnackbar(context.stringResource(msgRes))
             }
-            result != LibraryUpdateWorker.StartResult.ALREADY_RUNNING
+            result.accepted
         }
 
         Scaffold(

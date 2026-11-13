@@ -80,7 +80,7 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return ForegroundInfo(
             Notifications.ID_LIBRARY_PROGRESS,
-            notifier.progressNotificationBuilder.build(),
+            notifier.buildInitialProgressNotification(),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             } else {
@@ -150,6 +150,7 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
 
         updatingManga.add(manga)
         notifier.showProgressNotification(
+            updatingManga,
             completed.load(),
             mangaToUpdate.size,
         )
@@ -161,6 +162,7 @@ class MetadataUpdateWorker(context: Context, workerParams: WorkerParameters) :
         updatingManga.remove(manga)
         completed.fetchAndIncrement()
         notifier.showProgressNotification(
+            updatingManga,
             completed.load(),
             mangaToUpdate.size,
         )
