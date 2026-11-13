@@ -59,7 +59,7 @@ private fun GridFixture() {
     val columns = GridCells.Fixed(3)
     val arrangement = Arrangement.spacedBy(8.dp)
     val padding = PaddingValues(8.dp)
-    VerticalGridFastScroller(state, columns, arrangement, padding, Modifier.fillMaxSize()) {
+    VerticalGridFastScroller(state, Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = columns,
             state = state,

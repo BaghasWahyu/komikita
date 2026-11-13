@@ -95,6 +95,7 @@ class ChapterLoader(
         )
         return when {
             isDownloaded -> DownloadPageLoader(
+                context,
                 chapter,
                 manga,
                 source,

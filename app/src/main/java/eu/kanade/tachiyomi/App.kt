@@ -251,7 +251,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(ExtensionIconFetcher.SourceFactory(context, extensionManager))
                 // Keyer
                 add(MangaCoverKeyer(coverCache))
-                add(MangaKeyer())
+                add(MangaKeyer(coverCache))
                 add(InstalledExtensionIconKeyer())
                 add(InstalledSourceIconKeyer())
                 // Interceptor

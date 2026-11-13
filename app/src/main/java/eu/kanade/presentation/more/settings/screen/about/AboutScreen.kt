@@ -65,8 +65,6 @@ import tachiyomi.presentation.core.components.LinkIcon
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.Locale
 import kotlin.time.Instant
 
@@ -106,7 +104,9 @@ object AboutScreen : Screen() {
                         title = stringResource(MR.strings.version),
                         // Keyed on the system 12/24h setting, which can change while the app is backgrounded.
                         // Date/time prefs only change in Appearance, which recreates this screen on return.
-                        subtitle = remember(is24HourSystem) { getVersionName(withBuildDate = true) },
+                        subtitle = remember(is24HourSystem) {
+                            getVersionName(buildTime = getFormattedBuildTime(context))
+                        },
                         onPreferenceClick = {
                             val deviceInfo = crashLogUtil.getDebugInfo()
                             context.copyToClipboard("Debug information", deviceInfo)
@@ -238,12 +238,12 @@ object AboutScreen : Screen() {
         }
     }
 
-    fun getVersionName(withBuildDate: Boolean): String {
+    fun getVersionName(buildTime: String?): String {
         return when {
             BuildConfig.DEBUG -> {
                 "Debug ${BuildConfig.COMMIT_SHA}".let {
-                    if (withBuildDate) {
-                        "$it (${getFormattedBuildTime()})"
+                    if (buildTime != null) {
+                        "$it ($buildTime)"
                     } else {
                         it
                     }
@@ -251,8 +251,8 @@ object AboutScreen : Screen() {
             }
             isNightlyBuildType -> {
                 "Nightly r${BuildConfig.COMMIT_COUNT}".let {
-                    if (withBuildDate) {
-                        "$it (${BuildConfig.COMMIT_SHA}, ${getFormattedBuildTime()})"
+                    if (buildTime != null) {
+                        "$it (${BuildConfig.COMMIT_SHA}, $buildTime)"
                     } else {
                         "$it (${BuildConfig.COMMIT_SHA})"
                     }
@@ -261,8 +261,8 @@ object AboutScreen : Screen() {
             else -> {
                 val channel = if (isFossBuildType) "FOSS" else "Stable"
                 "$channel v${BuildConfig.VERSION_NAME}".let {
-                    if (withBuildDate) {
-                        "$it (${getFormattedBuildTime()})"
+                    if (buildTime != null) {
+                        "$it ($buildTime)"
                     } else {
                         it
                     }
@@ -271,9 +271,8 @@ object AboutScreen : Screen() {
         }
     }
 
-    internal fun getFormattedBuildTime(): String {
+    internal fun getFormattedBuildTime(context: Context): String {
         return try {
-            val context = Injekt.get<Context>()
             val uiPreferences = context.appGraph.uiPreferences
             Instant.parse(BuildConfig.BUILD_TIME)
                 .toLocalDateTime(TimeZone.currentSystemDefault())

@@ -1,10 +1,14 @@
 package eu.kanade.tachiyomi.data.track.kitsu
 
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.DeletableTracker
+import eu.kanade.tachiyomi.data.track.TrackerDependencies
 import eu.kanade.tachiyomi.data.track.kitsu.dto.KitsuOAuth
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.json.Json
@@ -16,11 +20,16 @@ import tachiyomi.i18n.dropped
 import tachiyomi.i18n.on_hold
 import tachiyomi.i18n.plan_to_read
 import tachiyomi.i18n.reading
-import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Kitsu(id: Long) : BaseTracker(id, "Kitsu"), DeletableTracker {
+@Inject
+@SingleIn(AppScope::class)
+class Kitsu(
+    dependencies: TrackerDependencies,
+    private val json: Json,
+) : BaseTracker(3L, "Kitsu", dependencies),
+    DeletableTracker {
 
     private data class RatingSystem(
         val name: String,
@@ -69,11 +78,9 @@ class Kitsu(id: Long) : BaseTracker(id, "Kitsu"), DeletableTracker {
 
     override val supportsPrivateTracking: Boolean = true
 
-    private val json: Json by injectLazy()
+    private val interceptor by lazy { KitsuInterceptor(this, json) }
 
-    private val interceptor by lazy { KitsuInterceptor(this) }
-
-    private val api by lazy { KitsuApi(id, client, interceptor) }
+    private val api by lazy { KitsuApi(id, client, interceptor, json) }
 
     private val scorePreference by lazy { trackPreferences.kitsuScoreType }
 
