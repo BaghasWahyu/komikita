@@ -18,12 +18,14 @@ concurrency:
 jobs:
   build:
     if: github.repository == 'BaghasWahyu/komikita'
-    name: Build
+    name: Build and create GitHub release
     runs-on: 'ubuntu-26.04'
 
     steps:
-      - name: Checkout
+      - name: Checkout release history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
@@ -39,14 +41,15 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Decode signing keystore
-        run: echo "$SIGNING_KEY" | base64 -d > "${{ runner.temp }}/komikita.keystore"
+      - name: Build
+        shell: bash
+        run: |
+          umask 077
+          trap 'rm -f -- "$storeFile"' EXIT
+          printf '%s' "$SIGNING_KEY" | base64 -d > "$storeFile"
+          ./gradlew checkReleaseAarMetadata verifyReleaseResources :app:assembleRelease -Pdist=github -Penable-updater=true
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-
-      - name: Build
-        run: ./gradlew assembleRelease -Pdist=github -Penable-updater=true
-        env:
           storeFile: ${{ runner.temp }}/komikita.keystore
           storePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyAlias: ${{ secrets.ALIAS }}
@@ -81,29 +84,6 @@ jobs:
           mv app/build/outputs/apk/release/app-x86-release.apk "komikita-x86-${RELEASE_TAG}.apk"
           mv app/build/outputs/apk/release/app-x86_64-release.apk "komikita-x86_64-${RELEASE_TAG}.apk"
 
-      - name: Upload APK
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: komikita
-          path: |
-            komikita-${{ env.RELEASE_TAG }}.apk
-            komikita-arm64-v8a-${{ env.RELEASE_TAG }}.apk
-            komikita-armeabi-v7a-${{ env.RELEASE_TAG }}.apk
-            komikita-x86-${{ env.RELEASE_TAG }}.apk
-            komikita-x86_64-${{ env.RELEASE_TAG }}.apk
-
-  release:
-    if: github.repository == 'BaghasWahyu/komikita'
-    name: Create GitHub Release
-    runs-on: ubuntu-26.04
-    needs: build
-
-    steps:
-      - name: Checkout release history
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
       - name: Generate release notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -118,17 +98,6 @@ jobs:
             --published-tags "$RUNNER_TEMP/published-release-tags.txt" \
             --output "$RUNNER_TEMP/release-notes.md"
           cat "$RUNNER_TEMP/release-notes.md" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          merge-multiple: true
-
-      - name: Delete all artifacts
-        uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118 # v6.0.0
-        with:
-          failOnError: false
-          name: komikita
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4

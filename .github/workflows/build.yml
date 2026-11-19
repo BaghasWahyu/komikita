@@ -43,6 +43,8 @@ jobs:
         uses: ./.github/actions/setup-rust
 
       - name: Check Rust
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/core/native/build/rust-target
         run: |
           cargo fmt --manifest-path native/Cargo.toml --check
           cargo test --manifest-path native/Cargo.toml --locked
@@ -53,9 +55,11 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Check code format, unit tests, and SQLDelight migrations
+      - name: Build APK and run Gradle checks
         id: gradle_checks
-        run: ./gradlew spotlessCheck testDebugUnitTest verifySqlDelightMigration
+        run: >-
+          ./gradlew spotlessCheck testDebugUnitTest verifySqlDelightMigration
+          checkReleaseAarMetadata verifyReleaseResources :app:assembleRelease -Pdist=ci
 
       - name: Upload test report
         if: failure() && steps.gradle_checks.outcome == 'failure' && hashFiles('app/build/reports/tests/testDebugUnitTest/index.html') != ''
@@ -63,9 +67,6 @@ jobs:
         with:
           name: test-report-${{ github.sha }}
           path: app/build/reports/tests/testDebugUnitTest
-
-      - name: Build app
-        run: ./gradlew assembleRelease -Pdist=ci
 
       - name: Verify release APK native libraries
         run: |
