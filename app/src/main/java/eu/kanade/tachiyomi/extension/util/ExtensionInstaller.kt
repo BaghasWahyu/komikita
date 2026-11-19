@@ -124,7 +124,7 @@ class ExtensionInstaller(
     }
 
     /**
-     * Starts an intent to install the extension at the given uri.
+     * Installs the verified APK using the selected installer.
      *
      * @param tempFile The file of the extension to install. Delete after use.
      * @param packageInfo The package info already read from [tempFile].
@@ -141,18 +141,8 @@ class ExtensionInstaller(
             return
         }
 
-        val installer = extensionInstaller.get()
-        if (installer == BasePreferences.ExtensionInstaller.ROOT) {
-            val result = RootInstaller.install(context, tempFile)
-            if (result != null) {
-                tempFile.delete()
-                updateInstallStep(downloadId, result)
-                return
-            }
-        }
-
-        when (installer) {
-            BasePreferences.ExtensionInstaller.LEGACY, BasePreferences.ExtensionInstaller.ROOT -> {
+        when (val installer = extensionInstaller.get()) {
+            BasePreferences.ExtensionInstaller.LEGACY -> {
                 val intent = Intent(context, ExtensionInstallActivity::class.java)
                     .setDataAndType(tempFile.getUriCompat(context), APK_MIME)
                     .putExtra(EXTRA_DOWNLOAD_ID, downloadId)
@@ -165,12 +155,26 @@ class ExtensionInstaller(
                 installApkPrivately(downloadId, tempFile, packageInfo)
             }
 
-            BasePreferences.ExtensionInstaller.PACKAGEINSTALLER, BasePreferences.ExtensionInstaller.SHIZUKU -> {
+            BasePreferences.ExtensionInstaller.PACKAGEINSTALLER,
+            BasePreferences.ExtensionInstaller.SHIZUKU,
+            BasePreferences.ExtensionInstaller.ROOT,
+            -> {
+                val serviceInstaller = if (installer == BasePreferences.ExtensionInstaller.ROOT) {
+                    val result = RootInstaller.install(context, tempFile)
+                    if (result != null) {
+                        tempFile.delete()
+                        updateInstallStep(downloadId, result)
+                        return
+                    }
+                    BasePreferences.ExtensionInstaller.PACKAGEINSTALLER
+                } else {
+                    installer
+                }
                 val intent = ExtensionInstallService.getIntent(
                     context,
                     downloadId,
                     tempFile.getUriCompat(context),
-                    installer,
+                    serviceInstaller,
                 )
                 ContextCompat.startForegroundService(context, intent)
             }

@@ -2,7 +2,6 @@ package eu.kanade.domain.base
 
 import android.content.Context
 import eu.kanade.domain.base.BasePreferences.ExtensionInstaller
-import eu.kanade.tachiyomi.extension.installer.RootInstaller
 import eu.kanade.tachiyomi.util.system.hasMiuiPackageInstaller
 import eu.kanade.tachiyomi.util.system.isShizukuInstalled
 import kotlinx.coroutines.CoroutineScope
@@ -18,17 +17,12 @@ class ExtensionInstallerPreference(
     preferenceStore: PreferenceStore,
 ) : Preference<ExtensionInstaller> {
 
-    private val hasSu = RootInstaller.hasSu()
     private val basePref = preferenceStore.getEnum(key(), defaultValue())
 
     override fun key() = "extension_installer"
 
     val entries get() = ExtensionInstaller.entries.filter {
-        when (it) {
-            ExtensionInstaller.PACKAGEINSTALLER -> !context.hasMiuiPackageInstaller
-            ExtensionInstaller.ROOT -> hasSu
-            else -> true
-        }
+        it != ExtensionInstaller.PACKAGEINSTALLER || !context.hasMiuiPackageInstaller
     }
 
     override fun defaultValue() = if (context.hasMiuiPackageInstaller) {
@@ -44,9 +38,6 @@ class ExtensionInstallerPreference(
             }
             ExtensionInstaller.SHIZUKU -> {
                 if (!context.isShizukuInstalled) return defaultValue()
-            }
-            ExtensionInstaller.ROOT -> {
-                if (!hasSu) return ExtensionInstaller.LEGACY
             }
             else -> {}
         }

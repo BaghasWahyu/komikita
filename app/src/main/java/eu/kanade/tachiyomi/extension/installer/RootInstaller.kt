@@ -24,8 +24,6 @@ internal object RootInstaller {
         ?.map { File(it, "su") }
         ?.firstOrNull { it.isFile && it.canExecute() }
 
-    fun hasSu(): Boolean = findSu() != null
-
     /** Returns null when the app cannot obtain root access. */
     suspend fun install(context: Context, apk: File): InstallStep? = installLock.withLock {
         runInterruptible(Dispatchers.IO) {
