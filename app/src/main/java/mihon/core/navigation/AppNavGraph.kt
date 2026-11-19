@@ -61,7 +61,9 @@ fun EntryProviderScope<NavKey>.appEntries() {
         LocalAssistContentManager.current.Provide(route) {
             WebViewScreen(
                 route,
-                onNavigateUp = navigator::pop,
+                onNavigateUp = {
+                    if (navigator.current === route) navigator.pop()
+                },
                 onOpenManga = { navigator.push(MangaRoute(it, fromSource = true)) },
             )
         }
