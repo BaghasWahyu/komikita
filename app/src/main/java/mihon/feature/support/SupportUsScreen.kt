@@ -21,11 +21,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
-import eu.kanade.presentation.util.Screen
+import mihon.core.navigation.LocalNavigator
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.OpenInNew
 import mihon.icons.simpleicons.Github
@@ -39,89 +37,86 @@ import tachiyomi.i18n.label_support_us
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
-class SupportUsScreen : Screen() {
+@Composable
+fun SupportUsScreen() {
+    val navigator = LocalNavigator.current
+    val uriHandler = LocalUriHandler.current
 
-    @Composable
-    override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-        val uriHandler = LocalUriHandler.current
-
-        Scaffold(
-            topBar = {
-                AppBar(
-                    title = stringResource(MR.strings.label_support_us),
-                    navigateUp = navigator::pop,
-                )
-            },
-        ) { paddingValues ->
-            Column(
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
-                modifier = Modifier.verticalScroll(rememberScrollState()).padding(
-                    remember(paddingValues) {
-                        object : PaddingValues {
-                            override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp {
-                                return paddingValues.calculateLeftPadding(layoutDirection) +
-                                    MaterialTheme.padding.medium
-                            }
-
-                            override fun calculateTopPadding(): Dp {
-                                return 0.dp
-                            }
-
-                            override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp {
-                                return paddingValues.calculateRightPadding(layoutDirection) +
-                                    MaterialTheme.padding.medium
-                            }
-
-                            override fun calculateBottomPadding(): Dp {
-                                return 0.dp
-                            }
+    Scaffold(
+        topBar = {
+            AppBar(
+                title = stringResource(MR.strings.label_support_us),
+                navigateUp = navigator::pop,
+            )
+        },
+    ) { paddingValues ->
+        Column(
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+            modifier = Modifier.verticalScroll(rememberScrollState()).padding(
+                remember(paddingValues) {
+                    object : PaddingValues {
+                        override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp {
+                            return paddingValues.calculateLeftPadding(layoutDirection) +
+                                MaterialTheme.padding.medium
                         }
-                    },
-                ),
-            ) {
-                Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 
-                Text(
-                    text = stringResource(MR.strings.komikita_support_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
-                )
+                        override fun calculateTopPadding(): Dp {
+                            return 0.dp
+                        }
 
-                SupportItem(
-                    icon = SimpleIcons.Github,
-                    title = stringResource(MR.strings.komikita_report_issue),
-                    onClick = { uriHandler.openUri(Constants.URL_ISSUES) },
-                )
-                SupportItem(
-                    icon = SimpleIcons.Github,
-                    title = stringResource(MR.strings.komikita_contribute),
-                    onClick = { uriHandler.openUri(Constants.URL_PROJECT) },
-                )
+                        override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp {
+                            return paddingValues.calculateRightPadding(layoutDirection) +
+                                MaterialTheme.padding.medium
+                        }
 
-                Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
-            }
+                        override fun calculateBottomPadding(): Dp {
+                            return 0.dp
+                        }
+                    }
+                },
+            ),
+        ) {
+            Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
+
+            Text(
+                text = stringResource(MR.strings.komikita_support_description),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = MaterialTheme.padding.medium),
+            )
+
+            SupportItem(
+                icon = SimpleIcons.Github,
+                title = stringResource(MR.strings.komikita_report_issue),
+                onClick = { uriHandler.openUri(Constants.URL_ISSUES) },
+            )
+            SupportItem(
+                icon = SimpleIcons.Github,
+                title = stringResource(MR.strings.komikita_contribute),
+                onClick = { uriHandler.openUri(Constants.URL_PROJECT) },
+            )
+
+            Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
         }
     }
+}
 
-    @Composable
-    private fun SupportItem(
-        icon: ImageVector,
-        title: String,
-        onClick: () -> Unit,
-    ) {
-        Card {
-            TextPreferenceWidget(
-                title = title,
-                icon = icon,
-                widget = {
-                    Icon(
-                        imageVector = MaterialSymbols.AutoMirroredRounded.OpenInNew,
-                        contentDescription = null,
-                    )
-                },
-                onPreferenceClick = onClick,
-            )
-        }
+@Composable
+private fun SupportItem(
+    icon: ImageVector,
+    title: String,
+    onClick: () -> Unit,
+) {
+    Card {
+        TextPreferenceWidget(
+            title = title,
+            icon = icon,
+            widget = {
+                Icon(
+                    imageVector = MaterialSymbols.AutoMirroredRounded.OpenInNew,
+                    contentDescription = null,
+                )
+            },
+            onPreferenceClick = onClick,
+        )
     }
 }
