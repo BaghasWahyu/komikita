@@ -41,16 +41,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.webview.WebViewAdBlocker
 import eu.kanade.tachiyomi.ui.webview.WebViewAdBlocker.FilterError
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mihon.app.di.appGraph
+import mihon.core.navigation.LocalNavigator
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
 import tachiyomi.i18n.MR
@@ -84,28 +82,26 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 
 private enum class FilterEditor { Rules, Url }
 
-class WebViewAdBlockSettingsScreen : Screen() {
-    @Composable
-    override fun Content() {
-        val context = LocalContext.current
-        val navigator = LocalNavigator.currentOrThrow
-        val blocker = remember(context) { context.appGraph.webViewAdBlocker }
-        val settings by blocker.settings.collectAsState()
-        Scaffold(
-            topBar = { scrollBehavior ->
-                AppBar(
-                    title = stringResource(MR.strings.webview_ad_block_title),
-                    navigateUp = { navigator.pop() },
-                    scrollBehavior = scrollBehavior,
-                )
-            },
-        ) { padding ->
-            val current = settings
-            if (current == null) {
-                LoadingScreen(Modifier.padding(padding))
-            } else {
-                WebViewAdBlockPreferences(blocker, current, Modifier.padding(padding))
-            }
+@Composable
+fun WebViewAdBlockSettingsScreen() {
+    val context = LocalContext.current
+    val navigator = LocalNavigator.current
+    val blocker = remember(context) { context.appGraph.webViewAdBlocker }
+    val settings by blocker.settings.collectAsState()
+    Scaffold(
+        topBar = { scrollBehavior ->
+            AppBar(
+                title = stringResource(MR.strings.webview_ad_block_title),
+                navigateUp = { navigator.pop() },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { padding ->
+        val current = settings
+        if (current == null) {
+            LoadingScreen(Modifier.padding(padding))
+        } else {
+            WebViewAdBlockPreferences(blocker, current, Modifier.padding(padding))
         }
     }
 }

@@ -1075,7 +1075,6 @@ class MangaViewModel(
         data class SetFetchInterval(val manga: Manga) : Dialog
         data object RemoveFromLibrary : Dialog
         data object SettingsSheet : Dialog
-        data object TrackSheet : Dialog
         data object FullCover : Dialog
     }
 
@@ -1089,10 +1088,6 @@ class MangaViewModel(
 
     fun showSettingsDialog() {
         dialog.value = Dialog.SettingsSheet
-    }
-
-    fun showTrackDialog() {
-        dialog.value = Dialog.TrackSheet
     }
 
     fun showCoverDialog() {

@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -38,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.stack.mutableStateStackOf
 import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
@@ -115,7 +115,7 @@ fun WebViewScreenContent(
     val coroutineScope = rememberCoroutineScope()
 
     val windowStack = remember {
-        mutableStateStackOf(
+        mutableStateListOf(
             WebViewWindow(
                 WebContent.Url(url = url, additionalHttpHeaders = headers),
                 WebViewNavigator(coroutineScope),
@@ -123,7 +123,7 @@ fun WebViewScreenContent(
         )
     }
 
-    val currentWindow = windowStack.lastItemOrNull!!
+    val currentWindow = windowStack.last()
     val navigator = currentWindow.navigator
     val activeUrl = currentWindow.currentUrl
     val currentUrl = activeUrl ?: url
@@ -154,7 +154,7 @@ fun WebViewScreenContent(
 
     DisposableEffect(lifecycle) {
         onDispose {
-            windowStack.items.forEach { it.webView = null }
+            windowStack.forEach { it.webView = null }
             lifecycle.dispose()
         }
     }
@@ -168,7 +168,7 @@ fun WebViewScreenContent(
             private fun updateUrl(view: WebView, url: String?) {
                 if (url != null) {
                     lifecycle.updateUrl(view, url)
-                    windowStack.items.find { it.webView === view }?.currentUrl = url
+                    windowStack.find { it.webView === view }?.currentUrl = url
                 }
             }
 
@@ -207,7 +207,7 @@ fun WebViewScreenContent(
                 if (!request.isForMainFrame || view == null) return false
                 if (!canUse(view)) return true
 
-                val popup = windowStack.lastItemOrNull
+                val popup = windowStack.lastOrNull()
                 if ((uri.scheme == "http" || uri.scheme == "https") &&
                     popup?.popupMessage != null && popup.webView === view &&
                     adBlocker.shouldBlock(
@@ -218,7 +218,7 @@ fun WebViewScreenContent(
                         method = request.method,
                     )
                 ) {
-                    windowStack.pop()
+                    windowStack.removeAt(windowStack.lastIndex)
                     return true
                 }
 
@@ -253,7 +253,7 @@ fun WebViewScreenContent(
             }
 
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-                windowStack.items.firstOrNull { it.webView === view }?.webView = null
+                windowStack.firstOrNull { it.webView === view }?.webView = null
                 val failedUrl = lifecycle.release(view) ?: return true
                 closeScreen {
                     logcat(LogPriority.ERROR) {
@@ -277,7 +277,7 @@ fun WebViewScreenContent(
             ): Boolean {
                 // if it wasn't initiated by a user gesture, we should ignore it like a normal browser would
                 if (lifecycle.isActive && isUserGesture) {
-                    windowStack.push(
+                    windowStack.add(
                         WebViewWindow(
                             WebContent.NavigatorOnly,
                             WebViewNavigator(coroutineScope),
@@ -334,7 +334,7 @@ fun WebViewScreenContent(
         if (windowStack.size == 1) {
             closeScreen()
         } else {
-            windowStack.pop()
+            windowStack.removeAt(windowStack.lastIndex)
         }
     }
 
@@ -490,7 +490,7 @@ fun WebViewScreenContent(
                     webView.setUserAgent(headers["user-agent"] ?: defaultUserAgentProvider())
                 },
                 onDispose = { webView ->
-                    val window = windowStack.items.firstOrNull { it.webView === webView }
+                    val window = windowStack.firstOrNull { it.webView === webView }
                     if (window != null && lifecycle.isActive) {
                         // A parked tab must resume without reloading its starting page.
                         window.state.content = WebContent.NavigatorOnly

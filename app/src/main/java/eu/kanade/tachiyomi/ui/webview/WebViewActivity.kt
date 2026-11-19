@@ -5,22 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.net.toUri
-import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
-import eu.kanade.presentation.webview.WebViewScreenContent
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.util.system.WebViewUtil
-import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.setComposeContent
+import kotlinx.serialization.json.Json
+import mihon.core.navigation.LocalAssistUrl
+import mihon.core.navigation.WebViewRoute
 import tachiyomi.core.common.Constants
-import tachiyomi.i18n.MR
-import tachiyomi.i18n.information_webview_required
-import tachiyomi.presentation.core.screens.LoadingScreen
 
 class WebViewActivity : BaseActivity() {
 
@@ -43,41 +37,12 @@ class WebViewActivity : BaseActivity() {
         }
         super.onCreate(savedInstanceState)
 
-        if (!WebViewUtil.supportsWebView(this)) {
-            toast(MR.strings.information_webview_required, Toast.LENGTH_LONG)
-            finish()
-            return
-        }
-
-        val url = intent.extras?.getString(URL_KEY) ?: return
-        val sourceId = intent.getLongExtra(SOURCE_KEY, 0L).takeUnless { it == 0L }
-        assistUrl = url
+        val route = intent.getStringExtra(ROUTE_KEY)?.let { Json.decodeFromString<WebViewRoute>(it) } ?: return
 
         setComposeContent {
-            val viewModel =
-                assistedMetroViewModel<WebViewViewModel, WebViewViewModel.Factory> { create(sourceId = sourceId) }
-            val headers by viewModel.headers.collectAsState()
-
-            if (headers == null) {
-                LoadingScreen()
-                return@setComposeContent
+            CompositionLocalProvider(LocalAssistUrl provides { assistUrl = it }) {
+                WebViewScreen(route, onNavigateUp = ::finish, onOpenManga = ::openManga)
             }
-
-            WebViewScreenContent(
-                onNavigateUp = { finish() },
-                initialTitle = intent.extras?.getString(TITLE_KEY),
-                url = url,
-                headers = headers.orEmpty(),
-                defaultUserAgentProvider = viewModel::defaultUserAgentProvider,
-                onUrlChange = { assistUrl = it },
-                onShare = { viewModel.shareWebpage(this, it) },
-                onOpenInBrowser = { viewModel.openInBrowser(this, it) },
-                canOpenManga = viewModel::canOpenManga,
-                resolveManga = viewModel::resolveManga,
-                onOpenManga = this::openManga,
-                onClearCookies = viewModel::clearCookies,
-                adBlocker = viewModel.adBlocker,
-            )
         }
     }
 
@@ -111,16 +76,12 @@ class WebViewActivity : BaseActivity() {
     }
 
     companion object {
-        private const val URL_KEY = "url_key"
-        private const val SOURCE_KEY = "source_key"
-        private const val TITLE_KEY = "title_key"
+        private const val ROUTE_KEY = "route_key"
 
         fun newIntent(context: Context, url: String, sourceId: Long? = null, title: String? = null): Intent {
             return Intent(context, WebViewActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                putExtra(URL_KEY, url)
-                sourceId?.let { putExtra(SOURCE_KEY, it) }
-                putExtra(TITLE_KEY, title)
+                putExtra(ROUTE_KEY, Json.encodeToString(WebViewRoute(url, title, sourceId)))
             }
         }
     }
