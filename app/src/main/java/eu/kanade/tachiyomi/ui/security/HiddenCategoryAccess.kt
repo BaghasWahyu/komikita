@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import kotlinx.coroutines.launch
@@ -49,11 +51,21 @@ fun hiddenCategoryAccess(mangaId: Long? = null): Boolean {
     val context = LocalContext.current
     val graph = remember(context) { context.appGraph }
     val enabled by graph.securityPreferences.authenticateHiddenCategories.collectAsState()
-    val hidden by graph.libraryPreferences.hiddenCategories.collectAsState()
     val unlocked by graph.hiddenLibrarySession.unlocked.collectAsStateWithLifecycle()
-    if (!enabled || hidden.isEmpty() || unlocked) return true
+    val hiddenCategories = graph.libraryPreferences.hiddenCategories
 
-    if (mangaId != null) {
+    if (mangaId == null) {
+        // Hiding the first category should only require authentication on the next visit or after backgrounding.
+        var hasHiddenCategoriesAtEntry by remember(hiddenCategories) {
+            mutableStateOf(hiddenCategories.get().isNotEmpty())
+        }
+        LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+            hasHiddenCategoriesAtEntry = hiddenCategories.get().isNotEmpty()
+        }
+        if (!enabled || !hasHiddenCategoriesAtEntry || unlocked) return true
+    } else {
+        val hidden by hiddenCategories.collectAsState()
+        if (!enabled || hidden.isEmpty() || unlocked) return true
         var protectedIds by remember(hidden, mangaId) { mutableStateOf<Set<Long>?>(null) }
         LaunchedEffect(graph, hidden, mangaId) {
             graph.libraryVisibility.hiddenMangaIdsFlow().collect { protectedIds = it }

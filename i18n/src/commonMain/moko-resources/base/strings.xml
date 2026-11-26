@@ -1147,6 +1147,7 @@
     <string name="komikita_unlock_hidden">Unlock hidden categories</string>
     <string name="komikita_lock_hidden">Lock hidden categories</string>
     <string name="komikita_hidden_locked">Hidden categories are locked</string>
+    <string name="komikita_no_visible_categories">There are no visible categories.</string>
     <string name="komikita_auth_unavailable">Set a screen lock PIN, pattern, password, or biometric in Android settings, then try again.</string>
     <string name="komikita_lock_categories">Lock hidden categories</string>
     <string name="komikita_lock_categories_summary">Use biometrics or your device PIN to reveal hidden categories. Locks again when the app enters the background. Hidden titles stay out of Continue reading, history, updates, and widgets.</string>

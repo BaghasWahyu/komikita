@@ -25,8 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.kanade.core.preference.asToggleableState
 import eu.kanade.presentation.category.visualName
+import mihon.app.di.appGraph
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
@@ -43,9 +46,11 @@ import tachiyomi.i18n.delete_category_confirmation
 import tachiyomi.i18n.error_category_exists
 import tachiyomi.i18n.information_empty_category_dialog
 import tachiyomi.i18n.information_required_plain
+import tachiyomi.i18n.komikita_no_visible_categories
 import tachiyomi.i18n.name
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.collectAsState
 
 @Composable
 fun CategoryCreateDialog(
@@ -205,6 +210,7 @@ fun ChangeCategoryDialog(
     onDismissRequest: () -> Unit,
     onEditCategories: () -> Unit,
     onConfirm: (List<Long>, List<Long>) -> Unit,
+    isAddingToLibrary: Boolean = false,
 ) {
     if (initialSelection.isEmpty()) {
         AlertDialog(
@@ -228,7 +234,13 @@ fun ChangeCategoryDialog(
         )
         return
     }
-    var selection by remember { mutableStateOf(initialSelection) }
+    val graph = LocalContext.current.appGraph
+    val hiddenCategories by graph.libraryPreferences.hiddenCategories.collectAsState()
+    val unlocked by graph.hiddenLibrarySession.unlocked.collectAsStateWithLifecycle()
+    val concealedCategories = if (isAddingToLibrary || !unlocked) hiddenCategories else emptySet()
+    var selection by remember(initialSelection) { mutableStateOf(initialSelection) }
+    val visibleSelection = selection.filterNot { it.value.id.toString() in concealedCategories }
+
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -246,11 +258,13 @@ fun ChangeCategoryDialog(
                 tachiyomi.presentation.core.components.material.TextButton(
                     onClick = {
                         onDismissRequest()
+                        // Keep existing memberships that the user could not edit in this dialog.
+                        val hiddenSelection = initialSelection.filter { it.value.id.toString() in concealedCategories }
                         onConfirm(
-                            selection
+                            (visibleSelection + hiddenSelection)
                                 .filter { it is CheckboxState.State.Checked || it is CheckboxState.TriState.Include }
                                 .map { it.value.id },
-                            selection
+                            visibleSelection
                                 .filter { it is CheckboxState.State.None || it is CheckboxState.TriState.None }
                                 .map { it.value.id },
                         )
@@ -267,7 +281,10 @@ fun ChangeCategoryDialog(
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
-                selection.forEach { checkbox ->
+                if (visibleSelection.isEmpty()) {
+                    Text(text = stringResource(MR.strings.komikita_no_visible_categories))
+                }
+                visibleSelection.forEach { checkbox ->
                     val onChange: (CheckboxState<Category>) -> Unit = {
                         val index = selection.indexOf(it)
                         if (index != -1) {
