@@ -1,3 +1,6 @@
+# Extensions are dynamically loaded APKs compiled against unobfuscated host APIs and dependencies
+-dontobfuscate
+
 # Injekt reads the injected type from the generic superclass of its type tokens
 -keepattributes Signature
 -keep,allowshrinking class * extends uy.kohesive.injekt.api.FullTypeReference
@@ -15,6 +18,7 @@
 -keep,allowoptimization class app.cash.quickjs.** { public protected *; }
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 -keep,allowoptimization class com.squareup.zstd.** { public protected *; }
+-keep,allowoptimization class nl.adaptivity.xmlutil.** { public protected *; }
 
 -keepclassmembers class * implements java.io.Serializable {
     java.lang.Object writeReplace();
