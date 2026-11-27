@@ -110,10 +110,11 @@ class BackupCreateWorker(private val context: Context, workerParams: WorkerParam
                     requiresBatteryNotLow = true,
                 )
 
+                val flexMinutes = (interval * 60L / 5).coerceIn(15L, 120L)
                 val request = PeriodicWorkRequestBuilder<BackupCreateWorker>(
                     interval.toLong(),
                     TimeUnit.HOURS,
-                    10,
+                    flexMinutes,
                     TimeUnit.MINUTES,
                 )
                     .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)

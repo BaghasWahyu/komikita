@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +58,7 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -203,15 +203,15 @@ class ReaderActivity : BaseActivity() {
                 viewModel.restartReadTimer()
                 onPauseOrDispose { viewModel.saveHistory() }
             }
-            val state by viewModel.state.collectAsState()
-            val general by settingsViewModel.general.collectAsState()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            val general by settingsViewModel.general.collectAsStateWithLifecycle()
             val showPageNumber by readerPreferences.showPageNumber.collectAsState()
             val flashOnPageChange by readerPreferences.flashOnPageChange.collectAsState()
             val colorOverlayEnabled by readerPreferences.colorFilter.collectAsState()
             val colorOverlay by readerPreferences.colorFilterValue.collectAsState()
             val colorOverlayMode by readerPreferences.colorFilterMode.collectAsState()
-            val brightness by settingsViewModel.brightness.collectAsState()
-            val navigation = settingsViewModel.navigation.collectAsState().value
+            val brightness by settingsViewModel.brightness.collectAsStateWithLifecycle()
+            val navigation = settingsViewModel.navigation.collectAsStateWithLifecycle().value
 
             val backgroundColor = remember(general.theme) { Color(baseContext.readerBackgroundColor(general.theme)) }
             val colorOverlayBlendMode = remember(colorOverlayMode) {
@@ -468,8 +468,8 @@ class ReaderActivity : BaseActivity() {
 
     @Composable
     private fun ReaderViewer() {
-        val viewer by viewerFlow.collectAsState()
-        val general by settingsViewModel.general.collectAsState()
+        val viewer by viewerFlow.collectAsStateWithLifecycle()
+        val general by settingsViewModel.general.collectAsStateWithLifecycle()
         val insets = when {
             !general.fullscreen -> WindowInsets.systemBars
             !general.drawUnderCutout -> WindowInsets.displayCutout

@@ -4,9 +4,9 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.result.ResultEffect
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.tachiyomi.util.system.toast
@@ -29,7 +29,7 @@ fun MigrationListScreen(
         assistedMetroViewModel<MigrationListViewModel, MigrationListViewModel.Factory> {
             create(mangaIds = mangaIds, extraSearchQuery = extraSearchQuery)
         }
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     ResultEffect<MatchOverrideEvent> {

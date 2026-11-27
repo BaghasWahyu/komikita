@@ -51,8 +51,32 @@ class WebViewLifecycleTest {
         verify(exactly = 1) { parked.destroy() }
     }
 
+    @Test
+    fun pauseAndResumeOnlyTouchRegisteredActiveViews() {
+        val main = webView()
+        val popup = webView()
+        val lifecycle = WebViewLifecycle()
+        lifecycle.register(main, "https://example.org")
+        lifecycle.register(popup, "https://example.org/popup")
+
+        lifecycle.pause(main)
+        lifecycle.resume(popup)
+        lifecycle.pauseAll()
+        lifecycle.release(popup)
+        lifecycle.resume(popup)
+        lifecycle.close()
+        lifecycle.resume(main)
+
+        verify(exactly = 2) { main.onPause() }
+        verify(exactly = 0) { main.onResume() }
+        verify(exactly = 1) { popup.onPause() }
+        verify(exactly = 1) { popup.onResume() }
+    }
+
     private fun webView(parent: ViewGroup? = null) = mockk<WebView> {
         every { this@mockk.parent } returns parent
+        justRun { onPause() }
+        justRun { onResume() }
         justRun { destroy() }
     }
 }

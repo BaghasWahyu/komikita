@@ -5,7 +5,9 @@ import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
 import android.net.NetworkCapabilities
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 data class NetworkState(
     val isConnected: Boolean,
@@ -24,3 +26,26 @@ fun Context.activeNetworkState(): NetworkState {
         isWifi = wifiManager.isWifiEnabled && capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false,
     )
 }
+
+fun Context.networkStateFlow(): Flow<NetworkState> = callbackFlow {
+    val networkCallback = object : NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            trySend(activeNetworkState())
+        }
+
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            trySend(activeNetworkState())
+        }
+
+        override fun onLost(network: Network) {
+            trySend(activeNetworkState())
+        }
+    }
+
+    connectivityManager.registerDefaultNetworkCallback(networkCallback)
+    trySend(activeNetworkState())
+
+    awaitClose {
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+}.distinctUntilChanged()

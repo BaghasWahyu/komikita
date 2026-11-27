@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
@@ -156,6 +157,13 @@ fun WebViewScreenContent(
         onDispose {
             windowStack.forEach { it.webView = null }
             lifecycle.dispose()
+        }
+    }
+
+    LifecycleResumeEffect(lifecycle, currentWindow) {
+        currentWindow.webView?.let(lifecycle::resume)
+        onPauseOrDispose {
+            lifecycle.pauseAll()
         }
     }
 
@@ -501,6 +509,7 @@ fun WebViewScreenContent(
                     if (window != null && lifecycle.isActive) {
                         // A parked tab must resume without reloading its starting page.
                         window.state.content = WebContent.NavigatorOnly
+                        lifecycle.pause(webView)
                     } else {
                         window?.webView = null
                         lifecycle.release(webView)
@@ -509,7 +518,7 @@ fun WebViewScreenContent(
                 client = webClient,
                 chromeClient = webChromeClient,
                 factory = { context ->
-                    currentWindow.webView
+                    currentWindow.webView?.also(lifecycle::resume)
                         ?: WebView(context).also { webView ->
                             currentWindow.webView = webView
                             lifecycle.register(webView, currentWindow.currentUrl ?: currentWindow.openerUrl ?: url)

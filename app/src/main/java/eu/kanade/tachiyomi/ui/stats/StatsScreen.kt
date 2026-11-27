@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.ui.stats
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.stats.StatsScreenContent
@@ -19,7 +19,7 @@ fun StatsScreen() {
     val navigator = LocalNavigator.current
 
     val viewModel = metroViewModel<StatsViewModel>()
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = { scrollBehavior ->

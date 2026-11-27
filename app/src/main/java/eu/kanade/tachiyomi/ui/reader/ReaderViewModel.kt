@@ -52,6 +52,7 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
 import eu.kanade.tachiyomi.util.system.activeNetworkState
+import eu.kanade.tachiyomi.util.system.powerManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -478,7 +479,8 @@ class ReaderViewModel(
      * Whether online chapters may load past the pages near the one being read.
      */
     private fun canLoadAhead(): Boolean =
-        !readerPreferences.loadAheadOnlyOverWifi.get() || context.activeNetworkState().isWifi
+        !context.powerManager.isPowerSaveMode &&
+            (!readerPreferences.loadAheadOnlyOverWifi.get() || context.activeNetworkState().isWifi)
 
     /**
      * Called when the viewers decide it's a good time to preload a [chapter] and improve the UX so

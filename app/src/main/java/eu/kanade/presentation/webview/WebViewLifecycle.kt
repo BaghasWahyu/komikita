@@ -24,6 +24,18 @@ internal class WebViewLifecycle {
 
     fun url(view: WebView): String? = pageUrls[view]
 
+    fun pause(view: WebView) {
+        if (pageUrls.containsKey(view)) view.onPause()
+    }
+
+    fun resume(view: WebView) {
+        if (isActive && pageUrls.containsKey(view)) view.onResume()
+    }
+
+    fun pauseAll() {
+        pageUrls.keys.forEach { it.onPause() }
+    }
+
     fun release(view: WebView): String? {
         val url = pageUrls.remove(view) ?: return null
         (view.parent as? ViewGroup)?.removeView(view)

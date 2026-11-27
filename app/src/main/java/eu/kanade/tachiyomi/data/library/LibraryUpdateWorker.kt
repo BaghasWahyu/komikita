@@ -500,10 +500,11 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                     .setRequiresBatteryNotLow(true)
                     .build()
 
+                val flexMinutes = (interval * 60L / 5).coerceIn(15L, 120L)
                 val request = PeriodicWorkRequestBuilder<LibraryUpdateWorker>(
                     interval.toLong(),
                     TimeUnit.HOURS,
-                    10,
+                    flexMinutes,
                     TimeUnit.MINUTES,
                 )
                     .addTag(TAG)

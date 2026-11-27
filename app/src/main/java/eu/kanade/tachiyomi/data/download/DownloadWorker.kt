@@ -13,19 +13,24 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.util.system.NetworkState
 import eu.kanade.tachiyomi.util.system.activeNetworkState
+import eu.kanade.tachiyomi.util.system.networkStateFlow
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import mihon.app.di.AppGraph
 import mihon.core.metro.metroGraph
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.i18n.R
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * This worker owns the lifecycle of the downloader: it starts the downloader and stops it when the
@@ -71,9 +76,27 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) : Corouti
         try {
             setForegroundSafely()
 
-            while (networkIssue == null && downloader.isRunning) {
-                delay(1.seconds)
-                networkIssue = networkIssue()
+            networkIssue = coroutineScope {
+                val issueDeferred = async {
+                    combine(
+                        applicationContext.networkStateFlow(),
+                        downloadPreferences.downloadOnlyOverWifi.changes(),
+                    ) { state, onlyWifi -> networkIssue(state, onlyWifi) }
+                        .first { it != null }
+                }
+                val stoppedDeferred = async {
+                    downloader.awaitStopped()
+                    null
+                }
+                try {
+                    select {
+                        issueDeferred.onAwait { it }
+                        stoppedDeferred.onAwait { it }
+                    }
+                } finally {
+                    issueDeferred.cancel()
+                    stoppedDeferred.cancel()
+                }
             }
         } finally {
             // Stopped by WorkManager means already canceled, and taking the lock would then throw instead of stopping
@@ -85,11 +108,13 @@ class DownloadWorker(context: Context, workerParams: WorkerParameters) : Corouti
         return Result.success()
     }
 
-    private fun networkIssue(): String? {
-        val state = applicationContext.activeNetworkState()
+    private fun networkIssue(
+        state: NetworkState = applicationContext.activeNetworkState(),
+        onlyWifi: Boolean = downloadPreferences.downloadOnlyOverWifi.get(),
+    ): String? {
         return when {
             !state.isOnline -> applicationContext.getString(R.string.download_notifier_no_network)
-            downloadPreferences.downloadOnlyOverWifi.get() && !state.isWifi ->
+            onlyWifi && !state.isWifi ->
                 applicationContext.getString(R.string.download_notifier_text_only_wifi)
             else -> null
         }

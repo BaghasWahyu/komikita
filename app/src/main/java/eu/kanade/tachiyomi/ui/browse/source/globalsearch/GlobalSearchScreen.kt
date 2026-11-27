@@ -2,11 +2,11 @@ package eu.kanade.tachiyomi.ui.browse.source.globalsearch
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.browse.GlobalSearchScreen
 import mihon.core.navigation.BrowseSourceRoute
@@ -25,7 +25,7 @@ fun GlobalSearchScreen(
         assistedMetroViewModel<GlobalSearchViewModel, GlobalSearchViewModel.Factory> {
             create(initialQuery = searchQuery, initialExtensionFilter = extensionFilter)
         }
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var showSingleLoadingScreen by remember {
         mutableStateOf(searchQuery.isNotEmpty() && !extensionFilter.isNullOrEmpty() && state.total == 1)
     }

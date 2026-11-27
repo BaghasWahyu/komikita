@@ -114,6 +114,10 @@ class Downloader(
     val isRunning: Boolean
         get() = downloaderJob?.isActive ?: false
 
+    suspend fun awaitStopped() {
+        downloaderJob?.join()
+    }
+
     /**
      * Whether the downloader is paused
      */

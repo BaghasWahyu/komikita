@@ -298,10 +298,16 @@ class App :
     override fun getPackageName(): String {
         try {
             // Override the value passed as X-Requested-With in WebView requests
-            val stackTrace = Thread.currentThread().stackTrace
-            val isChromiumCall = stackTrace.any { trace ->
-                trace.className.lowercase() in setOf("org.chromium.base.buildinfo", "org.chromium.base.apkinfo") &&
-                    trace.methodName.lowercase() in setOf("getall", "getpackagename", "<init>")
+            val isChromiumCall = Thread.currentThread().stackTrace.any { trace ->
+                val className = trace.className
+                (
+                    className.equals("org.chromium.base.BuildInfo", ignoreCase = true) ||
+                        className.equals("org.chromium.base.ApkInfo", ignoreCase = true)
+                    ) && (
+                    trace.methodName.equals("getAll", ignoreCase = true) ||
+                        trace.methodName.equals("getPackageName", ignoreCase = true) ||
+                        trace.methodName == "<init>"
+                    )
             }
 
             if (isChromiumCall) return WebViewUtil.spoofedPackageName(applicationContext)

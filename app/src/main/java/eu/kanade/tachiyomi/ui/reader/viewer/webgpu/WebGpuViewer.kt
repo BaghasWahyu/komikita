@@ -1141,7 +1141,9 @@ open class WebGpuViewer(
                     when (state) {
                         Page.State.Queue, Page.State.LoadPage -> true
                         Page.State.DownloadImage -> {
-                            page.page.downloadStream?.let { startStreamDecode(page, it) }
+                            if (shouldStreamDecode(page)) {
+                                page.page.downloadStream?.let { startStreamDecode(page, it) }
+                            }
                             true
                         }
 
@@ -1235,6 +1237,23 @@ open class WebGpuViewer(
         return p.imageUrl?.takeIf { it.isNotEmpty() }
             ?: p.url.takeIf { it.isNotEmpty() }
             ?: "${p.chapter.chapter.name} page ${p.index + 1}"
+    }
+
+    // Progressive previews upload partial GPU textures every ~33 ms; only visible pages benefit.
+    private fun shouldStreamDecode(page: ViewerReaderPage): Boolean {
+        if (page.imagePage.isOnScreen) return true
+        val current = currentPage as? ViewerReaderPage ?: return false
+        if (page === current) return true
+        if (isDualPageMode()) {
+            val spread = current.spreadPage
+            if (spread != null && (spread.left === page.imagePage || spread.right === page.imagePage)) {
+                return true
+            }
+            if (current.page.chapter == page.page.chapter && page.page.index == current.page.index + 1) {
+                return true
+            }
+        }
+        return false
     }
 
     /** Decodes [page] while it downloads; on failure the whole-file decode takes over. */
@@ -1760,6 +1779,9 @@ open class WebGpuViewer(
                 // Watched already: only re-request, in this order.
                 PageState.LOADING -> {
                     if (cachedPage.page.status == Page.State.Queue) requestDownload(cachedPage)
+                    if (cachedPage.page.status == Page.State.DownloadImage && shouldStreamDecode(cachedPage)) {
+                        cachedPage.page.downloadStream?.let { startStreamDecode(cachedPage, it) }
+                    }
                     return
                 }
 
