@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108"><title>KomiKita</title><rect width="108" height="108" rx="24" fill="#102D2B"/><path d="M28,30C37,27 46,29 52,35V77C44,72 36,70 28,73Z M56,35C64,29 72,27 80,30V73C72,70 64,72 56,77Z" fill="#83E8BE"/><path d="M39,39H46V51L58,38H68L53,54L70,71H60L46,57V71L39,69Z" fill="#102D2B"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <title>KomiKita</title>
+  <rect width="108" height="108" rx="24" fill="#762A20"/>
+  <g transform="translate(-10.8 -10.8) scale(1.2)">
+    <path fill="#FFF1D6" d="M31.5,34.5L46,30V46.5L60.25,31H76.5L55.75,53L42.75,57.25C50,56.5 56.75,56.5 59.25,59L76.5,78H55.25L51.75,72.75L41.5,78H31.5Z"/>
+    <path fill="#F7B957" d="M41.5,56.5L51.75,72.75L41.5,78Z"/>
+  </g>
+</svg>

@@ -2,13 +2,13 @@
 
 <div align="center">
 
-<img src=".github/assets/logo.png" alt="Logo KomiKita" width="112" />
+<img src=".github/assets/logo.png" alt="Logo K lipat KomiKita" width="112" />
 
 # KomiKita
 
 KomiKita adalah aplikasi Android bersumber terbuka untuk membaca manga, komik, dan webtoon. Kamu bisa mengatur koleksi, mengunduh chapter untuk dibaca offline, dan melanjutkan bacaan terakhir.
 
-[![Rilis terbaru](https://img.shields.io/github/v/release/BaghasWahyu/komikita?label=rilis&color=0f766e)](https://github.com/BaghasWahyu/komikita/releases/latest)
+[![Rilis terbaru](https://img.shields.io/github/v/release/BaghasWahyu/komikita?label=rilis&color=762a20)](https://github.com/BaghasWahyu/komikita/releases/latest)
 [![Android 8.0 ke atas](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)](#unduh-dan-instal)
 [![Build dan pengujian](https://github.com/BaghasWahyu/komikita/actions/workflows/build.yml/badge.svg)](https://github.com/BaghasWahyu/komikita/actions/workflows/build.yml)
 [![Lisensi Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue)](LICENSE)

@@ -53,7 +53,7 @@ fun <T> TriStateListDialog(
     onDismissRequest: () -> Unit,
     onValueChanged: (newIncluded: List<T>, newExcluded: List<T>) -> Unit,
 ) {
-    val selected = remember {
+    val selected = remember(items) {
         items
             .map {
                 when (it) {
