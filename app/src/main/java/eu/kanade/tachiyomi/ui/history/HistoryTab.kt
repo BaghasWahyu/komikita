@@ -86,7 +86,6 @@ fun HistoryTab() {
                 onConfirm = { include, _ ->
                     viewModel.moveMangaToCategoriesAndAddToLibrary(dialog.manga, include)
                 },
-                isAddingToLibrary = !dialog.manga.favorite,
             )
         }
         is HistoryViewModel.Dialog.Migrate -> {

@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.kanade.core.preference.asToggleableState
 import eu.kanade.presentation.category.visualName
 import mihon.app.di.appGraph
@@ -210,7 +209,6 @@ fun ChangeCategoryDialog(
     onDismissRequest: () -> Unit,
     onEditCategories: () -> Unit,
     onConfirm: (List<Long>, List<Long>) -> Unit,
-    isAddingToLibrary: Boolean = false,
 ) {
     if (initialSelection.isEmpty()) {
         AlertDialog(
@@ -236,10 +234,8 @@ fun ChangeCategoryDialog(
     }
     val graph = LocalContext.current.appGraph
     val hiddenCategories by graph.libraryPreferences.hiddenCategories.collectAsState()
-    val unlocked by graph.hiddenLibrarySession.unlocked.collectAsStateWithLifecycle()
-    val concealedCategories = if (isAddingToLibrary || !unlocked) hiddenCategories else emptySet()
     var selection by remember(initialSelection) { mutableStateOf(initialSelection) }
-    val visibleSelection = selection.filterNot { it.value.id.toString() in concealedCategories }
+    val visibleSelection = selection.filterNot { it.value.id.toString() in hiddenCategories }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -259,7 +255,7 @@ fun ChangeCategoryDialog(
                     onClick = {
                         onDismissRequest()
                         // Keep existing memberships that the user could not edit in this dialog.
-                        val hiddenSelection = initialSelection.filter { it.value.id.toString() in concealedCategories }
+                        val hiddenSelection = initialSelection.filter { it.value.id.toString() in hiddenCategories }
                         onConfirm(
                             (visibleSelection + hiddenSelection)
                                 .filter { it is CheckboxState.State.Checked || it is CheckboxState.TriState.Include }

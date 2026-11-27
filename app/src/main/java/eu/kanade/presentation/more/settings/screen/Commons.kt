@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalContext
 import eu.kanade.presentation.category.visualName
+import tachiyomi.core.common.preference.Preference
+import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.all
@@ -33,6 +35,7 @@ fun getCategoriesLabel(
     val allExcluded = excludedCategories.size == allCategories.size
 
     val includedItemsText = when {
+        included.isNotEmpty() && includedCategories.isEmpty() -> stringResource(MR.strings.none)
         // Some selected, but not all
         includedCategories.isNotEmpty() && includedCategories.size != allCategories.size ->
             includedCategories.joinToString { it.visualName(context) }
@@ -48,4 +51,10 @@ fun getCategoriesLabel(
     }
     return stringResource(MR.strings.include, includedItemsText) + "\n" +
         stringResource(MR.strings.exclude, excludedItemsText)
+}
+
+internal fun Preference<Set<String>>.setVisibleCategorySelection(categories: List<Category>, hidden: Set<String>) {
+    getAndSet { selected ->
+        selected.intersect(hidden) + categories.map { it.id.toString() }.filterNot { it in hidden }
+    }
 }

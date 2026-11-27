@@ -83,8 +83,6 @@ fun LibraryToolbar(
     showSemanticSearchHint: Boolean = false,
     onToggleSearchByMeaning: (() -> Unit)? = null,
     onSubmitSemanticSearch: () -> Unit = {},
-    hiddenCategoriesAction: String? = null,
-    onToggleHiddenCategories: () -> Unit = {},
 ) {
     Column {
         when {
@@ -109,8 +107,6 @@ fun LibraryToolbar(
                 onClickGlobalUpdate = onClickGlobalUpdate,
                 onClickOpenRandomManga = onClickOpenRandomManga,
                 scrollBehavior = scrollBehavior,
-                hiddenCategoriesAction = hiddenCategoriesAction,
-                onToggleHiddenCategories = onToggleHiddenCategories,
             )
         }
         if (updateProgress != null) {
@@ -182,8 +178,6 @@ private fun LibraryRegularToolbar(
     onClickGlobalUpdate: () -> Unit,
     onClickOpenRandomManga: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
-    hiddenCategoriesAction: String?,
-    onToggleHiddenCategories: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val submitSearch = {
@@ -210,37 +204,25 @@ private fun LibraryRegularToolbar(
             },
             actions = {
                 AppBarActions(
-                    buildList {
-                        if (hiddenCategoriesAction != null) {
-                            add(
-                                AppBar.OverflowAction(
-                                    title = hiddenCategoriesAction,
-                                    onClick = onToggleHiddenCategories,
-                                ),
-                            )
-                        }
-                        addAll(
-                            listOf(
-                                AppBar.Action(
-                                    title = stringResource(MR.strings.label_download_queue),
-                                    icon = MaterialSymbols.Rounded.Download,
-                                    onClick = onClickDownloads,
-                                ),
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_update_library),
-                                    onClick = onClickGlobalUpdate,
-                                ),
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_update_category),
-                                    onClick = onClickRefresh,
-                                ),
-                                AppBar.OverflowAction(
-                                    title = stringResource(MR.strings.action_open_random_manga),
-                                    onClick = onClickOpenRandomManga,
-                                ),
-                            ),
-                        )
-                    },
+                    listOf(
+                        AppBar.Action(
+                            title = stringResource(MR.strings.label_download_queue),
+                            icon = MaterialSymbols.Rounded.Download,
+                            onClick = onClickDownloads,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_update_library),
+                            onClick = onClickGlobalUpdate,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_update_category),
+                            onClick = onClickRefresh,
+                        ),
+                        AppBar.OverflowAction(
+                            title = stringResource(MR.strings.action_open_random_manga),
+                            onClick = onClickOpenRandomManga,
+                        ),
+                    ),
                 )
             },
             scrollBehavior = scrollBehavior,

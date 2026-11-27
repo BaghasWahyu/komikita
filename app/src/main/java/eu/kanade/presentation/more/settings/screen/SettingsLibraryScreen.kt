@@ -87,13 +87,13 @@ data object SettingsLibraryScreen : SearchableSettings {
     @Composable
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
-        val getCategories = remember { context.appGraph.getCategories }
+        val categoriesFlow = remember(context) { context.appGraph.getCategories.subscribeVisible() }
         val libraryPreferences = remember { context.appGraph.libraryPreferences }
-        val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
+        val visibleCategories by categoriesFlow.collectAsState(initial = emptyList())
 
         return listOf(
-            getCategoriesGroup(allCategories, libraryPreferences),
-            getGlobalUpdateGroup(allCategories, libraryPreferences),
+            getCategoriesGroup(visibleCategories, libraryPreferences),
+            getGlobalUpdateGroup(visibleCategories, libraryPreferences),
             getBehaviorGroup(libraryPreferences),
         )
     }
@@ -130,6 +130,9 @@ data object SettingsLibraryScreen : SearchableSettings {
                     preference = libraryPreferences.defaultCategory,
                     entries = ids.zip(labels).toMap(),
                     title = stringResource(MR.strings.default_category),
+                    subtitleProvider = { value, entries ->
+                        entries[value] ?: entries[libraryPreferences.defaultCategory.defaultValue()]
+                    },
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.categorizedDisplaySettings,
@@ -173,8 +176,9 @@ data object SettingsLibraryScreen : SearchableSettings {
                 itemLabel = { it.visualName },
                 onDismissRequest = { showCategoriesDialog = false },
                 onValueChanged = { newIncluded, newExcluded ->
-                    autoUpdateCategoriesPref.set(newIncluded.map { it.id.toString() }.toSet())
-                    autoUpdateCategoriesExcludePref.set(newExcluded.map { it.id.toString() }.toSet())
+                    val hidden = libraryPreferences.hiddenCategories.get()
+                    autoUpdateCategoriesPref.setVisibleCategorySelection(newIncluded, hidden)
+                    autoUpdateCategoriesExcludePref.setVisibleCategorySelection(newExcluded, hidden)
                     showCategoriesDialog = false
                 },
             )

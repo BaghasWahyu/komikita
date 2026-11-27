@@ -15,7 +15,6 @@ import tachiyomi.domain.manga.repository.MangaRepository
 class LibraryVisibility(
     private val preferences: LibraryPreferences,
     private val mangaRepository: MangaRepository,
-    private val hiddenLibrarySession: HiddenLibrarySession,
 ) {
     fun hiddenCategoryIds(): List<Long> = categoryIds(preferences.hiddenCategories.get())
 
@@ -43,8 +42,6 @@ class LibraryVisibility(
         if (enabled) categories else emptyList()
     }.distinctUntilChanged().flatMapLatest { categories ->
         if (categories.isEmpty()) flowOf(emptySet()) else mangaRepository.getHiddenLibrarySourceIdsAsFlow(categories)
-    }.combine(hiddenLibrarySession.unlocked) { sources, unlocked ->
-        if (unlocked) emptySet() else sources
     }.distinctUntilChanged()
 
     private fun categoryIds(hidden: Set<String>): List<Long> = hidden.mapNotNull(String::toLongOrNull)

@@ -256,6 +256,7 @@ class BrowseSourceViewModel(
             val categories = getCategories()
             val defaultCategoryId = libraryPreferences.defaultCategory.get()
             val defaultCategory = categories.find { it.id == defaultCategoryId.toLong() }
+                ?.takeUnless { it.id.toString() in libraryPreferences.hiddenCategories.get() }
 
             when {
                 // Default category set

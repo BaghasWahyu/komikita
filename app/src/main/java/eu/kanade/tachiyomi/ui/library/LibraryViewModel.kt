@@ -69,7 +69,6 @@ import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.library.model.sort
-import tachiyomi.domain.library.service.HiddenLibrarySession
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.model.Manga
@@ -98,7 +97,6 @@ class LibraryViewModel(
     private val setMangaCategories: SetMangaCategories,
     private val preferences: BasePreferences,
     private val libraryPreferences: LibraryPreferences,
-    private val hiddenLibrarySession: HiddenLibrarySession,
     private val coverCache: CoverCache,
     private val sourceManager: SourceManager,
     private val downloadManager: DownloadManager,
@@ -166,7 +164,6 @@ class LibraryViewModel(
         val showSystemCategory = visibleFavorites.any { it.libraryManga.categories.contains(0) }
         LibraryData(
             isInitialized = true,
-            hiddenCategoriesRevealed = itemPreferences.hiddenCategoriesRevealed,
             hiddenCategoryIds = itemPreferences.hiddenCategories,
             showSystemCategory = showSystemCategory,
             categories = categories.filterNot { it.id in itemPreferences.hiddenCategories },
@@ -440,9 +437,7 @@ class LibraryViewModel(
             libraryPreferences.filterCompleted.changes(),
             libraryPreferences.filterIntervalCustom.changes(),
             libraryPreferences.extensionBadge.changes(),
-            combine(libraryPreferences.hiddenCategories.changes(), hiddenLibrarySession.unlocked) { hidden, unlocked ->
-                (if (unlocked) emptySet() else hidden) to unlocked
-            },
+            libraryPreferences.hiddenCategories.changes(),
         ) {
             ItemPreferences(
                 downloadBadge = it[0] as Boolean,
@@ -458,8 +453,7 @@ class LibraryViewModel(
                 filterCompleted = it[10] as TriState,
                 filterIntervalCustom = it[11] as TriState,
                 extensionBadge = it[12] as Boolean,
-                hiddenCategoriesRevealed = (it[13] as Pair<*, *>).second as Boolean,
-                hiddenCategories = ((it[13] as Pair<*, *>).first as Set<*>).mapNotNull { value ->
+                hiddenCategories = (it[13] as Set<*>).mapNotNull { value ->
                     (value as? String)?.toLongOrNull()
                 }.toSet(),
             )
@@ -697,17 +691,6 @@ class LibraryViewModel(
         selection.update { setOf() }
     }
 
-    init {
-        viewModelScope.launch {
-            hiddenLibrarySession.unlocked.collect { unlocked ->
-                if (!unlocked) {
-                    clearSelection()
-                    closeDialog()
-                }
-            }
-        }
-    }
-
     fun toggleSelection(category: Category, manga: LibraryManga) {
         selection.update { selection ->
             val newSelection = selection.mutate { set ->
@@ -847,7 +830,6 @@ class LibraryViewModel(
         val languageBadge: Boolean,
         val extensionBadge: Boolean,
         val hiddenCategories: Set<Long>,
-        val hiddenCategoriesRevealed: Boolean,
         val skipOutsideReleasePeriod: Boolean,
 
         val globalFilterDownloaded: Boolean,
@@ -862,7 +844,6 @@ class LibraryViewModel(
     @Immutable
     data class LibraryData(
         val isInitialized: Boolean = false,
-        val hiddenCategoriesRevealed: Boolean = false,
         val hiddenCategoryIds: Set<Long> = emptySet(),
         val showSystemCategory: Boolean = false,
         val categories: List<Category> = emptyList(),

@@ -6,7 +6,7 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** An authenticated reveal lasts only while the application is in the foreground. */
+/** Authenticated access lasts only while the application is in the foreground. */
 @Inject
 @SingleIn(AppScope::class)
 class HiddenLibrarySession {

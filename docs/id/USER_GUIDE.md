@@ -10,9 +10,7 @@ Judul tersembunyi juga hilang dari Lanjutkan membaca, riwayat, pembaruan, notifi
 
 Kunci kategori aktif secara bawaan di **Pengaturan → Keamanan dan privasi → Kunci kategori tersembunyi**. Siapkan layar kunci Android terlebih dahulu. KomiKita memakai prompt biometrik Android dengan PIN, pola, atau sandi perangkat sebagai alternatif; tidak ada PIN terpisah yang disimpan aplikasi. Jika autentikasi tidak tersedia atau dibatalkan, kategori tetap terkunci.
 
-Untuk membuka sementara, pilih menu titik tiga di pustaka → **Buka kategori tersembunyi**, lalu autentikasi. Menu yang sama juga dapat menguncinya kembali. Kategori terkunci lagi saat aplikasi masuk latar belakang. Screenshot diblokir selama sesi terbuka. Judul tersembunyi tetap tidak ditampilkan di bagian lain yang disebut di atas selama sesi tersebut.
-
-Untuk menampilkan kategori secara permanen, buka **Lainnya → Kategori**, autentikasi, lalu tekan ikon mata lagi. Mengubah pengaturan kunci kategori juga memerlukan autentikasi.
+Kategori tersembunyi hanya tampil di halaman pengelolaan **Kategori**. Untuk menampilkannya kembali, buka **Lainnya → Kategori**, autentikasi jika diminta, lalu tekan ikon mata. Akses terkunci kembali saat aplikasi masuk latar belakang.
 
 ## Menambahkan kategori ke pembaruan
 

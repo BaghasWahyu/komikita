@@ -17,11 +17,12 @@ import tachiyomi.domain.updates.service.UpdatesPreferences
 @ContributesIntoMap(AppScope::class)
 class UpdatesSettingsViewModel(
     val updatesPreferences: UpdatesPreferences,
-    val getCategories: GetCategories,
+    getCategories: GetCategories,
 ) : ViewModel() {
 
     val includedCategories = updatesPreferences.filterIncludedCategories
     val excludedCategories = updatesPreferences.filterExcludedCategories
+    val visibleCategories = getCategories.subscribeVisible()
 
     fun cycleCategory(category: Category) {
         when (category.id) {

@@ -10,9 +10,7 @@ Hidden titles also disappear from Continue reading, history, updates, update not
 
 Category locking is enabled by default in **Settings → Security and privacy → Lock hidden categories**. Set up an Android screen lock first. KomiKita uses the system biometric prompt with the device PIN, pattern, or password as a fallback; it does not store a separate PIN. If authentication is unavailable or cancelled, categories remain locked.
 
-To reveal them temporarily, open the library's three-dot menu → **Unlock hidden categories**, then authenticate. The menu also lets you lock them immediately. They lock again when the app enters the background. While revealed, screenshots are blocked. Hidden titles remain excluded from the other surfaces above during the unlocked session.
-
-To make a category visible permanently, open **More → Categories**, authenticate, then tap its eye icon again. Changing the category-lock setting also requires authentication.
+Hidden categories appear only on the **Categories** management screen. To make one visible again, open **More → Categories**, authenticate if prompted, then tap its eye icon. The app locks access again when it enters the background.
 
 ## Adding categories to an update
 

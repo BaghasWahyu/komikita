@@ -282,7 +282,6 @@ fun BrowseSourceScreen(
                     viewModel.changeMangaFavorite(dialog.manga)
                     viewModel.moveMangaToCategories(dialog.manga, include)
                 },
-                isAddingToLibrary = true,
             )
         }
         else -> {}

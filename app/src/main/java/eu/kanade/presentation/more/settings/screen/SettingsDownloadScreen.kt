@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.util.fastMap
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
@@ -58,8 +57,8 @@ data object SettingsDownloadScreen : SearchableSettings {
     @Composable
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
-        val getCategories = remember { context.appGraph.getCategories }
-        val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
+        val categoriesFlow = remember(context) { context.appGraph.getCategories.subscribeVisible() }
+        val visibleCategories by categoriesFlow.collectAsState(initial = emptyList())
 
         val downloadPreferences = remember { context.appGraph.downloadPreferences }
         return listOf(
@@ -84,11 +83,11 @@ data object SettingsDownloadScreen : SearchableSettings {
             ),
             getDeleteChaptersGroup(
                 downloadPreferences = downloadPreferences,
-                categories = allCategories,
+                categories = visibleCategories,
             ),
             getAutoDownloadGroup(
                 downloadPreferences = downloadPreferences,
-                allCategories = allCategories,
+                allCategories = visibleCategories,
             ),
             getDownloadAheadGroup(downloadPreferences = downloadPreferences),
         )
@@ -152,6 +151,7 @@ data object SettingsDownloadScreen : SearchableSettings {
         val downloadNewUnreadChaptersOnlyPref = downloadPreferences.downloadNewUnreadChaptersOnly
         val downloadNewChapterCategoriesPref = downloadPreferences.downloadNewChapterCategories
         val downloadNewChapterCategoriesExcludePref = downloadPreferences.downloadNewChapterCategoriesExclude
+        val libraryPreferences = LocalContext.current.appGraph.libraryPreferences
 
         val downloadNewChapters by downloadNewChaptersPref.collectAsState()
 
@@ -168,8 +168,9 @@ data object SettingsDownloadScreen : SearchableSettings {
                 itemLabel = { it.visualName },
                 onDismissRequest = { showDialog = false },
                 onValueChanged = { newIncluded, newExcluded ->
-                    downloadNewChapterCategoriesPref.set(newIncluded.fastMap { it.id.toString() }.toSet())
-                    downloadNewChapterCategoriesExcludePref.set(newExcluded.fastMap { it.id.toString() }.toSet())
+                    val hidden = libraryPreferences.hiddenCategories.get()
+                    downloadNewChapterCategoriesPref.setVisibleCategorySelection(newIncluded, hidden)
+                    downloadNewChapterCategoriesExcludePref.setVisibleCategorySelection(newExcluded, hidden)
                     showDialog = false
                 },
             )

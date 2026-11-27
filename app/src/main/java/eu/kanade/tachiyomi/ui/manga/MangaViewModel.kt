@@ -452,6 +452,7 @@ class MangaViewModel(
                 val categories = getCategories()
                 val defaultCategoryId = libraryPreferences.defaultCategory.get().toLong()
                 val defaultCategory = categories.find { it.id == defaultCategoryId }
+                    ?.takeUnless { it.id.toString() in libraryPreferences.hiddenCategories.get() }
                 when {
                     // Default category set
                     defaultCategory != null -> {

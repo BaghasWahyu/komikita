@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
@@ -33,7 +32,6 @@ import eu.kanade.tachiyomi.ui.home.ShowBottomNavEvent
 import eu.kanade.tachiyomi.ui.home.TopLevelRoute
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.util.system.AuthenticatorUtil.authenticate
 import eu.kanade.tachiyomi.util.system.workManager
 import kotlinx.coroutines.launch
 import mihon.app.di.appGraph
@@ -57,9 +55,7 @@ import tachiyomi.i18n.information_empty_library
 import tachiyomi.i18n.information_no_entries_found
 import tachiyomi.i18n.komikita_category_update_added
 import tachiyomi.i18n.komikita_category_update_already_included
-import tachiyomi.i18n.komikita_lock_hidden
 import tachiyomi.i18n.komikita_search_meaning_error
-import tachiyomi.i18n.komikita_unlock_hidden
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.label_library
 import tachiyomi.i18n.no_next_chapter
@@ -83,17 +79,12 @@ fun LibraryTab() {
     val haptic = LocalHapticFeedback.current
     val graph = remember(context) { context.appGraph }
     val hiddenCategories by graph.libraryPreferences.hiddenCategories.collectAsState()
-    val hiddenUnlocked by graph.hiddenLibrarySession.unlocked.collectAsStateWithLifecycle()
 
     val viewModel = metroViewModel<LibraryViewModel>()
     val settingsViewModel = metroViewModel<LibrarySettingsViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    // A stopped collector can replay the previously revealed library before its query catches up.
-    if (!hiddenUnlocked && (
-            state.libraryData.hiddenCategoriesRevealed ||
-                state.libraryData.hiddenCategoryIds != hiddenCategories.mapNotNull(String::toLongOrNull).toSet()
-            )
-    ) {
+    // The library can replay a snapshot from before a category was hidden.
+    if (state.libraryData.hiddenCategoryIds != hiddenCategories.mapNotNull(String::toLongOrNull).toSet()) {
         LoadingScreen()
         return
     }
@@ -140,33 +131,6 @@ fun LibraryTab() {
                 page = state.coercedActiveCategoryIndex,
             )
             LibraryToolbar(
-                hiddenCategoriesAction = if (hiddenCategories.isEmpty()) {
-                    null
-                } else {
-                    if (hiddenUnlocked) {
-                        stringResource(MR.strings.komikita_lock_hidden)
-                    } else {
-                        stringResource(MR.strings.komikita_unlock_hidden)
-                    }
-                },
-                onToggleHiddenCategories = {
-                    if (hiddenUnlocked) {
-                        graph.hiddenLibrarySession.lock()
-                    } else {
-                        scope.launch {
-                            val enabled = graph.securityPreferences.authenticateHiddenCategories.get()
-                            val activity = context as? FragmentActivity ?: return@launch
-                            if (!enabled || activity.authenticate(
-                                    title = context.stringResource(MR.strings.komikita_unlock_hidden),
-                                    subtitle = null,
-                                    allowUnsupported = false,
-                                )
-                            ) {
-                                graph.hiddenLibrarySession.unlock()
-                            }
-                        }
-                    }
-                },
                 updateProgress = updateProgress,
                 hasActiveFilters = state.hasActiveFilters,
                 selectedCount = state.selection.size,

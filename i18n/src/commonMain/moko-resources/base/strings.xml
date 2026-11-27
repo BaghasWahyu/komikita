@@ -1153,14 +1153,13 @@
     <string name="komikita_manga_information">Information</string>
     <string name="komikita_search_chapters">Search chapters</string>
     <string name="komikita_unlock_hidden">Unlock hidden categories</string>
-    <string name="komikita_lock_hidden">Lock hidden categories</string>
     <string name="komikita_hidden_locked">Hidden categories are locked</string>
     <string name="komikita_no_visible_categories">There are no visible categories.</string>
     <string name="komikita_auth_unavailable">Set a screen lock PIN, pattern, password, or biometric in Android settings, then try again.</string>
     <string name="komikita_lock_categories">Lock hidden categories</string>
-    <string name="komikita_lock_categories_summary">Use biometrics or your device PIN to reveal hidden categories. Locks again when the app enters the background. Hidden titles stay out of Continue reading, history, updates, and widgets.</string>
+    <string name="komikita_lock_categories_summary">Require biometrics or your device PIN to manage hidden categories. Locks again when the app enters the background.</string>
     <string name="komikita_hide_category_sources">Hide sources of hidden categories</string>
-    <string name="komikita_hide_category_sources_summary">Hide any source with at least one comic in a hidden category from Browse and global search until you reveal the categories.</string>
+    <string name="komikita_hide_category_sources_summary">Hide sources that have at least one comic in a hidden category from Browse and global search.</string>
     <string name="komikita_reading_wrapped">Your reading year</string>
     <string name="komikita_current_streak">Current streak (days)</string>
     <string name="komikita_longest_streak">Best streak (days)</string>

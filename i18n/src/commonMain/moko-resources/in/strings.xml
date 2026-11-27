@@ -1022,14 +1022,13 @@
     <string name="komikita_manga_information">Informasi</string>
     <string name="komikita_search_chapters">Cari chapter</string>
     <string name="komikita_unlock_hidden">Buka kategori tersembunyi</string>
-    <string name="komikita_lock_hidden">Kunci kategori tersembunyi</string>
     <string name="komikita_hidden_locked">Kategori tersembunyi terkunci</string>
     <string name="komikita_no_visible_categories">Tidak ada kategori yang terlihat.</string>
     <string name="komikita_auth_unavailable">Siapkan PIN, pola, sandi, atau biometrik layar kunci di pengaturan Android, lalu coba lagi.</string>
     <string name="komikita_lock_categories">Kunci kategori tersembunyi</string>
-    <string name="komikita_lock_categories_summary">Gunakan biometrik atau PIN perangkat untuk membuka kategori tersembunyi. Terkunci lagi saat aplikasi masuk latar belakang. Judul tersembunyi tetap tidak muncul di Lanjutkan Membaca, riwayat, pembaruan, dan widget.</string>
+    <string name="komikita_lock_categories_summary">Gunakan biometrik atau PIN perangkat untuk mengelola kategori tersembunyi. Terkunci lagi saat aplikasi masuk latar belakang.</string>
     <string name="komikita_hide_category_sources">Sembunyikan sumber kategori tersembunyi</string>
-    <string name="komikita_hide_category_sources_summary">Sumber dengan setidaknya satu komik di kategori tersembunyi akan disembunyikan dari Jelajahi dan pencarian global sampai kategori ditampilkan kembali.</string>
+    <string name="komikita_hide_category_sources_summary">Sembunyikan sumber yang memiliki setidaknya satu komik dalam kategori tersembunyi dari Jelajahi dan pencarian global.</string>
     <string name="komikita_reading_wrapped">Tahun bacaanmu</string>
     <string name="komikita_current_streak">Streak saat ini (hari)</string>
     <string name="komikita_longest_streak">Streak terpanjang (hari)</string>
