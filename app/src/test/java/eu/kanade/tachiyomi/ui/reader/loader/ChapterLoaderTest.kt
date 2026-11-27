@@ -66,6 +66,18 @@ class ChapterLoaderTest {
     }
 
     @Test
+    fun closesArchiveWhenEpubInitializationFails() = runTest {
+        val failure = IOException("Unable to initialize EPUB")
+        every { source.getFormat(any()) } returns Format.Epub(file)
+        every { archive.getInputStream(any()) } throws failure
+
+        shouldThrow<IOException> { loader().loadChapter(chapter) } shouldBe failure
+
+        chapter.pageLoader shouldBe null
+        verify(exactly = 1) { archive.close() }
+    }
+
+    @Test
     fun closesArchiveWhenLoadingIsCancelledBeforePublishingPages() = runTest {
         val readingStarted = CompletableDeferred<Unit>()
         val finishReading = CountDownLatch(1)

@@ -33,18 +33,13 @@ class LocalCoverManager(
         manga: SManga,
         inputStream: InputStream,
     ): UniFile? {
-        val directory = fileSystem.getMangaDirectory(manga.url)
-        if (directory == null) {
-            inputStream.close()
-            return null
-        }
-
-        val targetFile = find(manga.url) ?: directory.createFile(DEFAULT_COVER_NAME)!!
-
-        inputStream.use { input ->
+        val (directory, targetFile) = inputStream.use { input ->
+            val directory = fileSystem.getMangaDirectory(manga.url) ?: return null
+            val targetFile = find(manga.url) ?: directory.createFile(DEFAULT_COVER_NAME)!!
             targetFile.openOutputStream().use { output ->
                 input.copyTo(output)
             }
+            directory to targetFile
         }
 
         DiskUtil.createNoMediaFile(directory, context)

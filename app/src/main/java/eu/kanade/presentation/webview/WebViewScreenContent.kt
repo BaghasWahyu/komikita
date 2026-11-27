@@ -290,6 +290,13 @@ fun WebViewScreenContent(
                 return false
             }
 
+            override fun onCloseWindow(window: WebView) {
+                val popup = windowStack.firstOrNull { it.popupMessage != null && it.webView === window } ?: return
+                windowStack.remove(popup)
+                popup.webView = null
+                lifecycle.release(window)
+            }
+
             override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean {
                 if (!lifecycle.isActive) {
                     result.confirm()
