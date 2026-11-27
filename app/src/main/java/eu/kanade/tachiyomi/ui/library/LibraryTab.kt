@@ -45,17 +45,20 @@ import mihon.core.navigation.MangaRoute
 import mihon.core.navigation.MigrationConfigRoute
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
+import mihon.icons.materialsymbols.rounded.Refresh
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_retry
 import tachiyomi.i18n.getting_started_guide
 import tachiyomi.i18n.information_empty_library
 import tachiyomi.i18n.information_no_entries_found
 import tachiyomi.i18n.komikita_category_update_added
 import tachiyomi.i18n.komikita_category_update_already_included
 import tachiyomi.i18n.komikita_lock_hidden
+import tachiyomi.i18n.komikita_search_meaning_error
 import tachiyomi.i18n.komikita_unlock_hidden
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.label_library
@@ -189,6 +192,10 @@ fun LibraryTab() {
                 },
                 searchQuery = state.searchQuery,
                 onSearchQueryChange = viewModel::search,
+                searchByMeaning = state.searchByMeaning,
+                showSemanticSearchHint = state.searchByMeaning && state.semanticSearchStatus == null,
+                onToggleSearchByMeaning = viewModel::toggleSearchByMeaning.takeIf { viewModel.supportsSemanticSearch },
+                onSubmitSemanticSearch = viewModel::submitSemanticSearch,
                 // For scroll overlay when no tab
                 scrollBehavior = scrollBehavior.takeIf { !state.showCategoryTabs },
             )
@@ -212,8 +219,21 @@ fun LibraryTab() {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { contentPadding ->
         when {
-            state.isLoading -> {
+            state.isLoading || state.semanticSearchStatus == LibraryViewModel.SemanticSearchStatus.Searching -> {
                 LoadingScreen(Modifier.padding(contentPadding))
+            }
+            state.semanticSearchStatus == LibraryViewModel.SemanticSearchStatus.Failed -> {
+                EmptyScreen(
+                    stringRes = MR.strings.komikita_search_meaning_error,
+                    modifier = Modifier.padding(contentPadding),
+                    actions = listOf(
+                        EmptyScreenAction(
+                            stringRes = MR.strings.action_retry,
+                            icon = MaterialSymbols.Rounded.Refresh,
+                            onClick = viewModel::submitSemanticSearch,
+                        ),
+                    ),
+                )
             }
             state.searchQuery.isNullOrEmpty() && !state.hasActiveFilters && state.isLibraryEmpty -> {
                 val handler = LocalUriHandler.current
@@ -296,10 +316,11 @@ fun LibraryTab() {
         null -> {}
     }
 
-    BackHandler(enabled = state.selectionMode || state.searchQuery != null) {
+    BackHandler(enabled = state.selectionMode || state.searchQuery != null || state.searchByMeaning) {
         when {
             state.selectionMode -> viewModel.clearSelection()
             state.searchQuery != null -> viewModel.search(null)
+            state.searchByMeaning -> viewModel.toggleSearchByMeaning()
         }
     }
 
@@ -318,7 +339,7 @@ fun LibraryTab() {
     ReportDrawnWhen { !state.isLoading }
 
     ResultEffect<LibrarySearchEvent> {
-        viewModel.search(it.query)
+        viewModel.searchByKeyword(it.query)
     }
 
     ResultEffect<Unit>(resultKey = TopLevelRoute.Library.reselectEventKey) {

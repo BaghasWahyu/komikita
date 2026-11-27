@@ -291,6 +291,7 @@ dependencies {
 
     // Networking
     implementation(libs.bundles.okhttp)
+    implementation("com.google.mediapipe:tasks-text:1.2.3")
     implementation(libs.okio)
     implementation(libs.conscrypt) // TLS 1.3 support for Android < 10
 

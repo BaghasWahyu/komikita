@@ -1003,6 +1003,9 @@
     <string name="komikita_category_update_added">Kategori ditambahkan ke pembaruan yang sedang berjalan</string>
     <string name="komikita_category_update_already_included">Kategori ini sudah termasuk dalam pembaruan yang sedang berjalan</string>
     <string name="komikita_search_library">Cari di perpustakaan</string>
+    <string name="komikita_search_meaning">Cari berdasarkan makna</string>
+    <string name="komikita_search_meaning_model">Deskripsikan ceritanya, lalu tekan Cari. Pencarian pertama mengunduh model 184 MB.</string>
+    <string name="komikita_search_meaning_error">Pencarian semantik gagal. Jika ini pencarian pertama, periksa koneksi internet lalu coba lagi.</string>
     <string name="komikita_your_collection">Koleksimu</string>
     <string name="komikita_continue_reading">Lanjutkan membaca</string>
     <string name="komikita_reading_progress">Dibaca %1$d dari %2$d chapter</string>

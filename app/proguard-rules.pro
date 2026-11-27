@@ -86,6 +86,10 @@
 # KotlinX Datetime
 -keep,allowoptimization class kotlinx.datetime.** { public protected *; }
 
+# MediaPipe resolves Java classes and Flogger stack frames by name at runtime.
+-keep class com.google.mediapipe.** { *; }
+-keep class com.google.common.flogger.** { *; }
+
 # Methods called by Shizuku only
 -keepclassmembers class mihon.app.shizuku.ShellInterface {
     public <init>();

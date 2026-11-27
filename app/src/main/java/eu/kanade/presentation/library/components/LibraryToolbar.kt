@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -41,9 +42,11 @@ import mihon.icons.materialsymbols.rounded.FilterList
 import mihon.icons.materialsymbols.rounded.FlipToBack
 import mihon.icons.materialsymbols.rounded.Search
 import mihon.icons.materialsymbols.rounded.SelectAll
+import mihon.icons.materialsymbols.rounded.TravelExplore
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.action_filter
 import tachiyomi.i18n.action_open_random_manga
+import tachiyomi.i18n.action_search
 import tachiyomi.i18n.action_select_all
 import tachiyomi.i18n.action_select_inverse
 import tachiyomi.i18n.action_update_category
@@ -52,6 +55,8 @@ import tachiyomi.i18n.komikita_clear_search
 import tachiyomi.i18n.komikita_library_tagline
 import tachiyomi.i18n.komikita_library_update_progress
 import tachiyomi.i18n.komikita_search_library
+import tachiyomi.i18n.komikita_search_meaning
+import tachiyomi.i18n.komikita_search_meaning_model
 import tachiyomi.i18n.label_download_queue
 import tachiyomi.i18n.updating_category
 import tachiyomi.i18n.updating_library
@@ -74,6 +79,10 @@ fun LibraryToolbar(
     onSearchQueryChange: (String?) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior?,
     updateProgress: LibraryUpdateProgress? = null,
+    searchByMeaning: Boolean = false,
+    showSemanticSearchHint: Boolean = false,
+    onToggleSearchByMeaning: (() -> Unit)? = null,
+    onSubmitSemanticSearch: () -> Unit = {},
     hiddenCategoriesAction: String? = null,
     onToggleHiddenCategories: () -> Unit = {},
 ) {
@@ -90,6 +99,10 @@ fun LibraryToolbar(
                 hasFilters = hasActiveFilters,
                 searchQuery = searchQuery,
                 onSearchQueryChange = onSearchQueryChange,
+                searchByMeaning = searchByMeaning,
+                showSemanticSearchHint = showSemanticSearchHint,
+                onToggleSearchByMeaning = onToggleSearchByMeaning,
+                onSubmitSemanticSearch = onSubmitSemanticSearch,
                 onClickFilter = onClickFilter,
                 onClickDownloads = onClickDownloads,
                 onClickRefresh = onClickRefresh,
@@ -159,6 +172,10 @@ private fun LibraryRegularToolbar(
     hasFilters: Boolean,
     searchQuery: String?,
     onSearchQueryChange: (String?) -> Unit,
+    searchByMeaning: Boolean,
+    showSemanticSearchHint: Boolean,
+    onToggleSearchByMeaning: (() -> Unit)?,
+    onSubmitSemanticSearch: () -> Unit,
     onClickFilter: () -> Unit,
     onClickDownloads: () -> Unit,
     onClickRefresh: () -> Unit,
@@ -169,6 +186,10 @@ private fun LibraryRegularToolbar(
     onToggleHiddenCategories: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
+    val submitSearch = {
+        onSubmitSemanticSearch()
+        focusManager.clearFocus()
+    }
     Column {
         AppBar(
             titleContent = {
@@ -233,8 +254,23 @@ private fun LibraryRegularToolbar(
                 value = searchQuery.orEmpty(),
                 onValueChange = { onSearchQueryChange(it.takeIf(String::isNotEmpty)) },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(MR.strings.komikita_search_library)) },
-                leadingIcon = { Icon(MaterialSymbols.Rounded.Search, contentDescription = null) },
+                placeholder = {
+                    val hint = if (searchByMeaning) {
+                        MR.strings.komikita_search_meaning
+                    } else {
+                        MR.strings.komikita_search_library
+                    }
+                    Text(stringResource(hint), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                },
+                leadingIcon = {
+                    if (searchByMeaning) {
+                        IconButton(onClick = submitSearch, enabled = !searchQuery.isNullOrBlank()) {
+                            Icon(MaterialSymbols.Rounded.Search, stringResource(MR.strings.action_search))
+                        }
+                    } else {
+                        Icon(MaterialSymbols.Rounded.Search, contentDescription = null)
+                    }
+                },
                 trailingIcon = {
                     if (!searchQuery.isNullOrEmpty()) {
                         IconButton(onClick = { onSearchQueryChange(null) }) {
@@ -245,13 +281,23 @@ private fun LibraryRegularToolbar(
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                keyboardActions = KeyboardActions(onSearch = { submitSearch() }),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                 ),
             )
+            if (onToggleSearchByMeaning != null) {
+                FilledTonalIconToggleButton(
+                    checked = searchByMeaning,
+                    onCheckedChange = { onToggleSearchByMeaning() },
+                    modifier = Modifier.size(56.dp),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Icon(MaterialSymbols.Rounded.TravelExplore, stringResource(MR.strings.komikita_search_meaning))
+                }
+            }
             FilledTonalIconButton(
                 onClick = onClickFilter,
                 modifier = Modifier.size(56.dp),
@@ -271,6 +317,14 @@ private fun LibraryRegularToolbar(
             ) {
                 Icon(MaterialSymbols.Rounded.FilterList, stringResource(MR.strings.action_filter))
             }
+        }
+        if (showSemanticSearchHint) {
+            Text(
+                text = stringResource(MR.strings.komikita_search_meaning_model),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

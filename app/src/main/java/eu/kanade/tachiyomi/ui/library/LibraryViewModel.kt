@@ -27,6 +27,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -48,12 +50,14 @@ import kotlinx.coroutines.withContext
 import mihon.core.common.utils.mutate
 import mihon.core.metro.AppCoroutineScope
 import mihon.domain.library.model.search.QueryNode
+import mihon.feature.library.LibrarySemanticSearch
 import mihon.feature.library.matches
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.util.lang.SubscriberGate
 import tachiyomi.core.common.util.lang.compareToWithCollator
 import tachiyomi.core.common.util.lang.pausedWhileUnsubscribed
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetMangaCategories
 import tachiyomi.domain.category.model.Category
@@ -100,11 +104,14 @@ class LibraryViewModel(
     private val downloadManager: DownloadManager,
     private val downloadCache: DownloadCache,
     private val trackerManager: TrackerManager,
+    private val semanticSearch: LibrarySemanticSearch,
 ) : ViewModel() {
 
     private val subscriberGate = SubscriberGate()
 
-    private val searchQuery = MutableStateFlow<String?>(null)
+    private val search = MutableStateFlow(Search())
+
+    val supportsSemanticSearch = semanticSearch.isSupported
 
     private val selection = MutableStateFlow(emptySet</* Manga */ Long>())
 
@@ -148,57 +155,71 @@ class LibraryViewModel(
     // Shared separately so search, selection and dialog changes still reach [state] before the
     // first query result
     private val library = combine(
-        searchQuery.debounce(0.25.seconds),
+        search.debounce { if (it.byMeaning) 0L else 250L },
         getCategories.subscribe(),
         getFavoritesFlow(),
         combine(tracks, getTrackingFiltersFlow(), ::Pair),
         getLibraryItemPreferencesFlow(),
-    ) { searchQuery, categories, favorites, (tracksMap, trackingFilters), itemPreferences ->
+    ) { search, categories, favorites, (tracksMap, trackingFilters), itemPreferences ->
         // Apply visibility from this preference snapshot before grouping or searching.
         val visibleFavorites = favorites.filter { it.libraryManga.isVisibleInLibrary(itemPreferences.hiddenCategories) }
         val showSystemCategory = visibleFavorites.any { it.libraryManga.categories.contains(0) }
-        val filteredFavorites = visibleFavorites
-            .applyFilters(tracksMap, trackingFilters, itemPreferences)
-            .let { libraryItems ->
-                if (searchQuery.isNullOrEmpty()) {
-                    libraryItems
-                } else {
-                    val queryNode = QueryNode.from(searchQuery)
-                    libraryItems.filter { queryNode.matches(it) }
-                }
-            }
-
         LibraryData(
             isInitialized = true,
             hiddenCategoriesRevealed = itemPreferences.hiddenCategoriesRevealed,
             hiddenCategoryIds = itemPreferences.hiddenCategories,
             showSystemCategory = showSystemCategory,
             categories = categories.filterNot { it.id in itemPreferences.hiddenCategories },
-            favorites = filteredFavorites,
+            favorites = visibleFavorites.applyFilters(tracksMap, trackingFilters, itemPreferences),
             tracksMap = tracksMap,
             loggedInTrackerIds = trackingFilters.keys,
-        )
+        ) to search
     }
         .distinctUntilChanged()
-        .map { data ->
-            Library(
-                data = data,
-                groupedFavorites = data.favorites
-                    .applyGrouping(data.categories, data.showSystemCategory)
-                    .applySort(data.favoritesById, data.tracksMap, data.loggedInTrackerIds),
-            )
+        .transformLatest { (data, search) ->
+            val query = search.query
+            when {
+                query.isNullOrEmpty() -> emit(data.groupAndSort())
+                !search.byMeaning -> {
+                    val queryNode = QueryNode.from(query)
+                    emit(data.copy(favorites = data.favorites.filter { queryNode.matches(it) }).groupAndSort())
+                }
+                search.attempt == 0 -> emit(data.groupAndSort())
+                else -> {
+                    emit(data.copy(favorites = emptyList()).groupAndSort(search, SemanticSearchStatus.Searching))
+                    val ranked = try {
+                        semanticSearch.rank(query.trim(), data.favorites)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        logcat { "Semantic search failed: ${e.javaClass.simpleName}" }
+                        null
+                    } catch (e: LinkageError) {
+                        logcat { "Semantic search unavailable: ${e.javaClass.simpleName}" }
+                        null
+                    }
+                    val status = if (ranked != null) SemanticSearchStatus.Results else SemanticSearchStatus.Failed
+                    emit(data.copy(favorites = ranked.orEmpty()).groupAndSort(search, status))
+                }
+            }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope + subscriberGate, SharingStarted.Eagerly, null)
 
     val state: StateFlow<State> = combine(
         library,
-        combine(searchQuery, selection, dialog, ::Triple),
+        combine(search, selection, dialog, ::Triple),
         combine(activeCategoryIndex, displayPreferences, hasActiveFilters, ::Triple),
-    ) { library, (searchQuery, selection, dialog), (activeCategoryIndex, display, hasActiveFilters) ->
+    ) { library, (search, selection, dialog), (activeCategoryIndex, display, hasActiveFilters) ->
         State(
             isLoading = library == null,
-            searchQuery = searchQuery,
+            searchQuery = search.query,
+            searchByMeaning = search.byMeaning,
+            semanticSearchStatus = if (search.attempt != 0) {
+                library?.semanticSearchStatus.takeIf { library?.search == search } ?: SemanticSearchStatus.Searching
+            } else {
+                null
+            },
             selection = selection,
             hasActiveFilters = hasActiveFilters,
             showCategoryTabs = display.showCategoryTabs,
@@ -221,7 +242,23 @@ class LibraryViewModel(
     private data class Library(
         val data: LibraryData,
         val groupedFavorites: Map<Category, List</* LibraryItem */ Long>>,
+        val search: Search?,
+        val semanticSearchStatus: SemanticSearchStatus?,
     )
+
+    private data class Search(val query: String? = null, val byMeaning: Boolean = false, val attempt: Int = 0)
+
+    enum class SemanticSearchStatus { Searching, Results, Failed }
+
+    private fun LibraryData.groupAndSort(search: Search? = null, status: SemanticSearchStatus? = null): Library {
+        val grouped = favorites.applyGrouping(categories, showSystemCategory)
+        val sorted = if (status == SemanticSearchStatus.Results) {
+            grouped
+        } else {
+            grouped.applySort(favoritesById, tracksMap, loggedInTrackerIds)
+        }
+        return Library(this, sorted, search, status)
+    }
 
     private fun List<LibraryItem>.applyFilters(
         trackMap: Map<Long, List<Track>>,
@@ -735,7 +772,21 @@ class LibraryViewModel(
     }
 
     fun search(query: String?) {
-        searchQuery.update { query }
+        search.update { it.copy(query = query, attempt = 0) }
+    }
+
+    fun searchByKeyword(query: String) {
+        search.value = Search(query)
+    }
+
+    fun toggleSearchByMeaning() {
+        search.update { it.copy(byMeaning = !it.byMeaning, attempt = 0) }
+    }
+
+    fun submitSemanticSearch() {
+        search.update {
+            if (it.byMeaning && !it.query.isNullOrBlank()) it.copy(attempt = it.attempt + 1) else it
+        }
     }
 
     fun updateActiveCategoryIndex(index: Int) {
@@ -827,6 +878,8 @@ class LibraryViewModel(
         val isInitialized: Boolean = false,
         val isLoading: Boolean = true,
         val searchQuery: String? = null,
+        val searchByMeaning: Boolean = false,
+        val semanticSearchStatus: SemanticSearchStatus? = null,
         val selection: Set</* Manga */ Long> = setOf(),
         val hasActiveFilters: Boolean = false,
         val showCategoryTabs: Boolean = false,
