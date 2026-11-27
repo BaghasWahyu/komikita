@@ -23,6 +23,15 @@ interface MangaRepository {
 
     suspend fun getLibraryManga(): List<LibraryManga>
 
+    suspend fun getLibraryMangaForUpdate(
+        includedCategories: List<Long>,
+        excludedCategories: List<Long>,
+    ): List<LibraryManga>
+
+    suspend fun getLibraryMangaForUpdateByCategory(categoryId: Long): List<LibraryManga>
+
+    suspend fun getLibraryMangaForUpdateByIds(mangaIds: List<Long>): List<LibraryManga>
+
     fun getLibraryMangaAsFlow(): Flow<List<LibraryManga>>
 
     suspend fun getHiddenLibraryMangaIds(categoryIds: List<Long>): Set<Long>

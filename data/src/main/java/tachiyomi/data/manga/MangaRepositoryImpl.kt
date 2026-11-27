@@ -77,6 +77,40 @@ class MangaRepositoryImpl(
             .awaitAsList()
     }
 
+    override suspend fun getLibraryMangaForUpdate(
+        includedCategories: List<Long>,
+        excludedCategories: List<Long>,
+    ): List<LibraryManga> {
+        return database.mangaQueries
+            .getLibraryMangaForUpdate(
+                includedEmpty = includedCategories.isEmpty(),
+                includedCategories = includedCategories,
+                excludedEmpty = excludedCategories.isEmpty(),
+                excludedCategories = excludedCategories,
+                mapper = MangaMapper::mapLibraryMangaForUpdate,
+            )
+            .awaitAsList()
+    }
+
+    override suspend fun getLibraryMangaForUpdateByCategory(categoryId: Long): List<LibraryManga> {
+        return database.mangaQueries
+            .getLibraryMangaForUpdateByCategory(
+                categoryId = categoryId,
+                mapper = MangaMapper::mapLibraryMangaForUpdate,
+            )
+            .awaitAsList()
+    }
+
+    override suspend fun getLibraryMangaForUpdateByIds(mangaIds: List<Long>): List<LibraryManga> {
+        if (mangaIds.isEmpty()) return emptyList()
+        return database.mangaQueries
+            .getLibraryMangaForUpdateByIds(
+                mangaIds = mangaIds,
+                mapper = MangaMapper::mapLibraryMangaForUpdate,
+            )
+            .awaitAsList()
+    }
+
     override fun getLibraryMangaAsFlow(): Flow<List<LibraryManga>> {
         return database.libraryViewQueries
             .library(MangaMapper::mapLibraryManga)

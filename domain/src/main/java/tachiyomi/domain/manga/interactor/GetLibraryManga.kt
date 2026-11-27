@@ -20,6 +20,21 @@ class GetLibraryManga(
         return mangaRepository.getLibraryManga()
     }
 
+    suspend fun awaitForUpdate(
+        includedCategories: List<Long>,
+        excludedCategories: List<Long>,
+    ): List<LibraryManga> {
+        return mangaRepository.getLibraryMangaForUpdate(includedCategories, excludedCategories)
+    }
+
+    suspend fun awaitForUpdateByCategory(categoryId: Long): List<LibraryManga> {
+        return mangaRepository.getLibraryMangaForUpdateByCategory(categoryId)
+    }
+
+    suspend fun awaitForUpdateByIds(mangaIds: List<Long>): List<LibraryManga> {
+        return mangaRepository.getLibraryMangaForUpdateByIds(mangaIds)
+    }
+
     fun subscribe(): Flow<List<LibraryManga>> {
         return mangaRepository.getLibraryMangaAsFlow()
             .retry {

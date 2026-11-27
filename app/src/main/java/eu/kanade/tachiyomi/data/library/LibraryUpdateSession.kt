@@ -33,42 +33,62 @@ internal class LibraryUpdateSession(initialCategoryId: Long?) {
         loadCategory: suspend (Long) -> List<LibraryManga>,
         filterManga: suspend (List<LibraryManga>) -> List<LibraryManga>,
         onProgress: suspend (updatingManga: List<Manga>, completed: Int, total: Int) -> Unit,
+        isUnmeteredSource: suspend (Long) -> Boolean = { false },
         update: suspend (Manga) -> Unit,
     ) = coroutineScope {
         val seenManga = mutableSetOf<Long>()
         val pending = mutableMapOf<Long, ArrayDeque<Manga>>()
         val activeManga = mutableMapOf<Long, Manga>()
+        val unmeteredSources = mutableMapOf<Long, Boolean>()
+        var activeMeteredCount = 0
         var completed = 0
         var total = 0
 
         suspend fun addManga(candidates: List<LibraryManga>) {
             val manga = filterManga(candidates.filter { seenManga.add(it.id) })
             manga.groupBy { it.manga.source }.values.sortedByDescending { it.size }.forEach { group ->
-                pending.getOrPut(group.first().manga.source, ::ArrayDeque).addAll(group.map { it.manga })
+                val source = group.first().manga.source
+                if (source !in unmeteredSources) {
+                    unmeteredSources[source] = isUnmeteredSource(source)
+                }
+                pending.getOrPut(source, ::ArrayDeque).addAll(group.map { it.manga })
             }
             total += manga.size
+        }
+
+        fun isUnmetered(source: Long): Boolean = unmeteredSources[source] == true
+
+        fun startSource(source: Long, queue: ArrayDeque<Manga>) {
+            val manga = queue.removeFirst()
+            activeManga[source] = manga
+            if (!isUnmetered(source)) activeMeteredCount++
+            if (queue.isEmpty()) pending.remove(source)
+            launch {
+                try {
+                    update(manga)
+                    ensureActive()
+                    events.send(Event.MangaCompleted(source))
+                } catch (e: CancellationException) {
+                    this@coroutineScope.cancel(e)
+                    throw e
+                }
+            }
         }
 
         try {
             addManga(initialManga)
             while (true) {
-                val iterator = pending.iterator()
-                while (activeManga.size < MAX_ACTIVE_SOURCES && iterator.hasNext()) {
-                    val (source, queue) = iterator.next()
-                    if (source in activeManga) continue
-                    val manga = queue.removeFirst()
-                    activeManga[source] = manga
-                    if (queue.isEmpty()) iterator.remove()
-                    launch {
-                        try {
-                            update(manga)
-                            ensureActive()
-                            events.send(Event.MangaCompleted(source))
-                        } catch (e: CancellationException) {
-                            this@coroutineScope.cancel(e)
-                            throw e
-                        }
-                    }
+                pending.entries
+                    .filter { (source, _) -> source !in activeManga && isUnmetered(source) }
+                    .toList()
+                    .forEach { (source, queue) -> startSource(source, queue) }
+
+                while (activeMeteredCount < MAX_ACTIVE_SOURCES) {
+                    val next = pending.entries
+                        .filter { (source, _) -> source !in activeManga && !isUnmetered(source) }
+                        .maxByOrNull { it.value.size }
+                        ?: break
+                    startSource(next.key, next.value)
                 }
 
                 onProgress(activeManga.values.toList(), completed, total)
@@ -86,6 +106,7 @@ internal class LibraryUpdateSession(initialCategoryId: Long?) {
                     is Event.CategoryAdded -> addManga(loadCategory(event.id))
                     is Event.MangaCompleted -> {
                         activeManga.remove(event.source)
+                        if (!isUnmetered(event.source)) activeMeteredCount--
                         completed++
                     }
                 }

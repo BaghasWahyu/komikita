@@ -28,11 +28,15 @@ class FilterChaptersForDownload(
      * @param newChapters The list of new chapters available for the manga.
      * @return A list of chapters that should be downloaded
      */
-    suspend fun await(manga: Manga, newChapters: List<Chapter>): List<Chapter> {
+    suspend fun await(
+        manga: Manga,
+        newChapters: List<Chapter>,
+        mangaCategories: List<Long>? = null,
+    ): List<Chapter> {
         if (
             newChapters.isEmpty() ||
             !downloadPreferences.downloadNewChapters.get() ||
-            !manga.shouldDownloadNewChapters()
+            !manga.shouldDownloadNewChapters(mangaCategories)
         ) {
             return emptyList()
         }
@@ -54,16 +58,19 @@ class FilterChaptersForDownload(
      *
      * @return `true` if chapters of the manga should be downloaded
      */
-    private suspend fun Manga.shouldDownloadNewChapters(): Boolean {
+    private suspend fun Manga.shouldDownloadNewChapters(mangaCategories: List<Long>?): Boolean {
         if (!favorite) return false
 
-        val categories = getCategories.await(id).map { it.id }.ifEmpty { listOf(DEFAULT_CATEGORY_ID) }
-        val includedCategories = downloadPreferences.downloadNewChapterCategories.get().map { it.toLong() }
-        val excludedCategories = downloadPreferences.downloadNewChapterCategoriesExclude.get().map { it.toLong() }
+        val includedCategories = downloadPreferences.downloadNewChapterCategories.get().map { it.toLong() }.toSet()
+        val excludedCategories =
+            downloadPreferences.downloadNewChapterCategoriesExclude.get().map { it.toLong() }.toSet()
+
+        if (includedCategories.isEmpty() && excludedCategories.isEmpty()) return true
+
+        val categories = (mangaCategories ?: getCategories.await(id).map { it.id })
+            .ifEmpty { listOf(DEFAULT_CATEGORY_ID) }
 
         return when {
-            // Default Download from all categories
-            includedCategories.isEmpty() && excludedCategories.isEmpty() -> true
             // In excluded category
             categories.any { it in excludedCategories } -> false
             // Included category not selected

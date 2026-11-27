@@ -5,6 +5,7 @@ import android.content.pm.ServiceInfo
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
+import android.os.SystemClock
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -21,6 +22,7 @@ import androidx.work.workDataOf
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
 import eu.kanade.tachiyomi.util.storage.getUriCompat
@@ -83,6 +85,7 @@ import tachiyomi.i18n.skipped_reason_not_started
 import java.io.File
 import java.util.Collections
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -118,6 +121,8 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     @Inject private lateinit var visibility: LibraryVisibility
 
     private val reportEntries = Collections.synchronizedList(mutableListOf<LibraryUpdateReport.Entry>())
+    private var lastProgressPublishedTime = 0L
+    private var lastPublishedTotal = -1
 
     override suspend fun doWork(): Result {
         // Automatic and manual workers share the progress notification and report.
@@ -211,21 +216,14 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     }
 
     private suspend fun loadManga(categoryId: Long?, retryIds: List<Long>? = null): List<LibraryManga> {
-        val libraryManga = getLibraryManga.await()
-
         return if (retryIds != null) {
-            libraryManga.filter { it.id in retryIds }
+            getLibraryManga.awaitForUpdateByIds(retryIds)
         } else if (categoryId != null) {
-            libraryManga.filter { categoryId in it.categories }
+            getLibraryManga.awaitForUpdateByCategory(categoryId)
         } else {
             val includedCategories = libraryPreferences.updateCategories.get().map { it.toLong() }
             val excludedCategories = libraryPreferences.updateCategoriesExclude.get().map { it.toLong() }
-
-            libraryManga.filter {
-                val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
-                val excluded = it.categories.intersect(excludedCategories).isNotEmpty()
-                included && !excluded
-            }
+            getLibraryManga.awaitForUpdate(includedCategories, excludedCategories)
         }
     }
 
@@ -279,6 +277,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         val timeZone = TimeZone.currentSystemDefault()
         val fetchWindow = fetchInterval.getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
         val allManga = mutableListOf<LibraryManga>()
+        val categoriesByMangaId = ConcurrentHashMap<Long, List<Long>>()
 
         session.run(
             initialManga = loadManga(categoryId, retryIds),
@@ -287,6 +286,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                 filterManga(candidates, fetchWindow.endInclusive).also { added ->
                     if (added.isNotEmpty()) {
                         allManga.addAll(added)
+                        added.forEach { categoriesByMangaId[it.id] = it.categories }
                         notifier.showQueueSizeWarningNotificationIfNeeded(allManga)
                     }
                 }
@@ -295,6 +295,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
                 publishProgress(completed, total, categoryId != null)
                 if (total > 0) notifier.showProgressNotification(updatingManga, completed, total)
             },
+            isUnmeteredSource = { sourceManager.get(it) is UnmeteredSource },
         ) { manga ->
             if (getManga.await(manga.id)?.favorite != true) {
                 reportEntries.add(
@@ -309,7 +310,11 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
             try {
                 val newChapters = updateManga(manga, fetchWindow).sortedByDescending { it.sourceOrder }
                 if (newChapters.isNotEmpty()) {
-                    val chaptersToDownload = filterChaptersForDownload.await(manga, newChapters)
+                    val chaptersToDownload = filterChaptersForDownload.await(
+                        manga = manga,
+                        newChapters = newChapters,
+                        mangaCategories = categoriesByMangaId[manga.id],
+                    )
                     if (chaptersToDownload.isNotEmpty()) {
                         downloadChapters(manga, chaptersToDownload)
                         hasDownloads.store(true)
@@ -391,6 +396,11 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
     }
 
     private suspend fun publishProgress(completed: Int, total: Int, isCategoryUpdate: Boolean) {
+        val now = SystemClock.elapsedRealtime()
+        val isBoundary = completed == 0 || completed >= total || total != lastPublishedTotal
+        if (!isBoundary && now - lastProgressPublishedTime < PROGRESS_PUBLISH_INTERVAL_MS) return
+        lastProgressPublishedTime = now
+        lastPublishedTotal = total
         setProgress(
             workDataOf(
                 KEY_PROGRESS_COMPLETED to completed,
@@ -451,6 +461,7 @@ class LibraryUpdateWorker(private val context: Context, workerParams: WorkerPara
         private const val KEY_PROGRESS_COMPLETED = "progress_completed"
         private const val KEY_PROGRESS_TOTAL = "progress_total"
         private const val KEY_PROGRESS_CATEGORY = "progress_category"
+        private const val PROGRESS_PUBLISH_INTERVAL_MS = 300L
 
         fun observeProgress(workManager: WorkManager): Flow<LibraryUpdateProgress?> =
             workManager.getWorkInfosByTagFlow(TAG)

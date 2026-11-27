@@ -63,6 +63,153 @@ SELECT
 FROM manga
 WHERE user_favorite_at IS NOT NULL;
 
+getLibraryMangaForUpdate:
+WITH target_manga AS (
+    SELECT M.id
+    FROM manga M
+    WHERE M.user_favorite_at IS NOT NULL
+    AND (
+        :includedEmpty
+        OR EXISTS (
+            SELECT 1 FROM manga_category
+            WHERE manga_category.manga_id = M.id
+            AND manga_category.category_id IN :includedCategories
+        )
+        OR (0 IN :includedCategories AND NOT EXISTS (
+            SELECT 1 FROM manga_category WHERE manga_category.manga_id = M.id
+        ))
+    )
+    AND (
+        :excludedEmpty
+        OR (
+            NOT EXISTS (
+                SELECT 1 FROM manga_category
+                WHERE manga_category.manga_id = M.id
+                AND manga_category.category_id IN :excludedCategories
+            )
+            AND (
+                0 NOT IN :excludedCategories
+                OR EXISTS (SELECT 1 FROM manga_category WHERE manga_category.manga_id = M.id)
+            )
+        )
+    )
+)
+SELECT
+    M.id, M.source_id, M.remote_url, M.remote_title, M.remote_author, M.remote_artist,
+    M.remote_description, M.remote_genre, M.remote_status, M.remote_cover,
+    M.remote_update_strategy, M.remote_memo, M.user_favorite_at, M.user_notes,
+    M.user_reader_flags, M.user_chapter_flags, M.state_chapter_last_update,
+    M.state_chapter_next_update, M.state_chapter_fetch_interval,
+    M.state_cover_last_modified, M.state_initialized,
+    coalesce(C.total, 0) AS totalCount,
+    coalesce(C.readCount, 0) AS readCount,
+    coalesce(MC.categories, '0') AS categories
+FROM manga M
+JOIN target_manga TM ON TM.id = M.id
+LEFT JOIN (
+    SELECT
+        chapter.manga_id,
+        count(*) AS total,
+        sum(user_read) AS readCount
+    FROM chapter
+    LEFT JOIN excluded_scanlator
+    ON chapter.manga_id = excluded_scanlator.manga_id
+    AND chapter.remote_scanlator = excluded_scanlator.scanlator
+    WHERE excluded_scanlator.scanlator IS NULL
+    AND chapter.manga_id IN (SELECT id FROM target_manga)
+    GROUP BY chapter.manga_id
+) AS C
+ON M.id = C.manga_id
+LEFT JOIN (
+    SELECT manga_id, group_concat(category_id) AS categories
+    FROM manga_category
+    WHERE manga_id IN (SELECT id FROM target_manga)
+    GROUP BY manga_id
+) AS MC
+ON MC.manga_id = M.id
+WHERE M.user_favorite_at IS NOT NULL;
+
+getLibraryMangaForUpdateByCategory:
+WITH target_manga AS (
+    SELECT M.id
+    FROM manga M
+    WHERE M.user_favorite_at IS NOT NULL
+    AND (
+        (:categoryId = 0 AND NOT EXISTS (SELECT 1 FROM manga_category MC WHERE MC.manga_id = M.id))
+        OR EXISTS (SELECT 1 FROM manga_category MC WHERE MC.manga_id = M.id AND MC.category_id = :categoryId)
+    )
+)
+SELECT
+    M.id, M.source_id, M.remote_url, M.remote_title, M.remote_author, M.remote_artist,
+    M.remote_description, M.remote_genre, M.remote_status, M.remote_cover,
+    M.remote_update_strategy, M.remote_memo, M.user_favorite_at, M.user_notes,
+    M.user_reader_flags, M.user_chapter_flags, M.state_chapter_last_update,
+    M.state_chapter_next_update, M.state_chapter_fetch_interval,
+    M.state_cover_last_modified, M.state_initialized,
+    coalesce(C.total, 0) AS totalCount,
+    coalesce(C.readCount, 0) AS readCount,
+    coalesce(MC.categories, '0') AS categories
+FROM manga M
+JOIN target_manga TM ON TM.id = M.id
+LEFT JOIN (
+    SELECT
+        chapter.manga_id,
+        count(*) AS total,
+        sum(user_read) AS readCount
+    FROM chapter
+    LEFT JOIN excluded_scanlator
+    ON chapter.manga_id = excluded_scanlator.manga_id
+    AND chapter.remote_scanlator = excluded_scanlator.scanlator
+    WHERE excluded_scanlator.scanlator IS NULL
+    AND chapter.manga_id IN (SELECT id FROM target_manga)
+    GROUP BY chapter.manga_id
+) AS C
+ON M.id = C.manga_id
+LEFT JOIN (
+    SELECT manga_id, group_concat(category_id) AS categories
+    FROM manga_category
+    WHERE manga_id IN (SELECT id FROM target_manga)
+    GROUP BY manga_id
+) AS MC
+ON MC.manga_id = M.id
+WHERE M.user_favorite_at IS NOT NULL;
+
+getLibraryMangaForUpdateByIds:
+SELECT
+    M.id, M.source_id, M.remote_url, M.remote_title, M.remote_author, M.remote_artist,
+    M.remote_description, M.remote_genre, M.remote_status, M.remote_cover,
+    M.remote_update_strategy, M.remote_memo, M.user_favorite_at, M.user_notes,
+    M.user_reader_flags, M.user_chapter_flags, M.state_chapter_last_update,
+    M.state_chapter_next_update, M.state_chapter_fetch_interval,
+    M.state_cover_last_modified, M.state_initialized,
+    coalesce(C.total, 0) AS totalCount,
+    coalesce(C.readCount, 0) AS readCount,
+    coalesce(MC.categories, '0') AS categories
+FROM manga M
+LEFT JOIN (
+    SELECT
+        chapter.manga_id,
+        count(*) AS total,
+        sum(user_read) AS readCount
+    FROM chapter
+    LEFT JOIN excluded_scanlator
+    ON chapter.manga_id = excluded_scanlator.manga_id
+    AND chapter.remote_scanlator = excluded_scanlator.scanlator
+    WHERE excluded_scanlator.scanlator IS NULL
+    AND chapter.manga_id IN :mangaIds
+    GROUP BY chapter.manga_id
+) AS C
+ON M.id = C.manga_id
+LEFT JOIN (
+    SELECT manga_id, group_concat(category_id) AS categories
+    FROM manga_category
+    WHERE manga_id IN :mangaIds
+    GROUP BY manga_id
+) AS MC
+ON MC.manga_id = M.id
+WHERE M.user_favorite_at IS NOT NULL
+AND M.id IN :mangaIds;
+
 getHiddenLibraryMangaIds:
 SELECT M.id
 FROM manga M

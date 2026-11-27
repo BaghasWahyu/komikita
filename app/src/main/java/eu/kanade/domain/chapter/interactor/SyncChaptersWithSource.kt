@@ -55,6 +55,7 @@ class SyncChaptersWithSource(
         source: Source,
         manualFetch: Boolean = false,
         fetchWindow: ClosedRange<Instant>? = null,
+        dbChapters: List<Chapter>? = null,
     ): List<Chapter> {
         if (rawSourceChapters.isEmpty() && !source.isLocal()) {
             throw NoChaptersException()
@@ -73,8 +74,8 @@ class SyncChaptersWithSource(
                     .copy(mangaId = manga.id, sourceOrder = i.toLong())
             }
 
-        val dbChapters = chapterRepository.getChapterByMangaId(manga.id)
-        val dbChaptersByUrl = dbChapters.associateBy { it.url }
+        val existingChapters = dbChapters ?: chapterRepository.getChapterByMangaId(manga.id)
+        val dbChaptersByUrl = existingChapters.associateBy { it.url }
 
         val newChapters = mutableListOf<Chapter>()
         val updatedChapters = mutableListOf<ChapterRemoteUpdate>()
@@ -146,7 +147,7 @@ class SyncChaptersWithSource(
             }
         }
 
-        val removedChapters = dbChapters.filterNot { it.url in sourceUrls }
+        val removedChapters = existingChapters.filterNot { it.url in sourceUrls }
 
         // The source no longer lists these, so their queued downloads could only fail
         removedChapters.mapNotNull { downloadManager.getQueuedDownloadOrNull(it.id) }
@@ -174,7 +175,7 @@ class SyncChaptersWithSource(
         val deletedReadChapterNumbers = TreeSet<Double>()
         val deletedBookmarkedChapterNumbers = TreeSet<Double>()
 
-        val readChapterNumbers = dbChapters
+        val readChapterNumbers = existingChapters
             .asSequence()
             .filter { it.read && it.isRecognizedNumber }
             .map { it.chapterNumber }
@@ -229,7 +230,7 @@ class SyncChaptersWithSource(
         val excludedScanlators = getExcludedScanlators.await(manga.id).toHashSet()
 
         // A first fetch lists the back catalogue, and chapters coming back under a deleted number were out already
-        val foundRelease = dbChapters.isNotEmpty() &&
+        val foundRelease = existingChapters.isNotEmpty() &&
             toAdd.any { chapter ->
                 chapter.scanlator !in excludedScanlators &&
                     !(chapter.isRecognizedNumber && chapter.chapterNumber in deletedChapterNumbers)

@@ -31,17 +31,19 @@ class UpdateMangaFromRemoteTest {
     private val mangaRepository = mockk<MangaRepository>()
     private val syncChapters = mockk<SyncChaptersWithSource>()
     private val coverCache = mockk<CoverCache>()
+    private val libraryPreferences = mockk<tachiyomi.domain.library.service.LibraryPreferences>()
     private val update = UpdateMangaFromRemote(
         sourceManager = mockk(),
         chapterRepository = chapterRepository,
         mangaRepository = mangaRepository,
         syncChaptersWithSource = syncChapters,
         coverCache = coverCache,
-        libraryPreferences = mockk(),
+        libraryPreferences = libraryPreferences,
         downloadManager = mockk(relaxed = true),
     )
 
     init {
+        every { libraryPreferences.updateMangaTitles.get() } returns false
         coEvery { chapterRepository.getChapterByMangaId(manga.id) } returns emptyList()
         coEvery { mangaRepository.getMangaById(manga.id) } coAnswers { storedManga }
         coEvery { mangaRepository.updateRemote(any()) } coAnswers {
@@ -72,7 +74,7 @@ class UpdateMangaFromRemoteTest {
         (result.manga.coverLastModified != null) shouldBe true
         result.newChapters shouldBe emptyList()
         verify(exactly = 1) { coverCache.deleteFromCache(mangaWithCover, false) }
-        coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -93,7 +95,7 @@ class UpdateMangaFromRemoteTest {
         result.exceptionOrNull() shouldBe failure
         storedManga.description shouldBe "Synopsis"
         storedManga.initialized shouldBe true
-        coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { syncChapters.await(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -112,7 +114,8 @@ class UpdateMangaFromRemoteTest {
                 requestActive.set(false)
             }
         }
-        coEvery { syncChapters.await(listOf(sourceChapter), any(), source, false, null) } returns listOf(chapter)
+        coEvery { syncChapters.await(listOf(sourceChapter), any(), source, false, null, emptyList()) } returns
+            listOf(chapter)
 
         val result = update(source, manga, fetchDetails = true, fetchChapters = true).getOrThrow()
 
@@ -127,7 +130,7 @@ class UpdateMangaFromRemoteTest {
         coEvery { source.getMangaUpdate(any(), any(), true, true) } coAnswers {
             SMangaUpdate(firstArg(), secondArg())
         }
-        coEvery { syncChapters.await(any(), manga, source, false, null) } returns emptyList()
+        coEvery { syncChapters.await(any(), manga, source, false, null, listOf(chapter)) } returns emptyList()
 
         update(source, manga, fetchDetails = true, fetchChapters = true).getOrThrow()
 
@@ -142,11 +145,35 @@ class UpdateMangaFromRemoteTest {
         coEvery { source.getMangaUpdate(any(), emptyList(), true, true) } coAnswers {
             SMangaUpdate(firstArg<SManga>().apply { description = "Synopsis" }, listOf(sourceChapter))
         }
-        coEvery { syncChapters.await(listOf(sourceChapter), manga, source, false, null) } returns listOf(chapter)
+        coEvery { syncChapters.await(listOf(sourceChapter), manga, source, false, null, emptyList()) } returns
+            listOf(chapter)
 
         val result = update(source, manga, fetchDetails = true, fetchChapters = true).getOrThrow()
 
         result.manga.description shouldBe "Synopsis"
         result.newChapters shouldBe listOf(chapter)
+    }
+
+    @Test
+    fun skipsRemoteMangaWriteWhenMetadataIsUnchanged() = runTest {
+        val initializedManga = manga.copy(
+            favoriteAt = kotlin.time.Instant.fromEpochMilliseconds(1),
+            initialized = true,
+            description = "Synopsis",
+        )
+        storedManga = initializedManga
+        val existingChapter = Chapter.create().copy(url = "/chapter/1", name = "Chapter 1")
+        coEvery { chapterRepository.getChapterByMangaId(initializedManga.id) } returns listOf(existingChapter)
+        coEvery { source.getMangaUpdate(any(), any(), false, true) } coAnswers {
+            SMangaUpdate(firstArg(), secondArg())
+        }
+        coEvery {
+            syncChapters.await(any(), initializedManga, source, false, null, listOf(existingChapter))
+        } returns emptyList()
+
+        update(source, initializedManga, fetchDetails = false, fetchChapters = true).getOrThrow()
+
+        coVerify(exactly = 0) { mangaRepository.updateRemote(any()) }
+        coVerify(exactly = 1) { chapterRepository.getChapterByMangaId(initializedManga.id) }
     }
 }

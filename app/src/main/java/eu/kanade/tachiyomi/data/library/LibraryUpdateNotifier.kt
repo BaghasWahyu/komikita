@@ -31,8 +31,13 @@ import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.getBitmapOrNull
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
@@ -113,6 +118,8 @@ class LibraryUpdateNotifier(
 
     private val progressNotificationMutex = Mutex()
     private var lastProgressNotificationTime = 0L
+    private var cachedHiddenCategories: List<Long>? = null
+    private var cachedHiddenMangaIds: Set<Long> = emptySet()
 
     /**
      * Shows the notification containing the currently updating manga and the progress.
@@ -130,12 +137,13 @@ class LibraryUpdateNotifier(
             if (current < total && now - lastProgressNotificationTime < NOTIF_PROGRESS_INTERVAL_MS) return
             lastProgressNotificationTime = now
 
-            val titles = if (manga.isNotEmpty() && !securityPreferences.hideNotificationContent.get()) {
-                val hiddenIds = visibility.hiddenMangaIds()
+            val hideContent = securityPreferences.hideNotificationContent.get()
+            val titles = if (manga.isNotEmpty() && !hideContent) {
+                val hiddenIds = progressHiddenMangaIds()
                 manga.filterNot { it.id in hiddenIds }.map { it.title.chop(NOTIF_TITLE_MAX_LEN) }
             } else {
                 emptyList()
-            }.takeIf { it.isNotEmpty() && !securityPreferences.hideNotificationContent.get() }
+            }.takeIf { it.isNotEmpty() }
 
             context.notify(
                 Notifications.ID_LIBRARY_PROGRESS,
@@ -151,6 +159,15 @@ class LibraryUpdateNotifier(
                     .setProgress(total, current, false)
                     .build(),
             )
+        }
+    }
+
+    private suspend fun progressHiddenMangaIds(): Set<Long> {
+        val hiddenCategories = visibility.hiddenCategoryIds()
+        if (hiddenCategories == cachedHiddenCategories) return cachedHiddenMangaIds
+        return visibility.hiddenMangaIds().also {
+            cachedHiddenCategories = hiddenCategories
+            cachedHiddenMangaIds = it
         }
     }
 
@@ -216,7 +233,16 @@ class LibraryUpdateNotifier(
         val notifications = if (securityPreferences.hideNotificationContent.get()) {
             emptyList()
         } else {
-            candidates.map { (manga, chapters) -> manga.id to createNewChaptersNotification(manga, chapters) }
+            val semaphore = Semaphore(NOTIF_BUILD_CONCURRENCY)
+            coroutineScope {
+                candidates.map { (manga, chapters) ->
+                    async {
+                        semaphore.withPermit {
+                            manga.id to createNewChaptersNotification(manga, chapters)
+                        }
+                    }
+                }.awaitAll()
+            }
         }
         chapterNotificationsMutex.withLock {
             val hiddenAtPost = visibility.hiddenMangaIds()
@@ -488,3 +514,4 @@ private const val NOTIF_TITLE_MAX_LEN = 45
 private const val NOTIF_ICON_SIZE = 192
 private const val MANGA_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 60
 private const val NOTIF_PROGRESS_INTERVAL_MS = 500L
+private const val NOTIF_BUILD_CONCURRENCY = 4

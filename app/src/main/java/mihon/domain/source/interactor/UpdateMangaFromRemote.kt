@@ -50,6 +50,7 @@ class UpdateMangaFromRemote(
             fetchDetails = fetchDetails,
             fetchChapters = fetchChapters,
             manualFetch = manualFetch,
+            fetchWindow = fetchWindow,
         )
     }
 
@@ -62,7 +63,8 @@ class UpdateMangaFromRemote(
         fetchWindow: ClosedRange<Instant>? = null,
     ): Result<RemoteMangaUpdate> = withContext(Dispatchers.IO) {
         try {
-            val chapters = chapterRepository.getChapterByMangaId(manga.id)
+            val dbChapters = chapterRepository.getChapterByMangaId(manga.id)
+            val chapters = dbChapters
                 .sortedBy { it.sourceOrder }
                 .map(Chapter::toSChapter)
             // A combined request can hold up the details until the first chapter list finishes loading.
@@ -102,6 +104,7 @@ class UpdateMangaFromRemote(
                     source = source,
                     manualFetch = manualFetch,
                     fetchWindow = fetchWindow,
+                    dbChapters = dbChapters,
                 )
             } else {
                 emptyList()
@@ -151,25 +154,42 @@ class UpdateMangaFromRemote(
 
         val thumbnailUrl = remoteManga.thumbnail_url?.takeIf { it.isNotEmpty() }
 
-        val success = mangaRepository.updateRemote(
-            MangaRemoteUpdate(
-                id = localManga.id,
-                title = title,
-                coverLastModified = coverLastModified,
-                author = remoteManga.author,
-                artist = remoteManga.artist,
-                description = remoteManga.description,
-                genre = remoteManga.getGenres(),
-                thumbnailUrl = thumbnailUrl,
-                status = remoteManga.status.toLong(),
-                updateStrategy = remoteManga.update_strategy,
-                initialized = true,
-                memo = remoteManga.memo,
-            ),
+        val remoteUpdate = MangaRemoteUpdate(
+            id = localManga.id,
+            title = title,
+            coverLastModified = coverLastModified,
+            author = remoteManga.author,
+            artist = remoteManga.artist,
+            description = remoteManga.description,
+            genre = remoteManga.getGenres(),
+            thumbnailUrl = thumbnailUrl,
+            status = remoteManga.status.toLong(),
+            updateStrategy = remoteManga.update_strategy,
+            initialized = true,
+            memo = remoteManga.memo,
         )
-        if (success && title != null) {
+        if (!remoteUpdate.hasChanges(localManga)) {
+            return false
+        }
+
+        val success = mangaRepository.updateRemote(remoteUpdate)
+        if (success && title != null && title != localManga.title) {
             downloadManager.renameManga(localManga, title)
         }
         return success
+    }
+
+    private fun MangaRemoteUpdate.hasChanges(local: Manga): Boolean {
+        return (title != null && title != local.title) ||
+            coverLastModified != null ||
+            (author != null && author != local.author) ||
+            (artist != null && artist != local.artist) ||
+            (description != null && description != local.description) ||
+            (genre != null && genre != local.genre) ||
+            (thumbnailUrl != null && thumbnailUrl != local.thumbnailUrl) ||
+            status != local.status ||
+            updateStrategy != local.updateStrategy ||
+            initialized != local.initialized ||
+            memo != local.memo
     }
 }

@@ -43,20 +43,7 @@ class ChapterRepositoryImpl(
             if (removedIds.isNotEmpty()) {
                 database.chapterQueries.removeChaptersWithIds(removedIds)
             }
-            val existing = added.map { it.mangaId }
-                .distinct()
-                .flatMap { mangaId ->
-                    database.chapterQueries
-                        .getChaptersByMangaId(
-                            mangaId = mangaId,
-                            applyScanlatorFilter = false.toLong(),
-                            mapper = ::mapChapter,
-                        )
-                        .awaitAsList()
-                        .map { mangaId to it.url }
-                }
-                .toMutableSet()
-            val stored = added.filter { existing.add(it.mangaId to it.url) }.map { chapter ->
+            val stored = added.mapNotNull { chapter ->
                 val chapterId = database.chapterQueries.insertReturningId(
                     mangaId = chapter.mangaId,
                     remoteUrl = chapter.url,
@@ -71,7 +58,8 @@ class ChapterRepositoryImpl(
                     remoteDateUpload = chapter.dateUpload,
                     remoteMemo = chapter.memo,
                 )
-                    .awaitAsOne()
+                    .awaitAsOneOrNull()
+                    ?: return@mapNotNull null
                 chapter.copy(id = chapterId)
             }
             updated.forEach { chapterUpdate ->

@@ -119,6 +119,59 @@ class LibraryUpdateSessionTest {
     }
 
     @Test
+    fun `unmetered sources do not consume the five metered source slots`() = runTest {
+        val session = LibraryUpdateSession(initialCategoryId = 1)
+        val gates = (1L..6L).associateWith { CompletableDeferred<Unit>() }
+        val started = mutableListOf<Long>()
+        val update = launch {
+            session.run(
+                initialManga = (1L..6L).map { manga(it, source = it) },
+                loadCategory = { emptyList() },
+                filterManga = { it },
+                onProgress = { _, _, _ -> },
+                isUnmeteredSource = { it == 6L },
+            ) { manga ->
+                started.add(manga.source)
+                gates.getValue(manga.source).await()
+            }
+        }
+        runCurrent()
+        started.toSet() shouldBe (1L..6L).toSet()
+
+        gates.values.forEach { it.complete(Unit) }
+        update.join()
+    }
+
+    @Test
+    fun `prioritizes the largest pending source queue when a slot opens`() = runTest {
+        val session = LibraryUpdateSession(initialCategoryId = 1)
+        val gates = (1L..7L).associateWith { CompletableDeferred<Unit>() }
+        val started = mutableListOf<Long>()
+        val update = launch {
+            session.run(
+                initialManga = (1L..6L).map { manga(it, source = it) },
+                loadCategory = { listOf(manga(10, source = 7), manga(11, source = 7), manga(12, source = 7)) },
+                filterManga = { it },
+                onProgress = { _, _, _ -> },
+            ) { manga ->
+                started.add(manga.source)
+                gates.getValue(manga.source).await()
+            }
+        }
+        runCurrent()
+        started shouldBe (1L..5L).toList()
+
+        session.addCategory(2) shouldBe LibraryUpdateSession.Addition.ADDED
+        runCurrent()
+        gates.getValue(1).complete(Unit)
+        runCurrent()
+        started shouldBe listOf(1L, 2L, 3L, 4L, 5L, 7L)
+
+        gates.values.forEach { it.complete(Unit) }
+        update.join()
+    }
+
+    @Test
     fun `adding a category before the worker starts does not schedule another worker`() = runTest {
         val workInfos = MutableStateFlow(emptyList<WorkInfo>())
         val manager = mockk<WorkManager>()

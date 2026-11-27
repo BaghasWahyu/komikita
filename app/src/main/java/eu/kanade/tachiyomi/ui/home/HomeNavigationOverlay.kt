@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -22,14 +23,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -47,6 +54,8 @@ internal fun HomeNavigationOverlay(
     val colorScheme = MaterialTheme.colorScheme
     val blurEnabled = visible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     var measuredBarHeight by remember { mutableIntStateOf(0) }
+    var overlayCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    var barBounds by remember { mutableStateOf(Rect.Zero) }
     val barHeight = if (visible) measuredBarHeight else 0
     val overlayInsets = remember(barHeight) {
         if (barHeight > 0) WindowInsets(bottom = barHeight) else null
@@ -55,14 +64,19 @@ internal fun HomeNavigationOverlay(
         Modifier.blurNavigationBackdrop(
             contentLayer = rememberGraphicsLayer(),
             blurLayer = rememberGraphicsLayer(),
-            barHeight = barHeight,
+            barBounds = barBounds,
+            shape = GlassDockShape,
             background = colorScheme.background,
         )
     } else {
         Modifier
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onPlaced { overlayCoordinates = it },
+    ) {
         CompositionLocalProvider(LocalScaffoldOverlayInsets provides overlayInsets) {
             Box(Modifier.matchParentSize().then(backdrop)) { content() }
         }
@@ -78,6 +92,12 @@ internal fun HomeNavigationOverlay(
                 NavigationSuite(
                     navigationSuiteType = NavigationSuiteType.NavigationBar,
                     modifier = Modifier
+                        .onPlaced { coordinates ->
+                            val root = overlayCoordinates
+                            if (root != null && root.isAttached && coordinates.isAttached) {
+                                barBounds = root.localBoundingBoxOf(coordinates, clipBounds = false)
+                            }
+                        }
                         .shadow(elevation = 12.dp, shape = GlassDockShape, clip = false)
                         .clip(GlassDockShape)
                         .border(glassBorder(), GlassDockShape),
@@ -97,13 +117,22 @@ internal fun HomeNavigationOverlay(
 private fun Modifier.blurNavigationBackdrop(
     contentLayer: GraphicsLayer,
     blurLayer: GraphicsLayer,
-    barHeight: Int,
+    barBounds: Rect,
+    shape: Shape,
     background: Color,
 ): Modifier = drawWithCache {
     val radius = 16.dp.toPx()
     blurLayer.renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
+    val clipPath = if (!barBounds.isEmpty) {
+        Path().apply {
+            addOutline(shape.createOutline(barBounds.size, layoutDirection, this@drawWithCache))
+            translate(barBounds.topLeft)
+        }
+    } else {
+        null
+    }
     onDrawWithContent {
-        if (barHeight <= 0 || size.width <= 0f || size.height <= 0f) {
+        if (clipPath == null || size.width <= 0f || size.height <= 0f) {
             drawContent()
             return@onDrawWithContent
         }
@@ -111,15 +140,26 @@ private fun Modifier.blurNavigationBackdrop(
         contentLayer.record { this@onDrawWithContent.drawContent() }
         drawLayer(contentLayer)
 
-        val barTop = (size.height - barHeight).coerceAtLeast(0f)
-        // Sample above the bar so the top edge can blur neighboring content.
-        val captureTop = (barTop - 2 * radius).coerceAtLeast(0f).roundToInt()
-        blurLayer.record(size = IntSize(size.width.roundToInt(), size.height.roundToInt() - captureTop)) {
+        // Sample around the floating bar so every edge can blur neighboring content.
+        val margin = 2 * radius
+        val captureLeft = (barBounds.left - margin).coerceAtLeast(0f).roundToInt()
+        val captureTop = (barBounds.top - margin).coerceAtLeast(0f).roundToInt()
+        val captureRight = (barBounds.right + margin).coerceAtMost(size.width).roundToInt()
+        val captureBottom = (barBounds.bottom + margin).coerceAtMost(size.height).roundToInt()
+        val captureWidth = captureRight - captureLeft
+        val captureHeight = captureBottom - captureTop
+        if (captureWidth <= 0 || captureHeight <= 0) return@onDrawWithContent
+
+        blurLayer.record(size = IntSize(captureWidth, captureHeight)) {
             drawRect(background)
-            translate(top = -captureTop.toFloat()) { drawLayer(contentLayer) }
+            translate(left = -captureLeft.toFloat(), top = -captureTop.toFloat()) {
+                drawLayer(contentLayer)
+            }
         }
-        clipRect(top = barTop) {
-            translate(top = captureTop.toFloat()) { drawLayer(blurLayer) }
+        clipPath(clipPath) {
+            translate(left = captureLeft.toFloat(), top = captureTop.toFloat()) {
+                drawLayer(blurLayer)
+            }
         }
     }
 }
