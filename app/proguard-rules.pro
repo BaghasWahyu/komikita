@@ -87,6 +87,11 @@
 # MediaPipe resolves Java classes and Flogger stack frames by name at runtime.
 -keep class com.google.mediapipe.** { *; }
 -keep class com.google.common.flogger.** { *; }
+# Optional LiteRT-LM backend, compile-only AutoValue annotation, and unbundled graph protos referenced by MediaPipe Tasks.
+-dontwarn com.google.ai.edge.litertlm.**
+-dontwarn com.google.auto.value.extension.memoized.Memoized
+-dontwarn com.google.mediapipe.proto.CalculatorProfileProto$CalculatorProfile
+-dontwarn com.google.mediapipe.proto.GraphTemplateProto$CalculatorGraphTemplate
 
 # Methods called by Shizuku only
 -keepclassmembers class mihon.app.shizuku.ShellInterface {
