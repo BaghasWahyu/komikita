@@ -516,11 +516,10 @@
     <string name="theme_greenapple">Hijau Apel</string>
     <string name="theme_monet">Dinamis</string>
     <string name="pref_app_theme">Tema aplikasi</string>
-    <string name="pref_bottom_navigation_style">Gaya navigasi bawah</string>
-    <string name="pref_bottom_navigation_style_glass">Glass UI</string>
-    <string name="pref_bottom_navigation_style_power_saving">Hemat daya</string>
-    <string name="pref_bottom_navigation_style_glass_warning">Efek blur di belakang bilah navigasi meningkatkan penggunaan daya, terutama saat menggulir.</string>
-    <string name="pref_bottom_navigation_style_glass_unavailable">Efek blur memerlukan Android 12 atau yang lebih baru. Di perangkat ini, Glass UI memakai tampilan Hemat daya.</string>
+    <string name="pref_appearance_style">Gaya tampilan</string>
+    <string name="pref_appearance_style_glass">Glass UI</string>
+    <string name="pref_appearance_style_glass_warning">Glass UI menambahkan efek blur di beberapa area dan meningkatkan penggunaan daya, terutama saat menggulir.</string>
+    <string name="pref_appearance_style_glass_unavailable">Efek blur memerlukan Android 12 atau yang lebih baru. Di perangkat ini, Glass UI memakai permukaan semi-transparan tanpa blur.</string>
     <string name="label_background_activity">Aktivitas latar belakang</string>
     <string name="pref_lowest">Terendah</string>
     <string name="pref_low">Rendah</string>

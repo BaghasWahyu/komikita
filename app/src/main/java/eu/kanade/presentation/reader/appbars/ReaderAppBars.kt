@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -32,9 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.reader.components.ChapterNavigator
 import eu.kanade.presentation.reader.components.ChapterNavigatorType
+import eu.kanade.presentation.reader.readerControlSurfaceColor
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
+import eu.kanade.presentation.theme.glassEdge
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import tachiyomi.presentation.core.components.material.padding
@@ -75,9 +75,11 @@ fun ReaderAppBars(
     onClickCropBorder: () -> Unit,
     onClickSettings: () -> Unit,
 ) {
-    val backgroundColor = MaterialTheme.colorScheme
-        .surfaceColorAtElevation(3.dp)
-        .copy(alpha = if (isSystemInDarkTheme()) 0.9f else 0.95f)
+    val backgroundColor = readerControlSurfaceColor()
+    val useGlassUi = LocalGlassUiEnabled.current
+    val edgeColor = MaterialTheme.colorScheme.outlineVariant
+    val topBarEdge = if (useGlassUi) Modifier.glassEdge(edgeColor, atTop = false) else Modifier
+    val bottomBarEdge = if (useGlassUi) Modifier.glassEdge(edgeColor, atTop = true) else Modifier
 
     Column(modifier = Modifier.fillMaxHeight()) {
         AnimatedVisibility(
@@ -88,6 +90,7 @@ fun ReaderAppBars(
             ReaderTopBar(
                 modifier = Modifier
                     .background(backgroundColor)
+                    .then(topBarEdge)
                     .clickable(onClick = onClickTopAppBar),
                 mangaTitle = mangaTitle,
                 chapterTitle = chapterTitle,
@@ -164,6 +167,7 @@ fun ReaderAppBars(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(backgroundColor)
+                        .then(bottomBarEdge)
                         .padding(horizontal = MaterialTheme.padding.small)
                         .windowInsetsPadding(WindowInsets.navigationBars),
                     readingMode = readingMode,

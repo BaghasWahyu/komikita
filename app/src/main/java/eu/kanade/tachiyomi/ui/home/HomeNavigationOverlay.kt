@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
@@ -29,19 +28,18 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import eu.kanade.domain.ui.model.BottomNavigationStyle
+import eu.kanade.presentation.theme.glassEdge
 import tachiyomi.presentation.core.components.material.LocalScaffoldOverlayInsets
 import kotlin.math.roundToInt
 
 @Composable
 internal fun HomeNavigationOverlay(
-    style: BottomNavigationStyle,
     visible: Boolean,
     navigationItems: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val blurEnabled = visible && style == BottomNavigationStyle.GLASS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val blurEnabled = visible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     var measuredBarHeight by remember { mutableIntStateOf(0) }
     val barHeight = if (visible) measuredBarHeight else 0
     val overlayInsets = remember(barHeight) {
@@ -64,24 +62,12 @@ internal fun HomeNavigationOverlay(
         }
 
         if (visible) {
-            val edgeColor = colorScheme.outlineVariant
             NavigationSuite(
                 navigationSuiteType = NavigationSuiteType.NavigationBar,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .onSizeChanged { measuredBarHeight = it.height }
-                    .drawWithCache {
-                        val edgeWidth = 1.dp.toPx()
-                        onDrawWithContent {
-                            drawContent()
-                            drawLine(
-                                color = edgeColor,
-                                start = Offset(0f, edgeWidth / 2),
-                                end = Offset(size.width, edgeWidth / 2),
-                                strokeWidth = edgeWidth,
-                            )
-                        }
-                    },
+                    .glassEdge(colorScheme.outlineVariant, atTop = true),
                 colors = NavigationSuiteDefaults.colors(
                     navigationBarContainerColor = colorScheme.surfaceContainerLow.copy(
                         alpha = if (blurEnabled) 0.80f else 0.92f,

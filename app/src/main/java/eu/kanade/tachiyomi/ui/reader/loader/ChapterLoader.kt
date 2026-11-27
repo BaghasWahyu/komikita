@@ -7,8 +7,12 @@ import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import mihon.core.archive.archiveReader
 import mihon.core.archive.epubReader
@@ -42,17 +46,17 @@ class ChapterLoader(
      * Assigns the chapter's page loader and loads the its pages. Returns immediately if the chapter
      * is already loaded.
      */
-    suspend fun loadChapter(chapter: ReaderChapter) {
+    suspend fun loadChapter(chapter: ReaderChapter) = chapter.loadMutex.withLock {
         if (chapterIsReady(chapter)) {
-            return
+            return@withLock
         }
 
         chapter.state = ReaderChapter.State.Loading
-        withContext(Dispatchers.IO) {
-            logcat { "Loading pages for ${chapter.chapter.name}" }
-            try {
-                val loader = getPageLoader(chapter)
-                chapter.pageLoader = loader
+        var pendingLoader: PageLoader? = null
+        try {
+            val pages = withContext(Dispatchers.IO) {
+                logcat { "Loading pages for ${chapter.chapter.name}" }
+                val loader = getPageLoader(chapter).also { pendingLoader = it }
 
                 // Online loaders start fetching immediately, so give them the resume position first.
                 if (!chapter.chapter.read) {
@@ -66,11 +70,15 @@ class ChapterLoader(
                     throw Exception(context.stringResource(MR.strings.page_list_empty_error))
                 }
 
-                chapter.state = ReaderChapter.State.Loaded(pages)
-            } catch (e: Throwable) {
-                chapter.state = ReaderChapter.State.Error(e)
-                throw e
+                pages
             }
+            currentCoroutineContext().ensureActive()
+            chapter.pageLoader = pendingLoader
+            chapter.state = ReaderChapter.State.Loaded(pages)
+        } catch (e: Throwable) {
+            chapter.state = if (e is CancellationException) ReaderChapter.State.Wait else ReaderChapter.State.Error(e)
+            pendingLoader?.recycle()
+            throw e
         }
     }
 

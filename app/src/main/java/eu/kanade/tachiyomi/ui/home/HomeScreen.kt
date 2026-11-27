@@ -33,7 +33,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
-import eu.kanade.domain.ui.model.BottomNavigationStyle
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.presentation.util.rememberAnimatedVectorPainter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.BrowseShowExtensionsEvent
@@ -66,7 +66,6 @@ import tachiyomi.i18n.notification_chapters_generic
 import tachiyomi.i18n.update_check_notification_ext_updates
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.util.collectAsState
 
 @Serializable
 sealed interface TopLevelRoute : NavKey {
@@ -145,13 +144,8 @@ fun HomeScreen() {
     val tabNavigator = rememberNavigator(TopLevelRoute.Library)
     val navigator = LocalNavigator.current
     val resultEventBus = LocalResultEventBus.current
-    val context = LocalContext.current
-    val preferredNavigationStyle by remember(context) {
-        context.appGraph.uiPreferences.bottomNavigationStyle
-    }.collectAsState()
     val tabletUi = isTabletUi()
-    val navigationStyle = if (tabletUi) BottomNavigationStyle.DEFAULT else preferredNavigationStyle
-    val overlayNavigation = navigationStyle != BottomNavigationStyle.DEFAULT
+    val overlayNavigation = LocalGlassUiEnabled.current && !tabletUi
     val navigationSuiteType = if (tabletUi) {
         NavigationSuiteType.NavigationRail
     } else {
@@ -184,7 +178,6 @@ fun HomeScreen() {
         navigationItems = navigationItems,
     ) {
         HomeNavigationOverlay(
-            style = navigationStyle,
             visible = overlayNavigation && navigationSuiteState.targetValue == NavigationSuiteScaffoldValue.Visible,
             navigationItems = navigationItems,
         ) {

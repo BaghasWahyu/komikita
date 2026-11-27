@@ -5,7 +5,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.ui.model.AppTheme
-import eu.kanade.domain.ui.model.BottomNavigationStyle
+import eu.kanade.domain.ui.model.AppearanceStyle
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.domain.ui.model.TimeFormat
@@ -40,8 +40,9 @@ class UiPreferences(
 
     val themeDarkAmoled: Preference<Boolean> = preferenceStore.getBoolean("pref_theme_dark_amoled_key", false)
 
-    val bottomNavigationStyle: Preference<BottomNavigationStyle> =
-        preferenceStore.getEnum("bottom_navigation_style", BottomNavigationStyle.DEFAULT)
+    // Keep the Glass UI selection saved by the earlier navigation-only preference.
+    val appearanceStyle: Preference<AppearanceStyle> =
+        preferenceStore.getEnum("bottom_navigation_style", AppearanceStyle.DEFAULT)
 
     val relativeTime: Preference<Boolean> = preferenceStore.getBoolean("relative_time_v2", true)
 

@@ -73,6 +73,7 @@ import com.mikepenz.markdown.model.markdownAnnotator
 import com.mikepenz.markdown.model.markdownAnnotatorConfig
 import com.mikepenz.markdown.utils.getUnescapedTextInNode
 import eu.kanade.presentation.components.DropdownMenu
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SManga
@@ -146,47 +147,11 @@ fun MangaInfoBox(
     onCoverClick: () -> Unit,
     doSearch: (query: String, global: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    actions: (@Composable () -> Unit)? = null,
 ) {
-    if (!isTabletUi) {
-        MangaAndSourceTitlesSmall(
-            appBarPadding = appBarPadding,
-            manga = manga,
-            source = source,
-            sourceName = sourceName,
-            isStubSource = isStubSource,
-            onCoverClick = onCoverClick,
-            doSearch = doSearch,
-            modifier = modifier,
-        )
-        return
-    }
-    Box(modifier = modifier) {
-        // Backdrop
-        val backdropGradientColors = listOf(
-            Color.Transparent,
-            MaterialTheme.colorScheme.background,
-        )
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(manga)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .matchParentSize()
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.verticalGradient(colors = backdropGradientColors),
-                    )
-                }
-                .blur(4.dp)
-                .alpha(0.2f),
-        )
-
-        // Manga & source info
-        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val details: @Composable (Modifier) -> Unit = { detailsModifier ->
+        if (isTabletUi) {
             MangaAndSourceTitlesLarge(
                 appBarPadding = appBarPadding,
                 manga = manga,
@@ -196,6 +161,59 @@ fun MangaInfoBox(
                 onCoverClick = onCoverClick,
                 doSearch = doSearch,
             )
+        } else {
+            MangaAndSourceTitlesSmall(
+                appBarPadding = appBarPadding,
+                manga = manga,
+                source = source,
+                sourceName = sourceName,
+                isStubSource = isStubSource,
+                onCoverClick = onCoverClick,
+                doSearch = doSearch,
+                modifier = detailsModifier,
+            )
+        }
+    }
+    if (!isTabletUi && !useGlassUi) {
+        details(modifier)
+        return
+    }
+    Box(modifier = modifier) {
+        val background = MaterialTheme.colorScheme.background
+        if (useGlassUi) {
+            MangaGlassBackdrop(
+                manga = manga,
+                tint = Brush.verticalGradient(
+                    0f to background.copy(alpha = 0.76f),
+                    0.65f to background.copy(alpha = 0.83f),
+                    1f to background,
+                ),
+                modifier = Modifier.matchParentSize(),
+            )
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(manga)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(Brush.verticalGradient(listOf(Color.Transparent, background)))
+                    }
+                    .blur(4.dp)
+                    .alpha(0.2f),
+            )
+        }
+
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+            Column {
+                details(Modifier)
+                actions?.invoke()
+            }
         }
     }
 }

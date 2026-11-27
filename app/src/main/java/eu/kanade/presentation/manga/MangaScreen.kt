@@ -69,6 +69,7 @@ import eu.kanade.presentation.manga.components.MangaInfoBox
 import eu.kanade.presentation.manga.components.MangaToolbar
 import eu.kanade.presentation.manga.components.MissingChapterCountListItem
 import eu.kanade.presentation.manga.components.filterChapterItems
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.presentation.util.formatChapterNumber
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.manga.ChapterList
@@ -280,6 +281,7 @@ private fun MangaScreenSmallImpl(
     onInvertSelection: () -> Unit,
 ) {
     val chapterListState = rememberLazyListState()
+    val useGlassUi = LocalGlassUiEnabled.current
     var informationSelected by rememberSaveable(state.manga.id) { mutableStateOf(false) }
     var chapterQuery by rememberSaveable(state.manga.id) { mutableStateOf("") }
     var quickFilter by rememberSaveable(state.manga.id) { mutableStateOf(ChapterQuickFilter.ALL) }
@@ -365,6 +367,20 @@ private fun MangaScreenSmallImpl(
             indicatorPadding = PaddingValues(top = topPadding),
         ) {
             val layoutDirection = LocalLayoutDirection.current
+            val mangaActions: @Composable () -> Unit = {
+                MangaActionRow(
+                    favorite = state.manga.favorite,
+                    trackingCount = state.trackingCount,
+                    nextUpdate = nextUpdate,
+                    isUserIntervalMode = state.manga.fetchInterval < 0,
+                    onAddToLibraryClicked = onAddToLibraryClicked,
+                    onWebViewClicked = onWebViewClicked,
+                    onWebViewLongClicked = onWebViewLongClicked,
+                    onTrackingClicked = onTrackingClicked,
+                    onEditIntervalClicked = onEditIntervalClicked,
+                    onEditCategory = onEditCategoryClicked,
+                )
+            }
             VerticalFastScroller(
                 listState = chapterListState,
                 topContentPadding = topPadding,
@@ -393,25 +409,17 @@ private fun MangaScreenSmallImpl(
                             isStubSource = remember { state.source is StubSource },
                             onCoverClick = onCoverClicked,
                             doSearch = onSearch,
+                            actions = mangaActions.takeIf { useGlassUi },
                         )
                     }
 
-                    item(
-                        key = MangaScreenItem.ACTION_ROW,
-                        contentType = MangaScreenItem.ACTION_ROW,
-                    ) {
-                        MangaActionRow(
-                            favorite = state.manga.favorite,
-                            trackingCount = state.trackingCount,
-                            nextUpdate = nextUpdate,
-                            isUserIntervalMode = state.manga.fetchInterval < 0,
-                            onAddToLibraryClicked = onAddToLibraryClicked,
-                            onWebViewClicked = onWebViewClicked,
-                            onWebViewLongClicked = onWebViewLongClicked,
-                            onTrackingClicked = onTrackingClicked,
-                            onEditIntervalClicked = onEditIntervalClicked,
-                            onEditCategory = onEditCategoryClicked,
-                        )
+                    if (!useGlassUi) {
+                        item(
+                            key = MangaScreenItem.ACTION_ROW,
+                            contentType = MangaScreenItem.ACTION_ROW,
+                        ) {
+                            mangaActions()
+                        }
                     }
 
                     if (state.hasUnreadChapters && !isAnySelected) {

@@ -1,7 +1,10 @@
 package eu.kanade.presentation.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import mihon.presentation.core.util.isTabletUi
@@ -18,19 +21,25 @@ fun AdaptiveSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     enableImplicitDismiss: Boolean = true,
+    useGlassUi: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val isTabletUi = isTabletUi()
+    val colors = MaterialTheme.colorScheme
+    val sheetColor = colors.surfaceContainerHigh
 
     Dialog(
         onDismissRequest = onDismissRequest,
-        properties = dialogProperties,
+        properties = if (useGlassUi) glassDialogProperties else dialogProperties,
     ) {
         AdaptiveSheetImpl(
             isTabletUi = isTabletUi,
             enableImplicitDismiss = enableImplicitDismiss,
             onDismissRequest = onDismissRequest,
             modifier = modifier,
+            containerColor = if (useGlassUi) sheetColor.copy(alpha = 0.90f) else sheetColor,
+            contentColor = colors.onSurface,
+            border = if (useGlassUi) BorderStroke(1.dp, colors.outlineVariant) else null,
         ) {
             content()
         }
@@ -40,4 +49,11 @@ fun AdaptiveSheet(
 private val dialogProperties = DialogProperties(
     usePlatformDefaultWidth = false,
     decorFitsSystemWindows = true,
+    blurBehindRadius = 0.dp,
+)
+
+private val glassDialogProperties = DialogProperties(
+    usePlatformDefaultWidth = false,
+    decorFitsSystemWindows = true,
+    blurBehindRadius = 8.dp,
 )

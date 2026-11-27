@@ -3,6 +3,7 @@ package tachiyomi.presentation.core.components
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -55,6 +58,9 @@ fun AdaptiveSheet(
     enableImplicitDismiss: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    contentColor: Color = contentColorFor(containerColor),
+    border: BorderStroke? = null,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -96,7 +102,9 @@ fun AdaptiveSheet(
                     .padding(vertical = 16.dp)
                     .then(modifier),
                 shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = containerColor,
+                contentColor = contentColor,
+                border = border,
                 content = {
                     BackHandler(
                         enabled = enableImplicitDismiss && remember { derivedStateOf { alpha > 0f } }.value,
@@ -181,7 +189,9 @@ fun AdaptiveSheet(
                     .navigationBarsPadding()
                     .statusBarsPadding(),
                 shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = containerColor,
+                contentColor = contentColor,
+                border = border,
                 content = {
                     BackHandler(
                         enabled = enableImplicitDismiss && anchoredDraggableState.targetValue == 0,

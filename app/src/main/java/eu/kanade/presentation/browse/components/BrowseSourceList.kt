@@ -10,14 +10,14 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import eu.kanade.presentation.library.components.CommonMangaItemDefaults
 import eu.kanade.presentation.library.components.MangaListItem
-import kotlinx.coroutines.flow.StateFlow
+import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceViewModel.MangaItem
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaCover
 import tachiyomi.presentation.core.util.plus
 
 @Composable
 fun BrowseSourceList(
-    mangaList: LazyPagingItems<StateFlow<Manga>>,
+    mangaList: LazyPagingItems<MangaItem>,
     contentPadding: PaddingValues,
     onMangaClick: (Manga) -> Unit,
     onMangaLongClick: (Manga) -> Unit,
@@ -32,7 +32,8 @@ fun BrowseSourceList(
         }
 
         items(count = mangaList.itemCount) { index ->
-            val manga by mangaList[index]?.collectAsState() ?: return@items
+            val item = mangaList[index] ?: return@items
+            val manga by item.updates.collectAsState(initial = item.initial)
             BrowseSourceListItem(
                 manga = manga,
                 onClick = { onMangaClick(manga) },

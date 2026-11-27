@@ -380,32 +380,31 @@ class ReaderViewModel(
     private suspend fun loadChapter(
         loader: ChapterLoader,
         chapter: ReaderChapter,
-    ): ViewerChapters {
-        loader.loadChapter(chapter)
+    ) = withContext(Dispatchers.Main.immediate) {
+        chapter.ref()
+        try {
+            loader.loadChapter(chapter)
 
-        val chapterPos = chapterList.indexOf(chapter)
-        val newChapters = ViewerChapters(
-            chapter,
-            chapterList.getOrNull(chapterPos - 1),
-            chapterList.getOrNull(chapterPos + 1),
-        )
-        preloadNextChapterAfter(newChapters)
-
-        withContext(Dispatchers.Main) {
-            val toDownload = cancelQueuedDownloads(newChapters.currChapter)
+            val chapterPos = chapterList.indexOf(chapter)
+            val newChapters = ViewerChapters(
+                chapter,
+                chapterList.getOrNull(chapterPos - 1),
+                chapterList.getOrNull(chapterPos + 1),
+            )
+            chapterToDownload = cancelQueuedDownloads(chapter)
+            val previousChapters = state.value.viewerChapters
+            newChapters.ref()
             mutableState.update {
-                // Add new references first to avoid unnecessary recycling
-                newChapters.ref()
-                it.viewerChapters?.unref()
-
-                chapterToDownload = toDownload
                 it.copy(
                     viewerChapters = newChapters,
-                    bookmarked = newChapters.currChapter.chapter.bookmark,
+                    bookmarked = chapter.chapter.bookmark,
                 )
             }
+            previousChapters?.unref()
+            preloadNextChapterAfter(newChapters)
+        } finally {
+            chapter.unref()
         }
-        return newChapters
     }
 
     /**
@@ -442,9 +441,7 @@ class ReaderViewModel(
 
         mutableState.update { it.copy(isLoadingAdjacentChapter = true) }
         try {
-            withContext(Dispatchers.IO) {
-                loadChapter(loader, chapter)
-            }
+            loadChapter(loader, chapter)
         } catch (e: Throwable) {
             if (e is CancellationException) {
                 throw e
@@ -462,8 +459,8 @@ class ReaderViewModel(
      * pages being read. Skipped when loading ahead isn't allowed on this network.
      */
     private fun preloadNextChapterAfter(chapters: ViewerChapters) {
-        val nextChapter = chapters.nextChapter ?: return
         nextChapterPreloadJob?.cancel()
+        val nextChapter = chapters.nextChapter ?: return
         nextChapterPreloadJob = viewModelScope.launch(Dispatchers.IO) {
             if (!canLoadAhead()) return@launch
             val current = chapters.currChapter
@@ -487,42 +484,24 @@ class ReaderViewModel(
      * Called when the viewers decide it's a good time to preload a [chapter] and improve the UX so
      * that the user doesn't have to wait too long to continue reading.
      */
-    suspend fun preload(chapter: ReaderChapter) {
+    suspend fun preload(chapter: ReaderChapter): Unit = withContext(Dispatchers.Main.immediate) {
         if (chapter.state is ReaderChapter.State.Loaded || chapter.state == ReaderChapter.State.Loading) {
-            return
+            return@withContext
         }
 
-        if (chapter.pageLoader?.isLocal == false) {
-            val manga = manga ?: return
-            val dbChapter = chapter.chapter
-            val source = state.value.source ?: return
-            val isDownloaded = downloadManager.isChapterDownloadedOnDisk(
-                dbChapter.name,
-                dbChapter.scanlator,
-                dbChapter.url,
-                manga.title,
-                source,
-            )
-            if (isDownloaded) {
-                chapter.state = ReaderChapter.State.Wait
-            }
-        }
-
-        if (chapter.state != ReaderChapter.State.Wait && chapter.state !is ReaderChapter.State.Error) {
-            return
-        }
-
-        val loader = loader ?: return
+        val loader = loader ?: return@withContext
+        chapter.ref()
         try {
             logcat { "Preloading ${chapter.chapter.url}" }
             loader.loadChapter(chapter)
+            eventChannel.trySend(Event.ReloadViewerChapters)
         } catch (e: Throwable) {
             if (e is CancellationException) {
                 throw e
             }
-            return
+        } finally {
+            chapter.unref()
         }
-        eventChannel.trySend(Event.ReloadViewerChapters)
     }
 
     /**

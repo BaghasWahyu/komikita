@@ -241,11 +241,10 @@
       <!-- General section -->
     <string name="pref_category_theme">Theme</string>
     <string name="pref_app_theme">App theme</string>
-    <string name="pref_bottom_navigation_style">Bottom navigation style</string>
-    <string name="pref_bottom_navigation_style_glass">Glass UI</string>
-    <string name="pref_bottom_navigation_style_power_saving">Power saving</string>
-    <string name="pref_bottom_navigation_style_glass_warning">Blurring content behind the navigation bar increases power use, especially while scrolling.</string>
-    <string name="pref_bottom_navigation_style_glass_unavailable">Blur requires Android 12 or later. On this device, Glass UI uses the Power saving appearance.</string>
+    <string name="pref_appearance_style">Appearance style</string>
+    <string name="pref_appearance_style_glass">Glass UI</string>
+    <string name="pref_appearance_style_glass_warning">Glass UI adds blur to some areas and increases power use, especially while scrolling.</string>
+    <string name="pref_appearance_style_glass_unavailable">Blur requires Android 12 or later. On this device, Glass UI uses translucent surfaces without blur.</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>

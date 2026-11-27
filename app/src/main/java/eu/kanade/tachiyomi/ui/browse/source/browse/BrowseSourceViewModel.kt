@@ -31,16 +31,19 @@ import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.util.removeCovers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mihon.core.metro.AppCoroutineScope
@@ -59,7 +62,6 @@ import tachiyomi.domain.manga.model.MangaWithChapterCount
 import tachiyomi.domain.source.interactor.GetRemoteManga
 import tachiyomi.domain.source.service.SourceManager
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 import eu.kanade.tachiyomi.source.model.Filter as SourceModelFilter
 
 @AssistedInject
@@ -131,18 +133,18 @@ class BrowseSourceViewModel(
         .filter { (source, _) -> source != null }
         .map { (_, listing) -> listing }
         .distinctUntilChanged()
-        .map { listing ->
-            Pager(PagingConfig(pageSize = 25)) {
-                getRemoteManga(sourceId, listing.query ?: "", listing.filters)
-            }.flow.map { pagingData ->
-                pagingData.map { manga ->
-                    getManga.subscribe(manga.url, manga.source)
-                        .map { it ?: manga }
-                        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), manga)
+        .transformLatest { listing ->
+            coroutineScope {
+                val pages = Pager(PagingConfig(pageSize = 25)) {
+                    getRemoteManga(sourceId, listing.query ?: "", listing.filters)
+                }.flow.map { pagingData ->
+                    pagingData.filter { !hideInLibraryItems || !it.favorite }.map { manga ->
+                        MangaItem(manga, getManga.subscribe(manga.url, manga.source).map { it ?: manga })
+                    }
                 }
-                    .filter { !hideInLibraryItems || !it.value.favorite }
+                emit(pages.cachedIn(this))
+                awaitCancellation()
             }
-                .cachedIn(viewModelScope)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyFlow())
 
@@ -364,6 +366,8 @@ class BrowseSourceViewModel(
         ) : Dialog
         data class Migrate(val target: Manga, val current: Manga) : Dialog
     }
+
+    data class MangaItem(val initial: Manga, val updates: Flow<Manga>)
 
     @Immutable
     data class State(

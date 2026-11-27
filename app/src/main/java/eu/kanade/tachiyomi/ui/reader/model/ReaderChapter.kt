@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.reader.model
 
 import eu.kanade.tachiyomi.ui.reader.loader.PageLoader
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.chapter.model.Chapter
 
@@ -26,6 +27,7 @@ data class ReaderChapter(private val loadedChapter: Chapter) {
         get() = (state as? State.Loaded)?.pages
 
     var pageLoader: PageLoader? = null
+    internal val loadMutex = Mutex()
 
     var requestedPage: Int = 0
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.ui.updates.UpdatesSettingsViewModel
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getAndSet
@@ -49,6 +50,7 @@ fun UpdatesFilterDialog(
 ) {
     TabbedDialog(
         onDismissRequest = onDismissRequest,
+        useGlassUi = LocalGlassUiEnabled.current,
         tabTitles = listOf(
             stringResource(MR.strings.action_filter),
             stringResource(MR.strings.categories),

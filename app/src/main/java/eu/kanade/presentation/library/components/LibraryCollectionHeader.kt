@@ -1,7 +1,9 @@
 package eu.kanade.presentation.library.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
@@ -35,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.manga.components.MangaGlassBackdrop
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
@@ -161,53 +166,76 @@ private fun ContinueReadingCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val colors = MaterialTheme.colorScheme
+    val titleColor = if (useGlassUi) colors.onSurface else colors.onPrimaryContainer
     Card(
         onClick = onClick,
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = if (useGlassUi) colors.surfaceContainerHigh else colors.primaryContainer,
+            contentColor = titleColor,
         ),
+        border = if (useGlassUi) BorderStroke(1.dp, colors.outlineVariant) else null,
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MangaCover.Book(
-                data = manga.manga,
-                modifier = Modifier.height(88.dp),
-                shape = MaterialTheme.shapes.small,
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = stringResource(MR.strings.komikita_continue_reading),
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                Text(
-                    text = manga.manga.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(MR.strings.komikita_reading_progress, manga.readCount, manga.totalChapters),
-                    style = MaterialTheme.typography.labelSmall,
-                )
-                LinearProgressIndicator(
-                    progress = { manga.readingProgress },
-                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(MaterialTheme.shapes.small),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
+        Box {
+            if (useGlassUi) {
+                MangaGlassBackdrop(
+                    manga = manga.manga,
+                    tint = Brush.horizontalGradient(
+                        listOf(
+                            colors.surfaceContainerHigh.copy(alpha = 0.78f),
+                            colors.surfaceContainerHigh.copy(alpha = 0.88f),
+                        ),
+                    ),
+                    modifier = Modifier.matchParentSize(),
                 )
             }
-            Icon(MaterialSymbols.AutoMirroredRounded.ArrowForward, contentDescription = null)
+            ContinueReadingCardContent(manga)
         }
+    }
+}
+
+@Composable
+private fun ContinueReadingCardContent(manga: LibraryManga) {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MangaCover.Book(
+            data = manga.manga,
+            modifier = Modifier.height(88.dp),
+            shape = MaterialTheme.shapes.small,
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = stringResource(MR.strings.komikita_continue_reading),
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Text(
+                text = manga.manga.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = stringResource(MR.strings.komikita_reading_progress, manga.readCount, manga.totalChapters),
+                style = MaterialTheme.typography.labelSmall,
+            )
+            LinearProgressIndicator(
+                progress = { manga.readingProgress },
+                modifier = Modifier.fillMaxWidth().height(4.dp).clip(MaterialTheme.shapes.small),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = LocalContentColor.current.copy(alpha = 0.12f),
+            )
+        }
+        Icon(MaterialSymbols.AutoMirroredRounded.ArrowForward, contentDescription = null)
     }
 }
 

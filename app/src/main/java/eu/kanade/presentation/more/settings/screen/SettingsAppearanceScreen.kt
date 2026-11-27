@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.core.app.ActivityCompat
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.domain.ui.model.BottomNavigationStyle
+import eu.kanade.domain.ui.model.AppearanceStyle
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.domain.ui.model.TimeFormat
@@ -41,9 +41,9 @@ import tachiyomi.i18n.action_cancel
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.pref_app_language
 import tachiyomi.i18n.pref_app_theme
-import tachiyomi.i18n.pref_bottom_navigation_style
-import tachiyomi.i18n.pref_bottom_navigation_style_glass_unavailable
-import tachiyomi.i18n.pref_bottom_navigation_style_glass_warning
+import tachiyomi.i18n.pref_appearance_style
+import tachiyomi.i18n.pref_appearance_style_glass_unavailable
+import tachiyomi.i18n.pref_appearance_style_glass_warning
 import tachiyomi.i18n.pref_category_appearance
 import tachiyomi.i18n.pref_category_display
 import tachiyomi.i18n.pref_category_theme
@@ -143,7 +143,7 @@ data object SettingsAppearanceScreen : SearchableSettings {
         val formattedDateNow = remember(dateFormat) {
             UiPreferences.dateFormat(dateFormat, locale.platformLocale).format(now)
         }
-        val bottomNavigationStyleTitle = stringResource(MR.strings.pref_bottom_navigation_style)
+        val appearanceStyleTitle = stringResource(MR.strings.pref_appearance_style)
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
@@ -152,8 +152,8 @@ data object SettingsAppearanceScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_app_language),
                     onClick = { navigator.push(AppLanguageRoute) },
                 ),
-                Preference.PreferenceItem.CustomPreference(title = bottomNavigationStyleTitle) {
-                    BottomNavigationStylePreference(uiPreferences, bottomNavigationStyleTitle)
+                Preference.PreferenceItem.CustomPreference(title = appearanceStyleTitle) {
+                    AppearanceStylePreference(uiPreferences, appearanceStyleTitle)
                 },
                 Preference.PreferenceItem.ListPreference(
                     preference = uiPreferences.tabletUiMode,
@@ -206,8 +206,8 @@ data object SettingsAppearanceScreen : SearchableSettings {
 }
 
 @Composable
-private fun BottomNavigationStylePreference(uiPreferences: UiPreferences, title: String) {
-    val preference = uiPreferences.bottomNavigationStyle
+private fun AppearanceStylePreference(uiPreferences: UiPreferences, title: String) {
+    val preference = uiPreferences.appearanceStyle
     val style by preference.collectAsState()
     var showGlassWarning by rememberSaveable { mutableStateOf(false) }
 
@@ -216,9 +216,9 @@ private fun BottomNavigationStylePreference(uiPreferences: UiPreferences, title:
         title = title,
         subtitle = stringResource(style.titleRes),
         icon = null,
-        entries = BottomNavigationStyle.entries.associateWith { stringResource(it.titleRes) },
+        entries = AppearanceStyle.entries.associateWith { stringResource(it.titleRes) },
         onValueChange = {
-            if (it == BottomNavigationStyle.GLASS) {
+            if (it == AppearanceStyle.GLASS) {
                 showGlassWarning = true
             } else {
                 preference.set(it)
@@ -228,17 +228,17 @@ private fun BottomNavigationStylePreference(uiPreferences: UiPreferences, title:
 
     if (showGlassWarning) {
         val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MR.strings.pref_bottom_navigation_style_glass_warning
+            MR.strings.pref_appearance_style_glass_warning
         } else {
-            MR.strings.pref_bottom_navigation_style_glass_unavailable
+            MR.strings.pref_appearance_style_glass_unavailable
         }
         AlertDialog(
             onDismissRequest = { showGlassWarning = false },
-            title = { Text(stringResource(BottomNavigationStyle.GLASS.titleRes)) },
+            title = { Text(stringResource(AppearanceStyle.GLASS.titleRes)) },
             text = { Text(stringResource(message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    preference.set(BottomNavigationStyle.GLASS)
+                    preference.set(AppearanceStyle.GLASS)
                     showGlassWarning = false
                 }) {
                     Text(stringResource(MR.strings.action_apply))
