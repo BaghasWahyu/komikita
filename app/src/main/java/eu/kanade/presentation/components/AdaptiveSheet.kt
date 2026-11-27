@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import mihon.presentation.core.util.isTabletUi
 import tachiyomi.presentation.core.components.AdaptiveSheet as AdaptiveSheetImpl
 
@@ -21,7 +22,7 @@ fun AdaptiveSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     enableImplicitDismiss: Boolean = true,
-    useGlassUi: Boolean = false,
+    useGlassUi: Boolean = LocalGlassUiEnabled.current,
     content: @Composable () -> Unit,
 ) {
     val isTabletUi = isTabletUi()

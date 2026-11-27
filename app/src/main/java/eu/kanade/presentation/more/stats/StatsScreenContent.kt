@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.more.stats.components.StatsItem
 import eu.kanade.presentation.more.stats.components.StatsOverviewItem
 import eu.kanade.presentation.more.stats.data.StatsData
@@ -112,7 +113,11 @@ private fun LazyItemScope.ReadingRecapSection(state: StatsScreenState.Success, o
                     Text(recap.year.toString())
                     Icon(MaterialSymbols.Rounded.KeyboardArrowDown, contentDescription = null)
                 }
-                DropdownMenu(expanded = yearMenu, onDismissRequest = { yearMenu = false }) {
+                DropdownMenu(
+                    expanded = yearMenu,
+                    onDismissRequest = { yearMenu = false },
+                    offset = DpOffset.Zero,
+                ) {
                     state.availableYears.forEach { year ->
                         DropdownMenuItem(
                             text = { Text(year.toString()) },

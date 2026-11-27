@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import kotlinx.coroutines.launch
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.MoreVert
@@ -45,7 +46,7 @@ fun TabbedDialog(
     modifier: Modifier = Modifier,
     tabOverflowMenuContent: (@Composable ColumnScope.(() -> Unit) -> Unit)? = null,
     pagerState: PagerState = rememberPagerState { tabTitles.size },
-    useGlassUi: Boolean = false,
+    useGlassUi: Boolean = LocalGlassUiEnabled.current,
     content: @Composable (Int) -> Unit,
 ) {
     AdaptiveSheet(

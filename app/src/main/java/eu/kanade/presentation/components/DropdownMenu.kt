@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowRight
 import mihon.icons.materialsymbols.rounded.RadioButtonChecked
@@ -25,6 +27,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.not_selected
 import tachiyomi.i18n.selected
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassSurfaceColor
 import androidx.compose.material3.DropdownMenu as ComposeDropdownMenu
 
 /**
@@ -41,6 +45,7 @@ fun DropdownMenu(
     properties: PopupProperties = PopupProperties(focusable = true),
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val useGlassUi = LocalGlassUiEnabled.current
     ComposeDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
@@ -48,6 +53,9 @@ fun DropdownMenu(
         offset = offset,
         scrollState = scrollState,
         properties = properties,
+        shape = if (useGlassUi) MaterialTheme.shapes.medium else MenuDefaults.shape,
+        containerColor = if (useGlassUi) glassSurfaceColor(alpha = 0.88f) else MenuDefaults.containerColor,
+        border = if (useGlassUi) glassBorder() else null,
         content = content,
     )
 }

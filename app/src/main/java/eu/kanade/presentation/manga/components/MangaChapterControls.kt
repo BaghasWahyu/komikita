@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Close
 import mihon.icons.materialsymbols.rounded.Search
@@ -35,6 +37,8 @@ import tachiyomi.i18n.komikita_manga_information
 import tachiyomi.i18n.komikita_search_chapters
 import tachiyomi.i18n.label_downloaded
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassFilterChipBorder
+import tachiyomi.presentation.core.theme.glassFilterChipColors
 
 @Composable
 fun MangaDetailTabs(
@@ -91,13 +95,15 @@ fun MangaChapterControls(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
         )
+        val useGlassUi = LocalGlassUiEnabled.current
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(ChapterQuickFilter.entries) { filter ->
+                val selected = quickFilter == filter
                 FilterChip(
-                    selected = quickFilter == filter,
+                    selected = selected,
                     enabled = enabled,
                     onClick = { onQuickFilterChange(filter) },
                     label = {
@@ -110,6 +116,16 @@ fun MangaChapterControls(
                                 },
                             ),
                         )
+                    },
+                    colors = if (useGlassUi) {
+                        glassFilterChipColors()
+                    } else {
+                        FilterChipDefaults.filterChipColors()
+                    },
+                    border = if (useGlassUi) {
+                        glassFilterChipBorder(enabled = enabled, selected = selected)
+                    } else {
+                        FilterChipDefaults.filterChipBorder(enabled = enabled, selected = selected)
                     },
                 )
             }

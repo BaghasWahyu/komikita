@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.manga.DownloadAction
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -74,6 +75,8 @@ import tachiyomi.i18n.action_remove_bookmark
 import tachiyomi.i18n.label_more
 import tachiyomi.i18n.migrate
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassSurfaceColor
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -94,10 +97,16 @@ fun MangaBottomActionMenu(
         exit = shrinkVertically(shrinkTowards = Alignment.Bottom),
     ) {
         val scope = rememberCoroutineScope()
+        val useGlassUi = LocalGlassUiEnabled.current
         Surface(
             modifier = modifier,
             shape = MaterialTheme.shapes.large.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = if (useGlassUi) {
+                glassSurfaceColor(alpha = 0.86f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            border = if (useGlassUi) glassBorder() else null,
         ) {
             val haptic = LocalHapticFeedback.current
             val confirm = remember { mutableStateListOf(false, false, false, false, false, false, false) }
@@ -255,10 +264,16 @@ fun LibraryBottomActionMenu(
         exit = shrinkVertically(animationSpec = tween()),
     ) {
         val scope = rememberCoroutineScope()
+        val useGlassUi = LocalGlassUiEnabled.current
         Surface(
             modifier = modifier,
             shape = MaterialTheme.shapes.large.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = if (useGlassUi) {
+                glassSurfaceColor(alpha = 0.86f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            border = if (useGlassUi) glassBorder() else null,
         ) {
             val haptic = LocalHapticFeedback.current
             val confirm = remember { mutableStateListOf(false, false, false, false, false, false) }

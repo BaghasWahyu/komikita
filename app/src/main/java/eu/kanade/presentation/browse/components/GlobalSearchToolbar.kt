@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.SearchToolbar
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
+import eu.kanade.presentation.theme.glassEdge
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SourceFilter
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.DoneAll
@@ -35,6 +37,8 @@ import tachiyomi.i18n.has_results
 import tachiyomi.i18n.pinned_sources
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassFilterChipBorder
+import tachiyomi.presentation.core.theme.glassFilterChipColors
 
 @Composable
 fun GlobalSearchToolbar(
@@ -51,7 +55,18 @@ fun GlobalSearchToolbar(
     onToggleResults: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val colors = MaterialTheme.colorScheme
+    val chipColors = if (useGlassUi) glassFilterChipColors() else FilterChipDefaults.filterChipColors()
+    Column(
+        modifier = Modifier
+            .background(
+                if (useGlassUi) colors.surfaceContainerLow.copy(alpha = 0.84f) else colors.surface,
+            )
+            .then(
+                if (useGlassUi) Modifier.glassEdge(colors.outlineVariant, atTop = false) else Modifier,
+            ),
+    ) {
         Box {
             SearchToolbar(
                 searchQuery = searchQuery,
@@ -80,8 +95,9 @@ fun GlobalSearchToolbar(
         ) {
             // TODO: make this UX better; it only applies when triggering a new search
             if (!hideSourceFilter) {
+                val pinnedSelected = sourceFilter == SourceFilter.PinnedOnly
                 FilterChip(
-                    selected = sourceFilter == SourceFilter.PinnedOnly,
+                    selected = pinnedSelected,
                     onClick = { onChangeSearchFilter(SourceFilter.PinnedOnly) },
                     leadingIcon = {
                         Icon(
@@ -94,9 +110,16 @@ fun GlobalSearchToolbar(
                     label = {
                         Text(text = stringResource(MR.strings.pinned_sources))
                     },
+                    colors = chipColors,
+                    border = if (useGlassUi) {
+                        glassFilterChipBorder(enabled = true, selected = pinnedSelected)
+                    } else {
+                        FilterChipDefaults.filterChipBorder(enabled = true, selected = pinnedSelected)
+                    },
                 )
+                val allSelected = sourceFilter == SourceFilter.All
                 FilterChip(
-                    selected = sourceFilter == SourceFilter.All,
+                    selected = allSelected,
                     onClick = { onChangeSearchFilter(SourceFilter.All) },
                     leadingIcon = {
                         Icon(
@@ -108,6 +131,12 @@ fun GlobalSearchToolbar(
                     },
                     label = {
                         Text(text = stringResource(MR.strings.all))
+                    },
+                    colors = chipColors,
+                    border = if (useGlassUi) {
+                        glassFilterChipBorder(enabled = true, selected = allSelected)
+                    } else {
+                        FilterChipDefaults.filterChipBorder(enabled = true, selected = allSelected)
                     },
                 )
 
@@ -128,9 +157,17 @@ fun GlobalSearchToolbar(
                 label = {
                     Text(text = stringResource(MR.strings.has_results))
                 },
+                colors = chipColors,
+                border = if (useGlassUi) {
+                    glassFilterChipBorder(enabled = true, selected = onlyShowHasResults)
+                } else {
+                    FilterChipDefaults.filterChipBorder(enabled = true, selected = onlyShowHasResults)
+                },
             )
         }
 
-        HorizontalDivider()
+        if (!useGlassUi) {
+            HorizontalDivider()
+        }
     }
 }

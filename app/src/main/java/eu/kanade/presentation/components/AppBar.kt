@@ -51,6 +51,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
+import eu.kanade.presentation.theme.glassEdge
 import kotlinx.coroutines.flow.drop
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.ArrowBack
@@ -137,10 +139,21 @@ fun AppBar(
 
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val colors = MaterialTheme.colorScheme
+    val defaultContainerColor = colors.surfaceColorAtElevation(
+        elevation = if (isActionMode) 3.dp else 0.dp,
+    )
+    val applyDefaultGlass = useGlassUi && backgroundColor == null
     Column(
         modifier = modifier,
     ) {
         TopAppBar(
+            modifier = if (applyDefaultGlass) {
+                Modifier.glassEdge(colors.outlineVariant, atTop = false)
+            } else {
+                Modifier
+            },
             navigationIcon = {
                 if (isActionMode) {
                     IconButton(onClick = onCancelActionMode) {
@@ -160,9 +173,16 @@ fun AppBar(
             title = titleContent,
             actions = actions,
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = backgroundColor ?: MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    elevation = if (isActionMode) 3.dp else 0.dp,
-                ),
+                containerColor = when {
+                    backgroundColor != null -> backgroundColor
+                    useGlassUi -> defaultContainerColor.copy(alpha = 0.84f)
+                    else -> defaultContainerColor
+                },
+                scrolledContainerColor = if (applyDefaultGlass) {
+                    colors.surfaceContainerHigh.copy(alpha = 0.88f)
+                } else {
+                    Color.Unspecified
+                },
             ),
             scrollBehavior = scrollBehavior,
         )

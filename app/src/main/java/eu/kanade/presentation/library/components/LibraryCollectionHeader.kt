@@ -2,6 +2,7 @@ package eu.kanade.presentation.library.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -137,14 +138,28 @@ private fun LibraryViewToggle(
     label: String,
     icon: @Composable () -> Unit,
 ) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val shape = MaterialTheme.shapes.medium
+    val containerColor = when {
+        !selected -> Color.Transparent
+        useGlassUi -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.82f)
+        else -> MaterialTheme.colorScheme.secondaryContainer
+    }
     IconToggleButton(
         checked = selected,
         onCheckedChange = { onClick() },
         modifier = Modifier
             .size(48.dp)
             .background(
-                color = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                shape = MaterialTheme.shapes.medium,
+                color = containerColor,
+                shape = shape,
+            )
+            .then(
+                if (useGlassUi && selected) {
+                    Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+                } else {
+                    Modifier
+                },
             )
             .semantics { contentDescription = label },
     ) {

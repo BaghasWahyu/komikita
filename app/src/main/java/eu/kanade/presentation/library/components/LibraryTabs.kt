@@ -16,7 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.category.visualName
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import tachiyomi.domain.category.model.Category
+import tachiyomi.presentation.core.theme.glassFilterChipBorder
+import tachiyomi.presentation.core.theme.glassFilterChipColors
 
 @Composable
 internal fun LibraryTabs(
@@ -26,6 +29,7 @@ internal fun LibraryTabs(
     onTabItemClick: (Int) -> Unit,
 ) {
     val currentPageIndex = pagerState.currentPage.coerceAtMost(categories.lastIndex)
+    val useGlassUi = LocalGlassUiEnabled.current
     val scrollState = rememberLazyListState()
     LaunchedEffect(currentPageIndex) {
         if (currentPageIndex >= 0) scrollState.animateScrollToItem(currentPageIndex)
@@ -35,8 +39,9 @@ internal fun LibraryTabs(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         itemsIndexed(categories, key = { _, category -> category.id }) { index, category ->
+            val selected = currentPageIndex == index
             FilterChip(
-                selected = currentPageIndex == index,
+                selected = selected,
                 onClick = { onTabItemClick(index) },
                 shape = MaterialTheme.shapes.medium,
                 label = {
@@ -50,10 +55,19 @@ internal fun LibraryTabs(
                         }
                     }
                 },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
+                colors = if (useGlassUi) {
+                    glassFilterChipColors()
+                } else {
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                },
+                border = if (useGlassUi) {
+                    glassFilterChipBorder(enabled = true, selected = selected)
+                } else {
+                    FilterChipDefaults.filterChipBorder(enabled = true, selected = selected)
+                },
             )
         }
     }

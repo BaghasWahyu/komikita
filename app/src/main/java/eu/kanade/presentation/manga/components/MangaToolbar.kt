@@ -16,6 +16,8 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.manga.DownloadAction
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
+import eu.kanade.presentation.theme.glassEdge
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.rounded.Download
 import mihon.icons.materialsymbols.rounded.FilterList
@@ -59,6 +61,17 @@ fun MangaToolbar(
     showFilterAction: Boolean = true,
 ) {
     val isActionMode = actionModeCounter > 0
+    val useGlassUi = LocalGlassUiEnabled.current
+    val baseAlpha = if (isActionMode) 1f else backgroundAlphaProvider()
+    val containerAlpha = if (useGlassUi) baseAlpha * 0.86f else baseAlpha
+    val toolbarModifier = if (useGlassUi) {
+        modifier.glassEdge(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = baseAlpha),
+            atTop = false,
+        )
+    } else {
+        modifier
+    }
     AppBar(
         titleContent = {
             if (isActionMode) {
@@ -67,10 +80,10 @@ fun MangaToolbar(
                 AppBarTitle(title, modifier = Modifier.alpha(titleAlphaProvider()))
             }
         },
-        modifier = modifier,
+        modifier = toolbarModifier,
         backgroundColor = MaterialTheme.colorScheme
             .surfaceColorAtElevation(3.dp)
-            .copy(alpha = if (isActionMode) 1f else backgroundAlphaProvider()),
+            .copy(alpha = containerAlpha),
         navigateUp = navigateUp,
         actions = {
             var downloadExpanded by remember { mutableStateOf(false) }
