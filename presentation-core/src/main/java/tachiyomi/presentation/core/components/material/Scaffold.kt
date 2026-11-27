@@ -3,6 +3,7 @@ package tachiyomi.presentation.core.components.material
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScaffoldDefaults
@@ -11,6 +12,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +25,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+
+val LocalScaffoldOverlayInsets = compositionLocalOf<WindowInsets?> { null }
 
 @Composable
 fun Scaffold(
@@ -42,6 +46,8 @@ fun Scaffold(
 ) {
     var fabHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
+    val overlayInsets = LocalScaffoldOverlayInsets.current
+    val effectiveInsets = overlayInsets?.let { contentWindowInsets.union(it) } ?: contentWindowInsets
 
     androidx.compose.material3.Scaffold(
         modifier = modifier.nestedScroll(topBarScrollBehavior.nestedScrollConnection),
@@ -56,7 +62,7 @@ fun Scaffold(
         floatingActionButtonPosition = floatingActionButtonPosition,
         containerColor = containerColor,
         contentColor = contentColor,
-        contentWindowInsets = contentWindowInsets,
+        contentWindowInsets = effectiveInsets,
     ) { contentPadding ->
         val paddingValues = remember(contentPadding) {
             FabAwarePaddingValues(contentPadding) {

@@ -1,15 +1,23 @@
 package eu.kanade.presentation.more.settings.screen
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.core.app.ActivityCompat
 import eu.kanade.domain.ui.UiPreferences
+import eu.kanade.domain.ui.model.BottomNavigationStyle
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.domain.ui.model.TimeFormat
@@ -17,6 +25,7 @@ import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.AppThemeModePreferenceWidget
 import eu.kanade.presentation.more.settings.widget.AppThemePreferenceWidget
+import eu.kanade.presentation.more.settings.widget.ListPreferenceWidget
 import eu.kanade.presentation.util.rememberIs24HourSystem
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.datetime.TimeZone
@@ -27,9 +36,14 @@ import mihon.app.di.appGraph
 import mihon.core.navigation.AppLanguageRoute
 import mihon.core.navigation.LocalNavigator
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.action_apply
+import tachiyomi.i18n.action_cancel
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.pref_app_language
 import tachiyomi.i18n.pref_app_theme
+import tachiyomi.i18n.pref_bottom_navigation_style
+import tachiyomi.i18n.pref_bottom_navigation_style_glass_unavailable
+import tachiyomi.i18n.pref_bottom_navigation_style_glass_warning
 import tachiyomi.i18n.pref_category_appearance
 import tachiyomi.i18n.pref_category_display
 import tachiyomi.i18n.pref_category_theme
@@ -129,6 +143,7 @@ data object SettingsAppearanceScreen : SearchableSettings {
         val formattedDateNow = remember(dateFormat) {
             UiPreferences.dateFormat(dateFormat, locale.platformLocale).format(now)
         }
+        val bottomNavigationStyleTitle = stringResource(MR.strings.pref_bottom_navigation_style)
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
@@ -137,6 +152,9 @@ data object SettingsAppearanceScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_app_language),
                     onClick = { navigator.push(AppLanguageRoute) },
                 ),
+                Preference.PreferenceItem.CustomPreference(title = bottomNavigationStyleTitle) {
+                    BottomNavigationStylePreference(uiPreferences, bottomNavigationStyleTitle)
+                },
                 Preference.PreferenceItem.ListPreference(
                     preference = uiPreferences.tabletUiMode,
                     entries = TabletUiMode.entries
@@ -183,6 +201,54 @@ data object SettingsAppearanceScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_display_images_description),
                 ),
             ),
+        )
+    }
+}
+
+@Composable
+private fun BottomNavigationStylePreference(uiPreferences: UiPreferences, title: String) {
+    val preference = uiPreferences.bottomNavigationStyle
+    val style by preference.collectAsState()
+    var showGlassWarning by rememberSaveable { mutableStateOf(false) }
+
+    ListPreferenceWidget(
+        value = style,
+        title = title,
+        subtitle = stringResource(style.titleRes),
+        icon = null,
+        entries = BottomNavigationStyle.entries.associateWith { stringResource(it.titleRes) },
+        onValueChange = {
+            if (it == BottomNavigationStyle.GLASS) {
+                showGlassWarning = true
+            } else {
+                preference.set(it)
+            }
+        },
+    )
+
+    if (showGlassWarning) {
+        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MR.strings.pref_bottom_navigation_style_glass_warning
+        } else {
+            MR.strings.pref_bottom_navigation_style_glass_unavailable
+        }
+        AlertDialog(
+            onDismissRequest = { showGlassWarning = false },
+            title = { Text(stringResource(BottomNavigationStyle.GLASS.titleRes)) },
+            text = { Text(stringResource(message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    preference.set(BottomNavigationStyle.GLASS)
+                    showGlassWarning = false
+                }) {
+                    Text(stringResource(MR.strings.action_apply))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGlassWarning = false }) {
+                    Text(stringResource(MR.strings.action_cancel))
+                }
+            },
         )
     }
 }

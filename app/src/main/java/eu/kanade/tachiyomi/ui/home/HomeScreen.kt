@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
+import eu.kanade.domain.ui.model.BottomNavigationStyle
 import eu.kanade.presentation.util.rememberAnimatedVectorPainter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.BrowseShowExtensionsEvent
@@ -64,6 +66,7 @@ import tachiyomi.i18n.notification_chapters_generic
 import tachiyomi.i18n.update_check_notification_ext_updates
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.util.collectAsState
 
 @Serializable
 sealed interface TopLevelRoute : NavKey {
@@ -142,7 +145,13 @@ fun HomeScreen() {
     val tabNavigator = rememberNavigator(TopLevelRoute.Library)
     val navigator = LocalNavigator.current
     val resultEventBus = LocalResultEventBus.current
+    val context = LocalContext.current
+    val preferredNavigationStyle by remember(context) {
+        context.appGraph.uiPreferences.bottomNavigationStyle
+    }.collectAsState()
     val tabletUi = isTabletUi()
+    val navigationStyle = if (tabletUi) BottomNavigationStyle.DEFAULT else preferredNavigationStyle
+    val overlayNavigation = navigationStyle != BottomNavigationStyle.DEFAULT
     val navigationSuiteType = if (tabletUi) {
         NavigationSuiteType.NavigationRail
     } else {
@@ -161,53 +170,60 @@ fun HomeScreen() {
         }
     }
 
+    val navigationItems: @Composable () -> Unit = {
+        TABS.fastForEach { NavigationSuiteItem(it, tabNavigator, navigationSuiteType) }
+    }
     NavigationSuiteScaffold(
-        navigationSuiteType = navigationSuiteType,
+        navigationSuiteType = if (overlayNavigation) NavigationSuiteType.None else navigationSuiteType,
         state = navigationSuiteState,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
         navigationItemVerticalArrangement = Arrangement.Center,
-        navigationItems = {
-            TABS.fastForEach { NavigationSuiteItem(it, tabNavigator, navigationSuiteType) }
-        },
+        navigationItems = navigationItems,
     ) {
-        val tabStateHolder = rememberSaveableStateHolder()
-        NavigatorDisplay(
-            navigator = tabNavigator,
-            entryDecorators = listOf(
-                remember(tabStateHolder) {
-                    NavEntryDecorator { entry ->
-                        tabStateHolder.SaveableStateProvider(entry.contentKey) { entry.Content() }
+        HomeNavigationOverlay(
+            style = navigationStyle,
+            visible = overlayNavigation && navigationSuiteState.targetValue == NavigationSuiteScaffoldValue.Visible,
+            navigationItems = navigationItems,
+        ) {
+            val tabStateHolder = rememberSaveableStateHolder()
+            NavigatorDisplay(
+                navigator = tabNavigator,
+                entryDecorators = listOf(
+                    remember(tabStateHolder) {
+                        NavEntryDecorator { entry ->
+                            tabStateHolder.SaveableStateProvider(entry.contentKey) { entry.Content() }
+                        }
+                    },
+                ),
+                transitionSpec = { spec },
+                popTransitionSpec = { spec },
+                predictivePopTransitionSpec = { spec },
+                entryProvider = entryProvider {
+                    entry<TopLevelRoute.Library> {
+                        LibraryTab()
+                    }
+
+                    entry<TopLevelRoute.Updates> {
+                        UpdatesTab()
+                    }
+
+                    entry<TopLevelRoute.History> {
+                        HistoryTab()
+                    }
+
+                    entry<TopLevelRoute.Browse> {
+                        BrowseTab()
+                    }
+
+                    entry<TopLevelRoute.More> {
+                        MoreTab()
                     }
                 },
-            ),
-            transitionSpec = { spec },
-            popTransitionSpec = { spec },
-            predictivePopTransitionSpec = { spec },
-            entryProvider = entryProvider {
-                entry<TopLevelRoute.Library> {
-                    LibraryTab()
-                }
-
-                entry<TopLevelRoute.Updates> {
-                    UpdatesTab()
-                }
-
-                entry<TopLevelRoute.History> {
-                    HistoryTab()
-                }
-
-                entry<TopLevelRoute.Browse> {
-                    BrowseTab()
-                }
-
-                entry<TopLevelRoute.More> {
-                    MoreTab()
-                }
-            },
-        )
+            )
+        }
     }
 
     ResultEffect<TabEvent> {
