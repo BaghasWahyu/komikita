@@ -1,6 +1,5 @@
 package mihon.feature.migration.list.components
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -11,6 +10,7 @@ import tachiyomi.i18n.migrationListScreen_migrateDialog_copyTitle
 import tachiyomi.i18n.migrationListScreen_migrateDialog_migrateLabel
 import tachiyomi.i18n.migrationListScreen_migrateDialog_migrateTitle
 import tachiyomi.i18n.migrationListScreen_migrateDialog_skipText
+import tachiyomi.presentation.core.components.material.AlertDialog
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 

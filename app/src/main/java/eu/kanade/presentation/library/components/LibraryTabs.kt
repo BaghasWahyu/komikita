@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import tachiyomi.domain.category.model.Category
+import tachiyomi.presentation.core.components.material.FilterChip
 import tachiyomi.presentation.core.theme.glassFilterChipBorder
 import tachiyomi.presentation.core.theme.glassFilterChipColors
 

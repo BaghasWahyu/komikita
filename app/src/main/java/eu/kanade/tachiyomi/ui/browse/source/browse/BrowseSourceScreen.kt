@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,10 +56,14 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.action_filter
 import tachiyomi.i18n.latest
 import tachiyomi.i18n.popular
+import tachiyomi.presentation.core.components.material.FilterChip
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.SnackbarHost
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.theme.LocalGlassUiEnabled
+import tachiyomi.presentation.core.theme.glassEdge
 import tachiyomi.source.local.LocalSource
 
 @Composable
@@ -121,9 +123,20 @@ fun BrowseSourceScreen(
 
     Scaffold(
         topBar = {
+            val useGlassUi = LocalGlassUiEnabled.current
+            val colors = MaterialTheme.colorScheme
             Column(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(
+                        if (useGlassUi) colors.surfaceContainerLow.copy(alpha = 0.84f) else colors.surface,
+                    )
+                    .then(
+                        if (useGlassUi) {
+                            Modifier.glassEdge(colors.outlineVariant, atTop = false)
+                        } else {
+                            Modifier
+                        },
+                    )
                     .pointerInput(Unit) {},
             ) {
                 BrowseSourceToolbar(
@@ -202,7 +215,9 @@ fun BrowseSourceScreen(
                     }
                 }
 
-                HorizontalDivider()
+                if (!useGlassUi) {
+                    HorizontalDivider()
+                }
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },

@@ -1,6 +1,5 @@
 package eu.kanade.presentation.browse.components
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -10,6 +9,7 @@ import tachiyomi.i18n.action_cancel
 import tachiyomi.i18n.action_remove
 import tachiyomi.i18n.are_you_sure
 import tachiyomi.i18n.remove_manga
+import tachiyomi.presentation.core.components.material.AlertDialog
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

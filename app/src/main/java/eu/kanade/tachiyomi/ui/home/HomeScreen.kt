@@ -145,7 +145,8 @@ fun HomeScreen() {
     val navigator = LocalNavigator.current
     val resultEventBus = LocalResultEventBus.current
     val tabletUi = isTabletUi()
-    val overlayNavigation = LocalGlassUiEnabled.current && !tabletUi
+    val useGlassUi = LocalGlassUiEnabled.current
+    val overlayNavigation = useGlassUi && !tabletUi
     val navigationSuiteType = if (tabletUi) {
         NavigationSuiteType.NavigationRail
     } else {
@@ -171,7 +172,11 @@ fun HomeScreen() {
         navigationSuiteType = if (overlayNavigation) NavigationSuiteType.None else navigationSuiteType,
         state = navigationSuiteState,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
-            navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            navigationRailContainerColor = if (useGlassUi) {
+                MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.84f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            },
             navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
         navigationItemVerticalArrangement = Arrangement.Center,

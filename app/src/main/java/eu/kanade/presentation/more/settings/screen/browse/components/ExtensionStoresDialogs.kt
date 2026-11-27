@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +31,7 @@ import tachiyomi.i18n.extensionStoresScreen_addStore_title
 import tachiyomi.i18n.extensionStoresScreen_deleteStore_body
 import tachiyomi.i18n.extensionStoresScreen_deleteStore_title
 import tachiyomi.i18n.information_required_plain
+import tachiyomi.presentation.core.components.material.AlertDialog
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

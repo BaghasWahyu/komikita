@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -53,6 +52,7 @@ import tachiyomi.i18n.migrationConfigScreen_prioritizeByChaptersSubtitle
 import tachiyomi.i18n.migrationConfigScreen_prioritizeByChaptersTitle
 import tachiyomi.i18n.migrationConfigScreen_removeDownloadsTitle
 import tachiyomi.presentation.core.components.material.Button
+import tachiyomi.presentation.core.components.material.FilterChip
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active

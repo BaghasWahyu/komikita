@@ -11,9 +11,9 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,10 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.zIndex
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
+import eu.kanade.presentation.theme.glassEdge
 import kotlinx.coroutines.launch
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.SnackbarHost
 import tachiyomi.presentation.core.components.material.TabText
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassSurfaceColor
 
 @Composable
 fun TabbedScreen(
@@ -60,9 +64,23 @@ fun TabbedScreen(
                 end = contentPadding.calculateEndPadding(LocalLayoutDirection.current),
             ),
         ) {
+            val useGlassUi = LocalGlassUiEnabled.current
             PrimaryTabRow(
                 selectedTabIndex = state.currentPage,
-                modifier = Modifier.zIndex(1f),
+                modifier = Modifier
+                    .zIndex(1f)
+                    .then(
+                        if (useGlassUi) {
+                            Modifier.glassEdge(MaterialTheme.colorScheme.outlineVariant, atTop = false)
+                        } else {
+                            Modifier
+                        },
+                    ),
+                containerColor = if (useGlassUi) {
+                    glassSurfaceColor(MaterialTheme.colorScheme.surfaceContainerLow, alpha = 0.84f)
+                } else {
+                    TabRowDefaults.primaryContainerColor
+                },
             ) {
                 tabs.forEachIndexed { index, tab ->
                     Tab(

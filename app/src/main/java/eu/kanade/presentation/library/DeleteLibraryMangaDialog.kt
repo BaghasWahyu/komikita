@@ -1,7 +1,6 @@
 package eu.kanade.presentation.library
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,6 +17,7 @@ import tachiyomi.i18n.action_remove
 import tachiyomi.i18n.downloaded_chapters
 import tachiyomi.i18n.manga_from_library
 import tachiyomi.presentation.core.components.LabeledCheckbox
+import tachiyomi.presentation.core.components.material.AlertDialog
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable

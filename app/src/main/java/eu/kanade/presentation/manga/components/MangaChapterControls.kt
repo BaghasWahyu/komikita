@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +35,7 @@ import tachiyomi.i18n.komikita_clear_search
 import tachiyomi.i18n.komikita_manga_information
 import tachiyomi.i18n.komikita_search_chapters
 import tachiyomi.i18n.label_downloaded
+import tachiyomi.presentation.core.components.material.FilterChip
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.glassFilterChipBorder
 import tachiyomi.presentation.core.theme.glassFilterChipColors

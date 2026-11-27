@@ -6,7 +6,6 @@ import android.content.Intent
 import android.provider.Settings
 import android.webkit.WebStorage
 import android.webkit.WebView
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -114,6 +113,7 @@ import tachiyomi.i18n.requires_app_restart
 import tachiyomi.i18n.webview_ad_block_settings_summary
 import tachiyomi.i18n.webview_ad_block_title
 import tachiyomi.i18n.webview_data_deleted
+import tachiyomi.presentation.core.components.material.AlertDialog
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import java.io.File

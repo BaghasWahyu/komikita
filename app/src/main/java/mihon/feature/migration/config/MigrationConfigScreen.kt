@@ -9,13 +9,13 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,6 +43,7 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.components.SourceIcon
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import kotlinx.coroutines.Dispatchers
@@ -75,9 +76,12 @@ import tachiyomi.i18n.migrationConfigScreen_selectedHeader
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.components.material.Scaffold
+import tachiyomi.presentation.core.components.material.SmallExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassCardColors
 import tachiyomi.presentation.core.util.shouldExpandFAB
 
 @Composable
@@ -251,19 +255,37 @@ private fun LazyItemScope.SourceItemContainer(
         key = key(source),
         enabled = dragEnabled,
     ) { _ ->
-        ElevatedCard(
-            shape = shape,
-            modifier = Modifier
-                .padding(horizontal = MaterialTheme.padding.medium)
-                .animateItem(),
-        ) {
-            SourceItem(
-                source = source,
-                showLanguage = showLanguage,
-                dragEnabled = dragEnabled,
-                scope = this@ReorderableItem,
-                onClick = onClick,
-            )
+        val cardModifier = Modifier
+            .padding(horizontal = MaterialTheme.padding.medium)
+            .animateItem()
+        if (LocalGlassUiEnabled.current) {
+            Card(
+                shape = shape,
+                modifier = cardModifier,
+                colors = glassCardColors(alpha = 0.80f),
+                border = glassBorder(),
+            ) {
+                SourceItem(
+                    source = source,
+                    showLanguage = showLanguage,
+                    dragEnabled = dragEnabled,
+                    scope = this@ReorderableItem,
+                    onClick = onClick,
+                )
+            }
+        } else {
+            ElevatedCard(
+                shape = shape,
+                modifier = cardModifier,
+            ) {
+                SourceItem(
+                    source = source,
+                    showLanguage = showLanguage,
+                    dragEnabled = dragEnabled,
+                    scope = this@ReorderableItem,
+                    onClick = onClick,
+                )
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import mihon.domain.extension.model.ExtensionStore
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Label
@@ -29,6 +31,8 @@ import tachiyomi.i18n.action_delete
 import tachiyomi.i18n.action_open_in_browser
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassCardColors
 
 @Composable
 fun ExtensionStoresContent(
@@ -71,9 +75,7 @@ private fun ExtensionStoresListItem(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ElevatedCard(
-        modifier = modifier,
-    ) {
+    val content: @Composable () -> Unit = {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,6 +127,20 @@ private fun ExtensionStoresListItem(
                     contentDescription = stringResource(MR.strings.action_delete),
                 )
             }
+        }
+    }
+
+    if (LocalGlassUiEnabled.current) {
+        Card(
+            modifier = modifier,
+            colors = glassCardColors(alpha = 0.80f),
+            border = glassBorder(),
+        ) {
+            content()
+        }
+    } else {
+        ElevatedCard(modifier = modifier) {
+            content()
         }
     }
 }
