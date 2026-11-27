@@ -81,7 +81,6 @@ jobs:
           mv app/build/outputs/apk/release/app-universal-release.apk "komikita-${RELEASE_TAG}.apk"
           mv app/build/outputs/apk/release/app-arm64-v8a-release.apk "komikita-arm64-v8a-${RELEASE_TAG}.apk"
           mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk "komikita-armeabi-v7a-${RELEASE_TAG}.apk"
-          mv app/build/outputs/apk/release/app-x86-release.apk "komikita-x86-${RELEASE_TAG}.apk"
           mv app/build/outputs/apk/release/app-x86_64-release.apk "komikita-x86_64-${RELEASE_TAG}.apk"
 
       - name: Generate release notes
@@ -109,7 +108,6 @@ jobs:
             komikita-${{ env.RELEASE_TAG }}.apk
             komikita-arm64-v8a-${{ env.RELEASE_TAG }}.apk
             komikita-armeabi-v7a-${{ env.RELEASE_TAG }}.apk
-            komikita-x86-${{ env.RELEASE_TAG }}.apk
             komikita-x86_64-${{ env.RELEASE_TAG }}.apk
           draft: true
           prerelease: false

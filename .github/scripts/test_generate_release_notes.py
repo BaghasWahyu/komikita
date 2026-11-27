@@ -71,7 +71,7 @@ class ReleaseNotesTest(unittest.TestCase):
         self.assertIn("Commit details", details)
         self.assertIn("komikita-arm64-v8a-v1.0.6.apk", details)
         self.assertNotIn("komikita-v1.0.6-foss.apk", details)
-        self.assertEqual(details.count("/releases/download/v1.0.6/"), 5)
+        self.assertEqual(details.count("/releases/download/v1.0.6/"), 4)
         self.assertIn("/blob/v1.0.6/docs/README.md", details)
 
     def test_fallback_groups_direct_commits_without_reusing_old_changelog(self):

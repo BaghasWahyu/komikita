@@ -119,7 +119,6 @@ def generate(root, tag, repository, previous):
         (f"komikita-{tag}.apk", "Universal APK — recommended if you are unsure"),
         (f"komikita-arm64-v8a-{tag}.apk", "ARM64 phones and tablets"),
         (f"komikita-armeabi-v7a-{tag}.apk", "32-bit ARM devices"),
-        (f"komikita-x86-{tag}.apk", "32-bit x86 devices and emulators"),
         (f"komikita-x86_64-{tag}.apk", "64-bit x86 devices and emulators"),
     ]
     downloads = ["## Downloads", "", "| APK | Use this for |", "| --- | --- |"]

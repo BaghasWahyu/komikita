@@ -21,6 +21,35 @@ permissions:
   contents: read
 
 jobs:
+  rust-check:
+    name: Check Rust
+    runs-on: 'ubuntu-26.04'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust host toolchain
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+          echo "RUSTUP_TOOLCHAIN=stable" >> "$GITHUB_ENV"
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          shared-key: host-rust-check
+          workspaces: native -> ../core/native/build/rust-target
+          cache-bin: 'false'
+          save-if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+      - name: Check Rust
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/core/native/build/rust-target
+        run: |
+          cargo fmt --manifest-path native/Cargo.toml --check
+          cargo test --manifest-path native/Cargo.toml --locked
+          cargo clippy --manifest-path native/Cargo.toml --all-targets --locked -- -D warnings
+
   build:
     name: Build & Test App
     runs-on: 'ubuntu-26.04'
@@ -41,14 +70,6 @@ jobs:
 
       - name: Set up Rust
         uses: ./.github/actions/setup-rust
-
-      - name: Check Rust
-        env:
-          CARGO_TARGET_DIR: ${{ github.workspace }}/core/native/build/rust-target
-        run: |
-          cargo fmt --manifest-path native/Cargo.toml --check
-          cargo test --manifest-path native/Cargo.toml --locked
-          cargo clippy --manifest-path native/Cargo.toml --all-targets --locked -- -D warnings
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
@@ -75,8 +96,10 @@ jobs:
           from zipfile import ZipFile
 
           directory = Path('app/build/outputs/apk/release')
-          abis = ('armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64')
+          abis = ('armeabi-v7a', 'arm64-v8a', 'x86_64')
           with ZipFile(directory / 'app-universal-release.apk') as universal:
+              if any(name.startswith('lib/x86/') for name in universal.namelist()):
+                  raise SystemExit('Unexpected 32-bit x86 native library found in universal APK')
               for abi in abis:
                   library = f'lib/{abi}/libkomikita_native.so'
                   universal.getinfo(library)
@@ -84,8 +107,107 @@ jobs:
                       split.getinfo(library)
           PY
 
+      - name: Report APK sizes
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          directory = Path('app/build/outputs/apk/release')
+          summary = Path(os.environ['GITHUB_STEP_SUMMARY'])
+
+          def fmt_mb(size_bytes: int) -> str:
+              return f'{size_bytes / (1024 * 1024):.2f} MB'
+
+          lines = [
+              '## Release APK Sizes',
+              '',
+              '| APK | Total | Native (`lib/`) | DEX (`classes*.dex`) | Resources (`res/`) | Assets (`assets/`) | Other |',
+              '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+          ]
+          for apk in sorted(directory.glob('app-*-release.apk')):
+              buckets = {'lib': 0, 'dex': 0, 'res': 0, 'assets': 0, 'other': 0}
+              with ZipFile(apk) as zf:
+                  for info in zf.infolist():
+                      name = info.filename
+                      size = info.compress_size
+                      if name.startswith('lib/'):
+                          buckets['lib'] += size
+                      elif name.startswith('classes') and name.endswith('.dex'):
+                          buckets['dex'] += size
+                      elif name.startswith('res/'):
+                          buckets['res'] += size
+                      elif name.startswith('assets/'):
+                          buckets['assets'] += size
+                      else:
+                          buckets['other'] += size
+              lines.append(
+                  f'| `{apk.name}` | {fmt_mb(apk.stat().st_size)} | {fmt_mb(buckets["lib"])} '
+                  f'| {fmt_mb(buckets["dex"])} | {fmt_mb(buckets["res"])} '
+                  f'| {fmt_mb(buckets["assets"])} | {fmt_mb(buckets["other"])} |'
+              )
+          with summary.open('a', encoding='utf-8') as stream:
+              stream.write('\n'.join(lines) + '\n')
+          PY
+
+      - name: Upload APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: arm64-v8a-${{ github.sha }}
+          path: app/build/outputs/apk/release/app-arm64-v8a-release.apk
+
+      - name: Upload mapping
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mapping-${{ github.sha }}
+          path: app/build/outputs/mapping/release
+
+  jni-smoke-test:
+    name: Android JNI Smoke Test
+    runs-on: 'ubuntu-26.04'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          java-version-file: .github/.java-version
+          distribution: temurin
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
       - name: Enable KVM for the Android emulator
         run: sudo chmod a+rw /dev/kvm
+
+      - name: AVD cache
+        id: avd-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-google_apis-x86_64
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
 
       - name: Run Android JNI smoke test
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -93,6 +215,9 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           script: ./gradlew :core:native:connectedDebugAndroidTest -Penable-rust=true
 
       - name: Verify JNI smoke test ran
@@ -113,15 +238,3 @@ jobs:
           if missing:
               raise SystemExit(f'JNI smoke tests without a passing result: {", ".join(sorted(missing))}')
           PY
-
-      - name: Upload APK
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: arm64-v8a-${{ github.sha }}
-          path: app/build/outputs/apk/release/app-arm64-v8a-release.apk
-
-      - name: Upload mapping
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: mapping-${{ github.sha }}
-          path: app/build/outputs/mapping/release
