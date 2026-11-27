@@ -18,14 +18,15 @@ KomiKita is an open-source Android app for reading manga, comics, and webtoons. 
 </div>
 
 <p align="center">
-  <img src=".github/assets/screenshots/library.png" alt="KomiKita library with a Continue reading carousel" width="30%" />
-  <img src=".github/assets/screenshots/reading-year.png" alt="Reading year recap, completed chapters, reading time, and streaks" width="30%" />
-  <img src=".github/assets/screenshots/privacy.png" alt="Hidden categories protected by Android biometrics or device PIN" width="30%" />
+  <img src=".github/assets/screenshots/library.png" alt="KomiKita library in KomiKita Warm theme with Glass UI and Continue reading carousel" width="23%" />
+  <img src=".github/assets/screenshots/activity.png" alt="Activity tab combining Updates and History with a quick switcher" width="23%" />
+  <img src=".github/assets/screenshots/reading-year.png" alt="Reading year recap, completed chapters, reading time, and streaks" width="23%" />
+  <img src=".github/assets/screenshots/privacy.png" alt="Hidden categories protected by Android biometrics or device PIN" width="23%" />
 </p>
 
 Actual app screenshots with original demo titles. [Reproduce the demo](tools/demo/README.md).
 
-[Mihon](https://github.com/mihonapp/mihon) carries on the Tachiyomi codebase. KomiKita is a Mihon fork that adds library visibility controls, a Continue reading card, and in-app updates. Its separate application ID lets you install it alongside Mihon.
+[Mihon](https://github.com/mihonapp/mihon) carries on the Tachiyomi codebase. KomiKita is a Mihon fork that adds Glass UI and custom themes, a unified Activity tab, semantic library search, a Continue reading carousel, library visibility controls, a WebView ad blocker, and in-app updates. Its separate application ID lets you install it alongside Mihon.
 
 ## Contents
 
@@ -45,12 +46,16 @@ Actual app screenshots with original demo titles. [Reproduce the demo](tools/dem
 
 | Feature | How it works |
 | --- | --- |
+| Appearance & themes | Includes **KomiKita Warm** and **Mint Ink** themes alongside built-in palettes, plus an optional **Glass** appearance style with translucent surfaces and backdrop-blurred navigation. |
 | Reader | Choose page or webtoon mode. Set the reading direction, theme, and controls in the reader. |
 | Library | Create categories, search and filter titles, and switch between grid and list views. |
+| Semantic search | Search your library by meaning using an on-device MediaPipe embedding model directly from the library toolbar. |
 | Continue reading | Swipe through up to five recommendations. Keep reading your latest title or pick another recent read or update. New chapter notifications also offer a Continue reading action. |
+| Activity tab | Combines **Updates** and **History** into a single tab with a quick switcher. |
 | Offline and local reading | Download chapters or open comics stored on your device. |
 | Privacy | Unlock hidden categories using Android biometrics or your device PIN, pattern, or password. They lock again in the background. Hidden titles stay out of Continue reading, history, update notifications, and widgets. |
 | Visibility | In Browse, hide extensions and their sources without uninstalling them. |
+| WebView ad blocker | Block ads in the built-in WebView using built-in rules, downloadable filter lists, and custom rules. |
 | Reading statistics | See completed chapters, reading time, current and best streaks, and yearly recaps with your most read titles and monthly reading time. |
 | Diagnostic logs | Export recent app logs and device details from Advanced settings, with URLs, credentials, and hidden titles redacted. |
 | Extension icons | Show extension icons on library covers. |
@@ -75,7 +80,6 @@ For a smaller download on an ARM64 device, choose `komikita-arm64-v8a-vX.Y.Z.apk
 | --- | --- |
 | `komikita-arm64-v8a-vX.Y.Z.apk` | ARM64 phones and tablets. |
 | `komikita-armeabi-v7a-vX.Y.Z.apk` | Devices using 32-bit ARM. |
-| `komikita-x86-vX.Y.Z.apk` | Devices or emulators using 32-bit x86. |
 | `komikita-x86_64-vX.Y.Z.apk` | Devices or emulators using 64-bit x86. |
 | `komikita-vX.Y.Z.apk` | Universal APK for all architectures listed above. |
 

@@ -106,8 +106,9 @@ def main():
         adb("shell", "run-as", PACKAGE, "cp", "/data/local/tmp/komikita-demo.db", "databases/tachiyomi.db")
     prefs = ET.Element("map")
     ET.SubElement(prefs, "boolean", name="__APP_STATE_onboarding_complete", value="true")
-    ET.SubElement(prefs, "string", name="pref_app_theme").text = "TEALTURQUOISE"
+    ET.SubElement(prefs, "string", name="pref_app_theme").text = "KOMIKITA_WARM"
     ET.SubElement(prefs, "string", name="pref_theme_mode_key").text = "LIGHT"
+    ET.SubElement(prefs, "string", name="bottom_navigation_style").text = "GLASS"
     with tempfile.TemporaryDirectory(prefix="komikita-prefs-") as temp:
         prefs_path = Path(temp) / "preferences.xml"
         prefs_path.write_bytes(ET.tostring(prefs, encoding="utf-8", xml_declaration=True))

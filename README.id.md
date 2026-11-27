@@ -18,14 +18,15 @@ KomiKita adalah aplikasi Android bersumber terbuka untuk membaca manga, komik, d
 </div>
 
 <p align="center">
-  <img src=".github/assets/screenshots/library.png" alt="Pustaka KomiKita dengan carousel Lanjutkan membaca" width="30%" />
-  <img src=".github/assets/screenshots/reading-year.png" alt="Rekap tahunan, chapter selesai, waktu baca, dan streak" width="30%" />
-  <img src=".github/assets/screenshots/privacy.png" alt="Kategori tersembunyi dilindungi biometrik atau PIN perangkat Android" width="30%" />
+  <img src=".github/assets/screenshots/library.png" alt="Pustaka KomiKita dengan tema KomiKita Warm, Glass UI, dan carousel Lanjutkan membaca" width="23%" />
+  <img src=".github/assets/screenshots/activity.png" alt="Tab Aktivitas yang menggabungkan Pembaruan dan Riwayat dengan pengalih cepat" width="23%" />
+  <img src=".github/assets/screenshots/reading-year.png" alt="Rekap tahunan, chapter selesai, waktu baca, dan streak" width="23%" />
+  <img src=".github/assets/screenshots/privacy.png" alt="Kategori tersembunyi dilindungi biometrik atau PIN perangkat Android" width="23%" />
 </p>
 
 Screenshot aplikasi asli dengan judul demo orisinal. [Cara membuat ulang demo](tools/demo/README.md).
 
-KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis kode Tachiyomi. Fork ini menambahkan pengaturan visibilitas perpustakaan, kartu Lanjutkan Membaca, dan pembaruan dari dalam aplikasi. KomiKita punya ID aplikasi sendiri dan bisa dipasang berdampingan dengan Mihon.
+KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis kode Tachiyomi. Fork ini menambahkan Glass UI dan tema khusus, tab Aktivitas terpadu, pencarian pustaka semantik, carousel Lanjutkan Membaca, pengaturan visibilitas perpustakaan, pemblokir iklan WebView, serta pembaruan dari dalam aplikasi. KomiKita punya ID aplikasi sendiri dan bisa dipasang berdampingan dengan Mihon.
 
 ## Daftar isi
 
@@ -45,12 +46,16 @@ KomiKita berawal dari [Mihon](https://github.com/mihonapp/mihon), penerus basis 
 
 | Fitur | Cara kerjanya |
 | --- | --- |
+| Tampilan dan tema | Menyertakan tema **KomiKita Warm** dan **Mint Ink** bersama palet bawaan lainnya, serta gaya tampilan **Glass** opsional dengan permukaan transparan dan navigasi blur. |
 | Pembaca | Pilih mode halaman atau webtoon. Arah baca, tema, dan kontrol bisa diatur dari pembaca. |
 | Perpustakaan | Buat kategori, cari dan filter judul, lalu pilih tampilan grid atau daftar. |
+| Pencarian semantik | Cari judul di perpustakaan berdasarkan makna menggunakan model embedding MediaPipe di perangkat langsung dari bilah pencarian. |
 | Lanjutkan Membaca | Geser hingga lima rekomendasi: bacaan terakhir, bacaan lain yang baru dibuka, atau komik dengan chapter baru. Notifikasi chapter baru juga memiliki tombol Lanjutkan membaca. |
+| Tab Aktivitas | Menggabungkan **Pembaruan** dan **Riwayat** dalam satu tab dengan pengalih cepat. |
 | Bacaan offline dan lokal | Unduh chapter atau buka komik yang tersimpan di perangkat. |
 | Privasi | Buka kategori tersembunyi dengan biometrik atau PIN, pola, atau sandi perangkat Android. Kategori terkunci lagi saat aplikasi masuk latar belakang. Judulnya tidak muncul di Lanjutkan membaca, riwayat, notifikasi pembaruan, dan widget. |
 | Visibilitas | Di Jelajah, sembunyikan ekstensi dan sumbernya tanpa mencopot ekstensi. |
+| Pemblokir iklan WebView | Blokir iklan di WebView bawaan menggunakan aturan bawaan, daftar filter yang dapat diunduh, dan aturan kustom. |
 | Statistik membaca | Lihat chapter selesai, waktu baca, streak saat ini dan terpanjang, serta rekap tahunan berisi judul favorit dan waktu baca bulanan. |
 | Log diagnostik | Ekspor log aplikasi terbaru dan detail perangkat dari pengaturan Lanjutan, dengan URL, kredensial, dan judul tersembunyi disamarkan. |
 | Ikon ekstensi | Tampilkan ikon ekstensi pada komik di perpustakaan. |
@@ -75,7 +80,6 @@ Untuk unduhan yang lebih kecil di perangkat ARM64, pilih `komikita-arm64-v8a-vX.
 | --- | --- |
 | `komikita-arm64-v8a-vX.Y.Z.apk` | Ponsel dan tablet ARM64. |
 | `komikita-armeabi-v7a-vX.Y.Z.apk` | Perangkat dengan ARM 32-bit. |
-| `komikita-x86-vX.Y.Z.apk` | Perangkat atau emulator x86 32-bit. |
 | `komikita-x86_64-vX.Y.Z.apk` | Perangkat atau emulator x86 64-bit. |
 | `komikita-vX.Y.Z.apk` | APK universal untuk semua arsitektur di atas. |
 
