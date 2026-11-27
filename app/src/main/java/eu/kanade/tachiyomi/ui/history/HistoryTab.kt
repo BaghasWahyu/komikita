@@ -31,7 +31,9 @@ import tachiyomi.i18n.internal_error
 import tachiyomi.i18n.no_next_chapter
 
 @Composable
-fun HistoryTab() {
+fun HistoryTab(
+    subHeader: (@Composable () -> Unit)? = null,
+) {
     val navigator = LocalNavigator.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -47,6 +49,7 @@ fun HistoryTab() {
         onClickResume = viewModel::getNextChapterForManga,
         onDialogChange = viewModel::setDialog,
         onClickFavorite = viewModel::addFavorite,
+        subHeader = subHeader,
     )
 
     val onDismissRequest = { viewModel.setDialog(null) }
@@ -118,7 +121,7 @@ fun HistoryTab() {
         }
     }
 
-    ResultEffect<Unit>(resultKey = TopLevelRoute.History.reselectEventKey) {
+    ResultEffect<Unit>(resultKey = TopLevelRoute.Activity.reselectEventKey) {
         openChapter(context, snackbarHostState, viewModel.getNextChapter())
     }
 }

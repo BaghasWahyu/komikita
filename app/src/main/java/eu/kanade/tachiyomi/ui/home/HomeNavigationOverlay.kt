@@ -1,9 +1,12 @@
 package eu.kanade.tachiyomi.ui.home
 
 import android.os.Build
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
@@ -16,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
@@ -28,8 +33,9 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.theme.glassEdge
 import tachiyomi.presentation.core.components.material.LocalScaffoldOverlayInsets
+import tachiyomi.presentation.core.theme.GlassDockShape
+import tachiyomi.presentation.core.theme.glassBorder
 import kotlin.math.roundToInt
 
 @Composable
@@ -62,20 +68,28 @@ internal fun HomeNavigationOverlay(
         }
 
         if (visible) {
-            NavigationSuite(
-                navigationSuiteType = NavigationSuiteType.NavigationBar,
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .onSizeChanged { measuredBarHeight = it.height }
-                    .glassEdge(colorScheme.outlineVariant, atTop = true),
-                colors = NavigationSuiteDefaults.colors(
-                    navigationBarContainerColor = colorScheme.surfaceContainerLow.copy(
-                        alpha = if (blurEnabled) 0.80f else 0.92f,
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
+                NavigationSuite(
+                    navigationSuiteType = NavigationSuiteType.NavigationBar,
+                    modifier = Modifier
+                        .shadow(elevation = 12.dp, shape = GlassDockShape, clip = false)
+                        .clip(GlassDockShape)
+                        .border(glassBorder(), GlassDockShape),
+                    colors = NavigationSuiteDefaults.colors(
+                        navigationBarContainerColor = colorScheme.surfaceContainerLow.copy(
+                            alpha = if (blurEnabled) 0.78f else 0.92f,
+                        ),
+                        navigationBarContentColor = colorScheme.onSurface,
                     ),
-                    navigationBarContentColor = colorScheme.onSurface,
-                ),
-                content = navigationItems,
-            )
+                    content = navigationItems,
+                )
+            }
         }
     }
 }

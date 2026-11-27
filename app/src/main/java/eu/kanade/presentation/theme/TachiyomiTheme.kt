@@ -14,8 +14,10 @@ import eu.kanade.domain.ui.model.AppearanceStyle
 import eu.kanade.presentation.theme.colorscheme.BaseColorScheme
 import eu.kanade.presentation.theme.colorscheme.CatppuccinColorScheme
 import eu.kanade.presentation.theme.colorscheme.GreenAppleColorScheme
+import eu.kanade.presentation.theme.colorscheme.KomiKitaWarmColorScheme
 import eu.kanade.presentation.theme.colorscheme.LavenderColorScheme
 import eu.kanade.presentation.theme.colorscheme.MidnightDuskColorScheme
+import eu.kanade.presentation.theme.colorscheme.MintInkColorScheme
 import eu.kanade.presentation.theme.colorscheme.MonetColorScheme
 import eu.kanade.presentation.theme.colorscheme.MonochromeColorScheme
 import eu.kanade.presentation.theme.colorscheme.NordColorScheme
@@ -96,6 +98,8 @@ private fun getThemeColorScheme(
 
 private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.DEFAULT to TachiyomiColorScheme,
+    AppTheme.KOMIKITA_WARM to KomiKitaWarmColorScheme,
+    AppTheme.MINT_INK to MintInkColorScheme,
     AppTheme.CATPPUCCIN to CatppuccinColorScheme,
     AppTheme.TOKYONIGHT to TokyoNightColorScheme,
     AppTheme.GREEN_APPLE to GreenAppleColorScheme,

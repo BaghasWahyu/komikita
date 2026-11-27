@@ -29,7 +29,9 @@ import tachiyomi.i18n.update_already_running
 import tachiyomi.i18n.updating_library
 
 @Composable
-fun UpdatesTab() {
+fun UpdatesTab(
+    subHeader: (@Composable () -> Unit)? = null,
+) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
     val resultBus = LocalResultEventBus.current
@@ -57,6 +59,7 @@ fun UpdatesTab() {
         onCalendarClicked = { navigator.push(UpcomingRoute) },
         onFilterClicked = viewModel::showFilterDialog,
         hasActiveFilters = state.hasActiveFilters,
+        subHeader = subHeader,
     )
 
     val onDismissDialog = { viewModel.setDialog(null) }
@@ -106,7 +109,7 @@ fun UpdatesTab() {
         }
     }
 
-    ResultEffect<Unit>(resultKey = TopLevelRoute.Updates.reselectEventKey) {
+    ResultEffect<Unit>(resultKey = TopLevelRoute.Activity.reselectEventKey) {
         navigator.push(DownloadQueueRoute)
     }
 

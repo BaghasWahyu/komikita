@@ -5,8 +5,10 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.label_default
 import tachiyomi.i18n.theme_catppuccin
 import tachiyomi.i18n.theme_greenapple
+import tachiyomi.i18n.theme_komikita_warm
 import tachiyomi.i18n.theme_lavender
 import tachiyomi.i18n.theme_midnightdusk
+import tachiyomi.i18n.theme_mint_ink
 import tachiyomi.i18n.theme_monet
 import tachiyomi.i18n.theme_monochrome
 import tachiyomi.i18n.theme_nord
@@ -20,6 +22,8 @@ import tachiyomi.i18n.theme_yotsuba
 
 enum class AppTheme(val titleRes: StringResource?) {
     DEFAULT(MR.strings.label_default),
+    KOMIKITA_WARM(MR.strings.theme_komikita_warm),
+    MINT_INK(MR.strings.theme_mint_ink),
     MONET(MR.strings.theme_monet),
     CATPPUCCIN(MR.strings.theme_catppuccin),
     GREEN_APPLE(MR.strings.theme_greenapple),

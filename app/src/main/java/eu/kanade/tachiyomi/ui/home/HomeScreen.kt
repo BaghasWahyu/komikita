@@ -38,11 +38,9 @@ import eu.kanade.presentation.util.rememberAnimatedVectorPainter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.browse.BrowseShowExtensionsEvent
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
-import eu.kanade.tachiyomi.ui.history.HistoryTab
 import eu.kanade.tachiyomi.ui.library.LibrarySearchEvent
 import eu.kanade.tachiyomi.ui.library.LibraryTab
 import eu.kanade.tachiyomi.ui.more.MoreTab
-import eu.kanade.tachiyomi.ui.updates.UpdatesTab
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.serialization.Serializable
@@ -58,10 +56,9 @@ import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.browse
+import tachiyomi.i18n.komikita_activity
 import tachiyomi.i18n.komikita_collection
 import tachiyomi.i18n.label_more
-import tachiyomi.i18n.label_recent_manga
-import tachiyomi.i18n.label_recent_updates
 import tachiyomi.i18n.notification_chapters_generic
 import tachiyomi.i18n.update_check_notification_ext_updates
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -89,24 +86,12 @@ sealed interface TopLevelRoute : NavKey {
     }
 
     @Serializable
-    data object Updates : TopLevelRoute {
+    data object Activity : TopLevelRoute {
         @Composable
         override fun options(isSelected: Boolean): TabOptions {
             val image = AnimatedImageVector.animatedVectorResource(R.drawable.animated_updates)
             return TabOptions(
-                title = stringResource(MR.strings.label_recent_updates),
-                icon = rememberAnimatedVectorPainter(image, isSelected),
-            )
-        }
-    }
-
-    @Serializable
-    data object History : TopLevelRoute {
-        @Composable
-        override fun options(isSelected: Boolean): TabOptions {
-            val image = AnimatedImageVector.animatedVectorResource(R.drawable.animated_history)
-            return TabOptions(
-                title = stringResource(MR.strings.label_recent_manga),
+                title = stringResource(MR.strings.komikita_activity),
                 icon = rememberAnimatedVectorPainter(image, isSelected),
             )
         }
@@ -204,12 +189,8 @@ fun HomeScreen() {
                         LibraryTab()
                     }
 
-                    entry<TopLevelRoute.Updates> {
-                        UpdatesTab()
-                    }
-
-                    entry<TopLevelRoute.History> {
-                        HistoryTab()
+                    entry<TopLevelRoute.Activity> {
+                        ActivityTab()
                     }
 
                     entry<TopLevelRoute.Browse> {
@@ -230,8 +211,14 @@ fun HomeScreen() {
                 if (it.query != null) resultEventBus.sendResult(LibrarySearchEvent(it.query))
                 TopLevelRoute.Library
             }
-            TabEvent.Updates -> TopLevelRoute.Updates
-            TabEvent.History -> TopLevelRoute.History
+            TabEvent.Updates -> {
+                resultEventBus.sendResult(ActivitySectionEvent(ActivitySection.Updates))
+                TopLevelRoute.Activity
+            }
+            TabEvent.History -> {
+                resultEventBus.sendResult(ActivitySectionEvent(ActivitySection.History))
+                TopLevelRoute.Activity
+            }
             is TabEvent.Browse -> {
                 if (it.toExtensions) resultEventBus.sendResult(BrowseShowExtensionsEvent)
                 TopLevelRoute.Browse
@@ -296,7 +283,7 @@ private fun tabBadge(tab: TopLevelRoute): (@Composable () -> Unit)? {
     val count by produceState(initialValue = 0, tab) {
         val graph = context.appGraph
         when (tab) {
-            is TopLevelRoute.Updates -> {
+            is TopLevelRoute.Activity -> {
                 combine(
                     graph.libraryPreferences.newShowUpdatesCount.changes(),
                     graph.libraryPreferences.newUpdatesCount.changes(),
@@ -321,7 +308,7 @@ private fun tabBadge(tab: TopLevelRoute): (@Composable () -> Unit)? {
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ) {
             val desc = when (tab) {
-                is TopLevelRoute.Updates -> pluralStringResource(
+                is TopLevelRoute.Activity -> pluralStringResource(
                     MR.plurals.notification_chapters_generic,
                     count = count,
                     count,
@@ -370,8 +357,7 @@ private val spec = materialFadeThroughIn(
 
 private val TABS: List<TopLevelRoute> = listOf(
     TopLevelRoute.Library,
-    TopLevelRoute.Updates,
-    TopLevelRoute.History,
+    TopLevelRoute.Activity,
     TopLevelRoute.Browse,
     TopLevelRoute.More,
 )

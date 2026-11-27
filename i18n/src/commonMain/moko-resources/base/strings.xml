@@ -1173,4 +1173,7 @@
     <string name="komikita_device_security">Set up device security</string>
     <string name="komikita_completed_chapters">Chapters completed</string>
     <string name="komikita_reading_titles">Titles read</string>
+    <string name="theme_komikita_warm">KomiKita Warm</string>
+    <string name="theme_mint_ink">Mint Ink</string>
+    <string name="komikita_activity">Activity</string>
 </resources>

@@ -1,6 +1,7 @@
 package tachiyomi.presentation.core.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChipDefaults
@@ -15,6 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 val LocalGlassUiEnabled = compositionLocalOf { false }
+
+val GlassCoverShape = RoundedCornerShape(12.dp)
+val GlassCardShape = RoundedCornerShape(20.dp)
+val GlassDockShape = RoundedCornerShape(28.dp)
 
 fun Modifier.glassEdge(color: Color, atTop: Boolean): Modifier = drawWithContent {
     drawContent()

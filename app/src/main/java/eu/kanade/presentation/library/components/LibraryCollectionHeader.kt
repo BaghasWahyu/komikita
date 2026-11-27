@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,6 +23,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -44,8 +46,8 @@ import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import mihon.app.di.appGraph
 import mihon.icons.materialsymbols.MaterialSymbols
-import mihon.icons.materialsymbols.automirroredrounded.ArrowForward
 import mihon.icons.materialsymbols.automirroredroundedfilled.ViewList
+import mihon.icons.materialsymbols.roundedfilled.PlayArrow
 import mihon.icons.materialsymbols.roundedfilled.ViewModule
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibraryManga
@@ -58,6 +60,8 @@ import tachiyomi.i18n.komikita_list_view
 import tachiyomi.i18n.komikita_reading_progress
 import tachiyomi.i18n.komikita_your_collection
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.GlassCardShape
+import tachiyomi.presentation.core.theme.GlassCoverShape
 import tachiyomi.presentation.core.util.collectAsState
 
 @Composable
@@ -187,7 +191,7 @@ private fun ContinueReadingCard(
     Card(
         onClick = onClick,
         modifier = modifier,
-        shape = MaterialTheme.shapes.large,
+        shape = GlassCardShape,
         colors = CardDefaults.cardColors(
             containerColor = if (useGlassUi) colors.surfaceContainerHigh else colors.primaryContainer,
             contentColor = titleColor,
@@ -200,8 +204,8 @@ private fun ContinueReadingCard(
                     manga = manga.manga,
                     tint = Brush.horizontalGradient(
                         listOf(
-                            colors.surfaceContainerHigh.copy(alpha = 0.78f),
-                            colors.surfaceContainerHigh.copy(alpha = 0.88f),
+                            colors.surfaceContainerHigh.copy(alpha = 0.72f),
+                            colors.surfaceContainerHigh.copy(alpha = 0.86f),
                         ),
                     ),
                     modifier = Modifier.matchParentSize(),
@@ -215,22 +219,24 @@ private fun ContinueReadingCard(
 @Composable
 private fun ContinueReadingCardContent(manga: LibraryManga) {
     Row(
-        modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         MangaCover.Book(
             data = manga.manga,
-            modifier = Modifier.height(88.dp),
-            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.height(84.dp),
+            shape = GlassCoverShape,
         )
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Text(
                 text = stringResource(MR.strings.komikita_continue_reading),
                 style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
             )
             Text(
                 text = manga.manga.title,
@@ -242,15 +248,29 @@ private fun ContinueReadingCardContent(manga: LibraryManga) {
             Text(
                 text = stringResource(MR.strings.komikita_reading_progress, manga.readCount, manga.totalChapters),
                 style = MaterialTheme.typography.labelSmall,
+                color = LocalContentColor.current.copy(alpha = 0.78f),
             )
             LinearProgressIndicator(
                 progress = { manga.readingProgress },
-                modifier = Modifier.fillMaxWidth().height(4.dp).clip(MaterialTheme.shapes.small),
+                modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = LocalContentColor.current.copy(alpha = 0.12f),
+                trackColor = LocalContentColor.current.copy(alpha = 0.14f),
             )
         }
-        Icon(MaterialSymbols.AutoMirroredRounded.ArrowForward, contentDescription = null)
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(36.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = MaterialSymbols.RoundedFilled.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
     }
 }
 

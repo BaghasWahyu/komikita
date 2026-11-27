@@ -1,12 +1,22 @@
 package eu.kanade.presentation.more
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.more.settings.widget.SwitchPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
+import eu.kanade.presentation.theme.LocalGlassUiEnabled
 import eu.kanade.tachiyomi.ui.more.DownloadQueueState
 import mihon.icons.materialsymbols.MaterialSymbols
 import mihon.icons.materialsymbols.automirroredrounded.Help
@@ -39,6 +49,9 @@ import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.GlassCardShape
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassCardColors
 
 @Composable
 fun MoreScreen(
@@ -58,114 +71,132 @@ fun MoreScreen(
     val uriHandler = LocalUriHandler.current
 
     Scaffold { contentPadding ->
-        ScrollbarLazyColumn(contentPadding = contentPadding) {
+        ScrollbarLazyColumn(
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             item {
                 LogoHeader(
-                    iconPadding = PaddingValues(vertical = 32.dp),
+                    iconPadding = PaddingValues(top = 24.dp, bottom = 12.dp),
                 )
             }
             item {
-                SwitchPreferenceWidget(
-                    title = stringResource(MR.strings.label_downloaded_only),
-                    subtitle = stringResource(MR.strings.downloaded_only_summary),
-                    icon = MaterialSymbols.Rounded.CloudOff,
-                    checked = downloadedOnly,
-                    onCheckedChanged = onDownloadedOnlyChange,
-                )
+                MoreSectionCard {
+                    SwitchPreferenceWidget(
+                        title = stringResource(MR.strings.label_downloaded_only),
+                        subtitle = stringResource(MR.strings.downloaded_only_summary),
+                        icon = MaterialSymbols.Rounded.CloudOff,
+                        checked = downloadedOnly,
+                        onCheckedChanged = onDownloadedOnlyChange,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SwitchPreferenceWidget(
+                        title = stringResource(MR.strings.pref_incognito_mode),
+                        subtitle = stringResource(MR.strings.pref_incognito_mode_summary),
+                        icon = MaterialSymbols.Rounded.Eyeglasses2,
+                        checked = incognitoMode,
+                        onCheckedChanged = onIncognitoModeChange,
+                    )
+                }
             }
             item {
-                SwitchPreferenceWidget(
-                    title = stringResource(MR.strings.pref_incognito_mode),
-                    subtitle = stringResource(MR.strings.pref_incognito_mode_summary),
-                    icon = MaterialSymbols.Rounded.Eyeglasses2,
-                    checked = incognitoMode,
-                    onCheckedChanged = onIncognitoModeChange,
-                )
-            }
-
-            item { HorizontalDivider() }
-
-            item {
-                val downloadQueueState = downloadQueueStateProvider()
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_download_queue),
-                    subtitle = when (downloadQueueState) {
-                        DownloadQueueState.Stopped -> null
-                        is DownloadQueueState.Paused -> {
-                            val pending = downloadQueueState.pending
-                            if (pending == 0) {
-                                stringResource(MR.strings.paused)
-                            } else {
-                                "${stringResource(MR.strings.paused)} • ${
-                                    pluralStringResource(
-                                        MR.plurals.download_queue_summary,
-                                        count = pending,
-                                        pending,
-                                    )
-                                }"
+                MoreSectionCard {
+                    val downloadQueueState = downloadQueueStateProvider()
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_download_queue),
+                        subtitle = when (downloadQueueState) {
+                            DownloadQueueState.Stopped -> null
+                            is DownloadQueueState.Paused -> {
+                                val pending = downloadQueueState.pending
+                                if (pending == 0) {
+                                    stringResource(MR.strings.paused)
+                                } else {
+                                    "${stringResource(MR.strings.paused)} • ${
+                                        pluralStringResource(
+                                            MR.plurals.download_queue_summary,
+                                            count = pending,
+                                            pending,
+                                        )
+                                    }"
+                                }
                             }
-                        }
-                        is DownloadQueueState.Downloading -> {
-                            val pending = downloadQueueState.pending
-                            pluralStringResource(MR.plurals.download_queue_summary, count = pending, pending)
-                        }
-                    },
-                    icon = MaterialSymbols.Rounded.Download,
-                    onPreferenceClick = onClickDownloadQueue,
-                )
+                            is DownloadQueueState.Downloading -> {
+                                val pending = downloadQueueState.pending
+                                pluralStringResource(MR.plurals.download_queue_summary, count = pending, pending)
+                            }
+                        },
+                        icon = MaterialSymbols.Rounded.Download,
+                        onPreferenceClick = onClickDownloadQueue,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.categories),
+                        icon = MaterialSymbols.AutoMirroredRounded.Label,
+                        onPreferenceClick = onClickCategories,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_stats),
+                        icon = MaterialSymbols.Rounded.QueryStats,
+                        onPreferenceClick = onClickStats,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_data_storage),
+                        icon = MaterialSymbols.Rounded.Storage,
+                        onPreferenceClick = onClickDataAndStorage,
+                    )
+                }
             }
             item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.categories),
-                    icon = MaterialSymbols.AutoMirroredRounded.Label,
-                    onPreferenceClick = onClickCategories,
-                )
-            }
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_stats),
-                    icon = MaterialSymbols.Rounded.QueryStats,
-                    onPreferenceClick = onClickStats,
-                )
-            }
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_data_storage),
-                    icon = MaterialSymbols.Rounded.Storage,
-                    onPreferenceClick = onClickDataAndStorage,
-                )
-            }
-
-            item { HorizontalDivider() }
-
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_settings),
-                    icon = MaterialSymbols.Rounded.Settings,
-                    onPreferenceClick = onClickSettings,
-                )
-            }
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_support_us),
-                    icon = MaterialSymbols.RoundedFilled.VolunteerActivism,
-                    onPreferenceClick = onClickSupport,
-                )
-            }
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.pref_category_about),
-                    icon = MaterialSymbols.Rounded.Info,
-                    onPreferenceClick = onClickAbout,
-                )
-            }
-            item {
-                TextPreferenceWidget(
-                    title = stringResource(MR.strings.label_help),
-                    icon = MaterialSymbols.AutoMirroredRounded.Help,
-                    onPreferenceClick = { uriHandler.openUri(Constants.URL_HELP) },
-                )
+                MoreSectionCard(modifier = Modifier.padding(bottom = 12.dp)) {
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_settings),
+                        icon = MaterialSymbols.Rounded.Settings,
+                        onPreferenceClick = onClickSettings,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_support_us),
+                        icon = MaterialSymbols.RoundedFilled.VolunteerActivism,
+                        onPreferenceClick = onClickSupport,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.pref_category_about),
+                        icon = MaterialSymbols.Rounded.Info,
+                        onPreferenceClick = onClickAbout,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    TextPreferenceWidget(
+                        title = stringResource(MR.strings.label_help),
+                        icon = MaterialSymbols.AutoMirroredRounded.Help,
+                        onPreferenceClick = { uriHandler.openUri(Constants.URL_HELP) },
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun MoreSectionCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = GlassCardShape,
+        colors = if (useGlassUi) {
+            glassCardColors()
+        } else {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        },
+        border = if (useGlassUi) glassBorder() else null,
+    ) {
+        Column(content = content)
     }
 }

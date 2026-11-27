@@ -130,6 +130,10 @@ import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.theme.GlassCardShape
+import tachiyomi.presentation.core.theme.GlassCoverShape
+import tachiyomi.presentation.core.theme.glassBorder
+import tachiyomi.presentation.core.theme.glassSurfaceColor
 import tachiyomi.presentation.core.util.clickableNoIndication
 import tachiyomi.presentation.core.util.secondaryItemAlpha
 import kotlin.math.roundToInt
@@ -440,6 +444,7 @@ private fun MangaAndSourceTitlesLarge(
                 .data(manga)
                 .crossfade(true)
                 .build(),
+            shape = GlassCoverShape,
             contentDescription = stringResource(MR.strings.manga_cover),
             onClick = onCoverClick,
         )
@@ -478,12 +483,13 @@ private fun MangaAndSourceTitlesSmall(
     ) {
         MangaCover.Book(
             modifier = Modifier
-                .width(72.dp)
+                .width(80.dp)
                 .align(Alignment.Top),
             data = ImageRequest.Builder(LocalContext.current)
                 .data(manga)
                 .crossfade(true)
                 .build(),
+            shape = GlassCoverShape,
             contentDescription = stringResource(MR.strings.manga_cover),
             onClick = onCoverClick,
         )
@@ -820,17 +826,21 @@ private fun RowScope.MangaActionButton(
     onLongClick: (() -> Unit)? = null,
     highlighted: Boolean = false,
 ) {
+    val useGlassUi = LocalGlassUiEnabled.current
+    val containerColor = when {
+        highlighted && useGlassUi -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.78f)
+        highlighted -> MaterialTheme.colorScheme.primaryContainer
+        useGlassUi -> glassSurfaceColor(MaterialTheme.colorScheme.surfaceContainerHigh, alpha = 0.68f)
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
+    }
     TextButton(
         onClick = onClick,
-        modifier = Modifier.weight(1f).heightIn(min = 64.dp),
-        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.weight(1f).heightIn(min = 66.dp),
+        shape = if (useGlassUi) GlassCardShape else MaterialTheme.shapes.large,
+        border = if (useGlassUi) glassBorder() else null,
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (highlighted) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerLow
-            },
+            containerColor = containerColor,
             contentColor = color,
         ),
         onLongClick = onLongClick,
@@ -840,7 +850,7 @@ private fun RowScope.MangaActionButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.height(4.dp))
             Text(

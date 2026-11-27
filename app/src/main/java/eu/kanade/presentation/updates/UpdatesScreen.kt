@@ -71,6 +71,7 @@ fun UpdateScreen(
     onOpenChapter: (UpdatesItem) -> Unit,
     onFilterClicked: () -> Unit,
     hasActiveFilters: Boolean,
+    subHeader: (@Composable () -> Unit)? = null,
 ) {
     BackHandler(enabled = state.selectionMode) {
         onSelectAll(false)
@@ -80,17 +81,22 @@ fun UpdateScreen(
 
     Scaffold(
         topBar = { scrollBehavior ->
-            UpdatesAppBar(
-                onCalendarClicked = { onCalendarClicked() },
-                onUpdateLibrary = { scope.launch { onUpdateLibrary() } },
-                onFilterClicked = { onFilterClicked() },
-                hasFilters = hasActiveFilters,
-                actionModeCounter = state.selected.size,
-                onSelectAll = { onSelectAll(true) },
-                onInvertSelection = { onInvertSelection() },
-                onCancelActionMode = { onSelectAll(false) },
-                scrollBehavior = scrollBehavior,
-            )
+            Column {
+                UpdatesAppBar(
+                    onCalendarClicked = { onCalendarClicked() },
+                    onUpdateLibrary = { scope.launch { onUpdateLibrary() } },
+                    onFilterClicked = { onFilterClicked() },
+                    hasFilters = hasActiveFilters,
+                    actionModeCounter = state.selected.size,
+                    onSelectAll = { onSelectAll(true) },
+                    onInvertSelection = { onInvertSelection() },
+                    onCancelActionMode = { onSelectAll(false) },
+                    scrollBehavior = scrollBehavior,
+                )
+                if (!state.selectionMode) {
+                    subHeader?.invoke()
+                }
+            }
         },
         bottomBar = {
             UpdatesBottomBar(

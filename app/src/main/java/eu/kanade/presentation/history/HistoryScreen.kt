@@ -1,5 +1,6 @@
 package eu.kanade.presentation.history
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -50,28 +51,32 @@ fun HistoryScreen(
     onClickResume: (mangaId: Long, chapterId: Long) -> Unit,
     onClickFavorite: (mangaId: Long) -> Unit,
     onDialogChange: (HistoryViewModel.Dialog?) -> Unit,
+    subHeader: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         topBar = { scrollBehavior ->
-            SearchToolbar(
-                titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
-                searchQuery = state.searchQuery,
-                onChangeSearchQuery = onSearchQueryChange,
-                actions = {
-                    AppBarActions(
-                        listOf(
-                            AppBar.Action(
-                                title = stringResource(MR.strings.pref_clear_history),
-                                icon = MaterialSymbols.Rounded.DeleteSweep,
-                                onClick = {
-                                    onDialogChange(HistoryViewModel.Dialog.DeleteAll)
-                                },
+            Column {
+                SearchToolbar(
+                    titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
+                    searchQuery = state.searchQuery,
+                    onChangeSearchQuery = onSearchQueryChange,
+                    actions = {
+                        AppBarActions(
+                            listOf(
+                                AppBar.Action(
+                                    title = stringResource(MR.strings.pref_clear_history),
+                                    icon = MaterialSymbols.Rounded.DeleteSweep,
+                                    onClick = {
+                                        onDialogChange(HistoryViewModel.Dialog.DeleteAll)
+                                    },
+                                ),
                             ),
-                        ),
-                    )
-                },
-                scrollBehavior = scrollBehavior,
-            )
+                        )
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
+                subHeader?.invoke()
+            }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { contentPadding ->
